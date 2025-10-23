@@ -1,4 +1,4 @@
-package com.desolutions
+package com.fatima_mill
 
 import android.app.Application
 import com.facebook.react.PackageList

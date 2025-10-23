@@ -1,4 +1,4 @@
-package com.desolutions
+package com.fatima_mill
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

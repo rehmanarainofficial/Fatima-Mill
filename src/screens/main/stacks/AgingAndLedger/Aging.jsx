@@ -8,12 +8,15 @@ import AppText from '../../../../components/AppText';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import {PermissionsAndroid, Platform, Alert} from 'react-native';
 import RNFS from 'react-native-fs';
+import {Notifications} from 'react-native-notifications';
+import Toast from 'react-native-toast-message';
 
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
 
   console.log('name, item', name, item);
   const [aging, setAgingData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const nav = navigation.addListener('focus', () => {
@@ -77,42 +80,58 @@ const Aging = ({navigation, route}) => {
       });
   };
 
-  // generate pdf
   const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        if (Platform.Version >= 33) {
-          const readMediaPermission = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          );
-          return readMediaPermission === PermissionsAndroid.RESULTS.GRANTED;
-        } else {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-      } catch (err) {
-        console.warn(err);
-        return false;
+    if (Platform.OS !== 'android') return true;
+
+    try {
+      if (Platform.Version >= 33) {
+        // Android 13+ media-specific permission
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+        ]);
+
+        return (
+          granted['android.permission.READ_MEDIA_IMAGES'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+        );
+      } else {
+        // Android 12 and below
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-    } else {
-      return true;
+    } catch (err) {
+      console.warn('Permission error:', err);
+      return false;
     }
   };
 
- // Calculate totals
-const totalAllocated = aging.reduce((sum, row) => sum + parseFloat(row.Allocated || 0), 0);
-const totalInvoice = aging.reduce((sum, row) => sum + parseFloat(row.Invoice_amount || 0), 0);
-const totalBalance = aging.reduce((sum, row) => sum + parseFloat(row.invoce_balance || 0), 0);
+  // Calculate totals
+  const totalAllocated = aging.reduce(
+    (sum, row) => sum + parseFloat(row.Allocated || 0),
+    0,
+  );
+  const totalInvoice = aging.reduce(
+    (sum, row) => sum + parseFloat(row.Invoice_amount || 0),
+    0,
+  );
+  const totalBalance = aging.reduce(
+    (sum, row) => sum + parseFloat(row.invoce_balance || 0),
+    0,
+  );
 
-// Current date in readable format
-const currentDate = new Date().toLocaleDateString();
+  // Current date in readable format
+  const currentDate = new Date().toLocaleDateString();
 
-const htmlContent = `
+  const htmlContent = `
   <div style="text-align: center; font-family: Arial, sans-serif;">
     <h1>Aging Report</h1>
-    <p><strong>Name:</strong> ${item?.name || item?.customer_name || item?.supplier_name || ''}</p>
+    <p><strong>Name:</strong> ${
+      item?.name || item?.customer_name || item?.supplier_name || ''
+    }</p>
     <p><strong>Date:</strong> ${currentDate}</p>
   </div>
 
@@ -139,48 +158,87 @@ const htmlContent = `
             <td style="padding: 8px; text-align: right;">${row.Invoice_amount}</td>
             <td style="padding: 8px; text-align: right;">${row.invoce_balance}</td>
           </tr>
-        `
+        `,
         )
         .join('')}
     </tbody>
     <tfoot>
       <tr style="font-weight: bold; background-color: #e6e6e6;">
         <td colspan="3" style="padding: 8px; text-align: right;">TOTAL</td>
-        <td style="padding: 8px; text-align: right;">${totalAllocated.toFixed(2)}</td>
-        <td style="padding: 8px; text-align: right;">${totalInvoice.toFixed(2)}</td>
-        <td style="padding: 8px; text-align: right;">${totalBalance.toFixed(2)}</td>
+        <td style="padding: 8px; text-align: right;">${totalAllocated.toFixed(
+          2,
+        )}</td>
+        <td style="padding: 8px; text-align: right;">${totalInvoice.toFixed(
+          2,
+        )}</td>
+        <td style="padding: 8px; text-align: right;">${totalBalance.toFixed(
+          2,
+        )}</td>
       </tr>
     </tfoot>
   </table>
 `;
 
-
   const generatePDF = async () => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Storage permission is required.');
-      return;
-    }
-
-    const fileName = 'Aging_Report.pdf';
-    const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-
-    const options = {
-      html: htmlContent, 
-      fileName: fileName.replace('.pdf', ''),
-      directory: 'Download',
-    };
-
+    setLoading(true);
     try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) return;
+
+      // ✅ Generate file name using customer/supplier name + timestamp
+      const customerName =
+        item?.name ||
+        item?.customer_name ||
+        item?.supplier_name ||
+        'Aging_Report';
+      const safeName = customerName.replace(/[^a-zA-Z0-9_]/g, '_'); // remove special chars
+      const fileName = `${safeName}_${Date.now()}`; // unique file name
+
+      // Generate PDF in app sandbox first
+      const options = {
+        html: htmlContent,
+        fileName,
+        directory: 'Documents',
+      };
+
       const file = await RNHTMLtoPDF.convert(options);
+      console.log('📄 Internal PDF created at:', file.filePath);
 
-      await RNFS.moveFile(file.filePath, filePath);
+      // ✅ Move to public Download folder
+      const publicDir =
+        Platform.Version >= 29
+          ? RNFS.DownloadDirectoryPath
+          : RNFS.ExternalStorageDirectoryPath + '/Download';
 
-      console.log('PDF saved to:', filePath);
-      Alert.alert('PDF Saved', `File saved to:\n${filePath}`);
+      const destPath = `${publicDir}/${fileName}.pdf`;
+      await RNFS.copyFile(file.filePath, destPath);
+      console.log('✅ PDF moved to visible folder:', destPath);
+
+      // ✅ Toast message
+      Toast.show({
+        type: 'success',
+        text1: 'PDF Saved',
+        text2: `Saved to Downloads as ${fileName}.pdf`,
+        visibilityTime: 3000,
+      });
+
+      // ✅ Mobile notification
+      Notifications.postLocalNotification({
+        title: '📄 PDF Saved',
+        body: `Your Aging Report (${customerName}) is saved in Downloads.`,
+        sound: 'default',
+        silent: false,
+        userInfo: {filePath: destPath},
+      });
     } catch (error) {
-      console.error('PDF generation error:', error);
-      Alert.alert('Error', 'Something went wrong while generating PDF.');
+      console.error('❌ PDF generation error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to generate PDF.',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -195,7 +253,9 @@ const htmlContent = `
           borderRadius: 10,
         }}
         onPress={generatePDF}>
-        <Text style={{color: 'white', textAlign: 'center'}}>Download PDF</Text>
+        <Text style={{color: 'white', textAlign: 'center'}}>
+          {loading ? 'Generating...' : 'Download PDF'}
+        </Text>
       </TouchableOpacity>
 
       <FlatList
