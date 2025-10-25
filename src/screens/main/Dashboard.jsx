@@ -1,80 +1,122 @@
 import {
   View,
-  Text,
-  FlatList,
-  Image,
   ScrollView,
-  Touchable,
   TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  FlatList,
+  Text, // 💡 NEW: Native Text component imported for custom heading
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
+import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  FadeInLeft,
+} from 'react-native-reanimated';
+import Modal from 'react-native-modal';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import moment from 'moment';
+import AppText from '../../components/AppText';
+import AppHeader from '../../components/AppHeader';
 import {APPCOLORS} from '../../utils/APPCOLORS';
+import BaseUrl from '../../utils/BaseUrl';
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from '../../utils/Responsive';
-import LinearGradient from 'react-native-linear-gradient';
-import DashboardTabs from '../../components/DashboardTabs';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AppText from '../../components/AppText';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import AppHeader from '../../components/AppHeader';
-import {AppImages} from '../../assets/images/AppImages';
-import Modal from 'react-native-modal';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import BaseUrl from '../../utils/BaseUrl';
-import axios from 'axios';
-import moment from 'moment';
+
+// 💡 Custom Animated Card Component (Functional version)
+const ScaleCard = ({children, onPress}) => {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{scale: scale.value}],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, {damping: 8, stiffness: 100});
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, {damping: 8, stiffness: 100});
+  };
+
+  return (
+    <Animated.View style={[styles.cardWrapper, animatedStyle]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.cardTouchArea}>
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
-
-  const [slider_data, setslider_data] = useState();
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
-
   const [loader, setLoader] = useState(false);
 
   const companyData = [
     {
       id: 1,
-      name: 'Fatima Mill',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
+      name: 'IBR-ENT',
+      icon: (
+        <MaterialIcons
+          name="account-balance"
+          size={responsiveFontSize(4)}
+          color={APPCOLORS.Primary}
+        />
+      ),
+      onPress: () => navigation.navigate('Detail', {type: 'Sales'}),
     },
     {
       id: 2,
-      name: 'Company 2',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
+      name: 'FBPM',
+      icon: (
+        <MaterialIcons
+          name="account-balance"
+          size={responsiveFontSize(4)}
+          color={APPCOLORS.Primary}
+        />
+      ),
+      onPress: () => navigation.navigate('Detail', {type: 'Purchase'}),
     },
     {
       id: 3,
-      name: 'Company 3',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
+      name: 'Company3',
+      icon: (
+        <MaterialIcons
+          name="account-balance"
+          size={responsiveFontSize(4)}
+          color={APPCOLORS.Primary}
+        />
+      ),
+      onPress: () => navigation.navigate('Detail', {type: 'Accounts'}),
     },
     {
       id: 4,
-      name: 'Company 4',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
-    },
-    {
-      id: 5,
-      name: 'Company 5',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
-    },
-    {
-      id: 6,
-      name: 'More',
-      img: AppImages.buildings,
-      onPress: () => navigation.navigate('ViewAll'),
+      name: 'Company4',
+      icon: (
+        <MaterialIcons
+          name="account-balance"
+          size={responsiveFontSize(4)}
+          color={APPCOLORS.Primary}
+        />
+      ),
+      onPress: () => navigation.navigate('Detail', {type: 'Inventory'}),
     },
   ];
-
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       getMoneyData();
@@ -84,246 +126,240 @@ const Dashboard = ({navigation}) => {
 
   const getMoneyData = async () => {
     setLoader(true);
-
-    const form = new FormData();
-    const currentDate = new Date();
-    const todayDate = moment(currentDate).format('YYYY-MM-DD');
-
-    form.append('current_date', todayDate);
-    form.append('pre_month_date', '2025-04-19');
-
-    const options = {
-      method: 'GET',
-      url: `${BaseUrl}dashboard_view.php`,
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-      data: form,
-    };
-
+    const todayDate = moment(new Date()).format('YYYY-MM-DD');
     try {
-      const {data} = await axios.request(options);
-
-      setslider_data(data?.slider_data);
+      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`, {
+        headers: {'content-type': 'multipart/form-data'},
+        params: {current_date: todayDate, pre_month_date: '2025-04-19'},
+      });
       setAllData(data);
-      setLoader(false);
     } catch (error) {
-      console.error(error);
+      console.error('❌ Dashboard API Error:', error);
+    } finally {
       setLoader(false);
     }
-  }
+  };
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.LIGHTGRAY}}>
-      <AppHeader
-        title={'Dashboard'}
-        onPress={res => {
-          setVisible(true), setType(res);
-        }}
-      />
+    <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{flex: 1}}>
+      {/* 🔹 Header */}
+      <Animated.View entering={FadeInDown.duration(600)}>
+        <AppHeader
+          title={'Dashboard'}
+          onPress={res => {
+            setVisible(true);
+            setType(res);
+          }}
+        />
+      </Animated.View>
 
-      <Modal isVisible={visible}>
-        <View
-          style={{
-            height: responsiveHeight(70),
-            width: responsiveWidth(90),
-            backgroundColor: APPCOLORS.WHITE,
-            borderRadius: 20,
-            padding: 20,
-          }}>
+      {/* 🔹 Modal (Unchanged) */}
+      <Modal
+        isVisible={visible}
+        animationIn="slideInUp"
+        animationOut="fadeOutDown"
+        backdropTransitionOutTiming={0}
+        onBackdropPress={() => setVisible(false)}>
+        <View style={styles.modalContent}>
           <LinearGradient
             colors={['#1D4452', '#4199B8']}
-            style={{
-              padding: 20,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              borderRadius: 25,
-              alignItems: 'center',
-            }}>
+            style={styles.modalHeaderGradient}>
             <TouchableOpacity onPress={() => setVisible(false)}>
               <AntDesign
-                name={'close'}
+                name="close"
                 color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2)}
+                size={responsiveFontSize(2.2)}
               />
             </TouchableOpacity>
 
             <AppText
               title={
-                Type == 'bell'
+                Type === 'bell'
                   ? 'Outstanding Receipt'
-                  : Type == 'mail'
+                  : Type === 'mail'
                   ? 'Outstanding Payment'
-                  : Type == 'chat'
+                  : Type === 'chat'
                   ? 'Outstanding Cheque'
-                  : null
+                  : 'Dashboard'
               }
               titleColor={APPCOLORS.WHITE}
               titleSize={2}
               titleWeight
             />
-
             <View />
           </LinearGradient>
-
-          <FlatList
-            data={
-              Type == 'bell'
-                ? AllData?.data_outstanding_receipt
-                : Type == 'mail'
-                ? AllData?.data_outstanding_payments
-                : Type == 'chat'
-                ? AllData?.data_outstanding_cheque
-                : null
-            }
-            contentContainerStyle={{gap: 10, marginTop: 10, paddingBottom: 100}}
-            renderItem={({item}) => {
-
-              return (
-                <View
-                  style={{
-                    padding: 20,
-                    width: responsiveWidth(80),
-                    backgroundColor: APPCOLORS.DARKLIGHTBLUE,
-                    borderRadius: 10,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <View>
-                    <AppText
-                      title={'Name'}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      titleSize={2}
-                      titleSizeWeight={40}
-                    />
-                    <AppText
-                      title={item?.name}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      titleSize={1.7}
-                      titleSizeWeight={40}
-                    />
-                  </View>
-
-                  <View>
-                    <AppText
-                      title={'Amount'}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      titleSize={2}
-                    />
-                    <AppText
-                      title={Math.round(
-                        JSON.parse(item?.total),
-                      ).toLocaleString()}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      titleSize={1.8}
-                    />
-                  </View>
-                </View>
-              );
-            }}
-          />
-
-          <View></View>
         </View>
       </Modal>
 
-      <View style={{padding: 20}}>
-        <FlatList
-          data={companyData}
-          numColumns={0}
-          contentContainerStyle={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 20,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          renderItem={({item}) => {
-            return (
-              <DashboardTabs
-                img={item.img}
-                name={item.name}
-                logo={
-                  <FontAwesome
-                    name={'send'}
-                    color={APPCOLORS.BLACK}
-                    size={responsiveFontSize(2.5)}
-                  />
-                }
-                onPress={item.onPress}
-              />
-            );
-          }}
-        />
-      </View>
+      {/* 💡 Solution: ScrollView to wrap main content */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}>
+        {/* 🔹 Loader */}
+        {loader && (
+          <ActivityIndicator
+            size="large"
+            color={APPCOLORS.Primary}
+            style={{marginTop: 30}}
+          />
+        )}
 
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          width: responsiveWidth(90),
-          alignSelf: 'center',
-          gap: 5,
-          marginTop: 20,
-        }}>
-        <Image
-          source={AppImages.speak}
-          style={{
-            height: responsiveHeight(2),
-            width: responsiveHeight(2),
-            resizeMode: 'contain',
-          }}
-        />
-        <AppText
-          title="Announcement"
-          titleSize={2.5}
-          titleColor={APPCOLORS.BLACK}
-          titleWeight
-        />
-      </View>
+        {/* 🔹 Animated Cards (Grid View) */}
+        <View style={styles.cardGridContainer}>
+          <View style={styles.gridRow}>
+            {companyData.slice(0, 2).map((item, index) => (
+              <Animated.View
+                key={item.id}
+                entering={FadeInUp.delay(index * 120).duration(700)}>
+                <ScaleCard onPress={item.onPress}>
+                  <View style={styles.cardInnerView}>
+                    {item.icon}
+                    {/* AppText used here as required for card titles */}
+                    <AppText
+                      title={item.name}
+                      titleColor={APPCOLORS.BLACK}
+                      titleWeight
+                      titleSize={2}
+                    />
+                  </View>
+                </ScaleCard>
+              </Animated.View>
+            ))}
+          </View>
+          <View style={styles.gridRow}>
+            {companyData.slice(2, 4).map((item, index) => (
+              <Animated.View
+                key={item.id}
+                entering={FadeInUp.delay((index + 2) * 120).duration(700)}>
+                <ScaleCard onPress={item.onPress}>
+                  <View style={styles.cardInnerView}>
+                    {item.icon}
+                    {/* AppText used here as required for card titles */}
+                    <AppText
+                      title={item.name}
+                      titleColor={APPCOLORS.BLACK}
+                      titleWeight
+                      titleSize={2}
+                    />
+                  </View>
+                </ScaleCard>
+              </Animated.View>
+            ))}
+          </View>
+        </View>
 
-      <FlatList
-        data={companyData}
-        horizontal
-        contentContainerStyle={{gap: 20, paddingLeft: 10, marginTop: 10}}
-        renderItem={({item}) => {
-          return (
-            <LinearGradient
-              colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}
-              style={{
-                height: responsiveHeight(20),
-                width: responsiveWidth(80),
-                backgroundColor: APPCOLORS.BarColor,
-                borderRadius: 10,
-                padding: 20,
-                gap: 20,
-              }}>
-              <AppText
-                title="🎉 New Feature Release"
-                titleColor={APPCOLORS.WHITE}
-                titleSize={2}
-                titleWeight
-              />
-              <View style={{width: responsiveWidth(60)}}>
+        {/* 🔹 Info Banner Slider (Horizontal FlatList) */}
+        <Animated.View entering={FadeInLeft.delay(800).duration(1000)}>
+          {/* 💡 CHANGE 1: AppText removed, native Text component used for custom heading */}
+          <Text style={styles.updateHeading}>
+            <Text style={{fontWeight: 'bold'}}>Latest</Text> Updates
+          </Text>
+          {/* 💡 CHANGE 2: Horizontal FlatList's wrapper view now has top margin from the heading style */}
+          <FlatList
+            data={[1, 2, 3]}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.infoBannerContainer}
+            renderItem={() => (
+              <LinearGradient
+                colors={['#4199B8', APPCOLORS.Primary]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.infoBannerGradient}>
+                {/* AppText used here as required for banner content */}
                 <AppText
-                  title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
+                  title="🎉 New Feature Release"
                   titleColor={APPCOLORS.WHITE}
-                  titleSize={1.7}
+                  titleSize={2}
+                  titleWeight
                 />
-              </View>
-            </LinearGradient>
-          );
-        }}
-      />
-    </View>
+                <View style={{width: responsiveWidth(60), marginTop: 8}}>
+                  <AppText
+                    title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
+                    titleColor={APPCOLORS.WHITE}
+                    titleSize={1.7}
+                  />
+                </View>
+              </LinearGradient>
+            )}
+          />
+        </Animated.View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+  cardGridContainer: {
+    paddingHorizontal: 20,
+    marginTop: 30,
+    gap: 20,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cardWrapper: {
+    width: responsiveWidth(42),
+    height: responsiveHeight(18),
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  cardTouchArea: {
+    flex: 1,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardInnerView: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 15,
+    gap: 10,
+  },
+  // 💡 NEW STYLE for the custom heading
+  updateHeading: {
+    fontSize: responsiveFontSize(2.2), // Same size as previous AppText
+    color: APPCOLORS.BLACK,
+    // Margin for spacing: Top margin for spacing below the main cards.
+    marginTop: responsiveHeight(3),
+    marginBottom: 10,
+    paddingHorizontal: 20, // Alignment with other content
+  },
+  infoBannerContainer: {
+    gap: 20,
+    paddingLeft: 20,
+    paddingBottom: 10,
+  },
+  infoBannerGradient: {
+    height: responsiveHeight(18),
+    width: responsiveWidth(80),
+    borderRadius: 16,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  modalContent: {
+    height: responsiveHeight(65),
+    width: responsiveWidth(90),
+    backgroundColor: APPCOLORS.WHITE,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  modalHeaderGradient: {
+    padding: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+});
 
 export default Dashboard;

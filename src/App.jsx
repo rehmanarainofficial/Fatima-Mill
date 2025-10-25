@@ -7,25 +7,21 @@ import Routes from './routes/Routes';
 import { Notifications } from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
 
+Notifications.registerRemoteNotifications();
+
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannel({
+    channelId: 'pdf-saved-channel',
+    name: 'PDF Notifications',
+    importance: 5,
+    description: 'Shows when PDF is saved',
+    enableLights: true,
+    enableVibration: true,
+    showBadge: true,
+    sound: 'default',
+  });
+}
 const App = () => {
-
-  useEffect(() => {
-    Notifications.registerRemoteNotifications();
-
-    Notifications.events().registerNotificationReceivedForeground(
-      (notification, completion) => {
-        console.log('Notification received in foreground:', notification.payload);
-        completion({ alert: true, sound: true, badge: false });
-      }
-    );
-
-    Notifications.events().registerNotificationOpened(
-      (notification, completion) => {
-        console.log('Notification opened:', notification.payload);
-        completion();
-      }
-    );
-  }, []); // ✅ run once safely
 
   return (
     <Provider store={Store}>

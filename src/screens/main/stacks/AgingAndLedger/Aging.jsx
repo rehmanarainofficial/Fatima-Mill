@@ -1,4 +1,4 @@
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, ScrollView} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import BaseUrl from '../../../../utils/BaseUrl';
@@ -10,6 +10,7 @@ import {PermissionsAndroid, Platform, Alert} from 'react-native';
 import RNFS from 'react-native-fs';
 import {Notifications} from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
+import Animated, {FadeInUp} from 'react-native-reanimated';
 
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
@@ -185,14 +186,13 @@ const Aging = ({navigation, route}) => {
       const hasPermission = await requestStoragePermission();
       if (!hasPermission) return;
 
-      // ✅ Generate file name using customer/supplier name + timestamp
       const customerName =
         item?.name ||
         item?.customer_name ||
         item?.supplier_name ||
         'Aging_Report';
-      const safeName = customerName.replace(/[^a-zA-Z0-9_]/g, '_'); // remove special chars
-      const fileName = `${safeName}_${Date.now()}`; // unique file name
+      const safeName = customerName.replace(/[^a-zA-Z0-9_]/g, '_');
+      const fileName = `${safeName}_${Date.now()}`;
 
       // Generate PDF in app sandbox first
       const options = {
@@ -222,12 +222,12 @@ const Aging = ({navigation, route}) => {
         visibilityTime: 3000,
       });
 
-      // ✅ Mobile notification
       Notifications.postLocalNotification({
         title: '📄 PDF Saved',
         body: `Your Aging Report (${customerName}) is saved in Downloads.`,
         sound: 'default',
         silent: false,
+        channelId: 'pdf-saved-channel',
         userInfo: {filePath: destPath},
       });
     } catch (error) {
@@ -243,71 +243,106 @@ const Aging = ({navigation, route}) => {
   };
 
   return (
-    <View>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       <SimpleHeader title="Aging" />
+
       <TouchableOpacity
         style={{
           backgroundColor: APPCOLORS.Primary,
           margin: 20,
           padding: 15,
           borderRadius: 10,
+          elevation: 2,
         }}
         onPress={generatePDF}>
-        <Text style={{color: 'white', textAlign: 'center'}}>
+        <Text style={{color: 'white', textAlign: 'center', fontWeight: '600'}}>
           {loading ? 'Generating...' : 'Download PDF'}
         </Text>
       </TouchableOpacity>
 
-      <FlatList
-        data={aging}
-        contentContainerStyle={{gap: 20, padding: 20, paddingBottom: 150}}
-        renderItem={({item}) => {
-          return (
-            <View
+      <ScrollView horizontal={false}>
+        <View
+          style={{
+            width: '100%',
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 0,
+            overflow: 'hidden',
+          }}>
+          {/* ===== Table Header ===== */}
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: APPCOLORS.Primary,
+              paddingVertical: 10,
+            }}>
+            {['Reference', 'Tran Date', 'Days', 'Amount'].map((col, index) => (
+              <View
+                key={index}
+                style={{
+                  flex: 1,
+                  borderRightWidth: index !== 3 ? 1 : 0,
+                  borderRightColor: '#fff',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  style={{color: 'white', fontWeight: 'bold', fontSize: 13}}>
+                  {col}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* ===== Animated Table Rows ===== */}
+          {aging.map((row, i) => (
+            <Animated.View
+              key={i}
+              entering={FadeInUp.delay(i * 100).springify()}
               style={{
-                padding: 20,
-                backgroundColor: APPCOLORS.Secondary,
-                borderRadius: 10,
+                flexDirection: 'row',
+                backgroundColor: i % 2 === 0 ? '#fff' : '#f9f9f9',
+                borderTopWidth: 1,
+                borderColor: '#ccc',
+                paddingVertical: 10,
               }}>
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Reference'} titleSize={2} />
-                <AppText title={item.reference} />
-              </View>
-
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Transaction date'} titleSize={2} />
-                <AppText title={item.tran_date} />
-              </View>
-
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Days'} titleSize={2} />
-                <AppText title={item.days} />
-              </View>
-
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Allocated'} titleSize={2} />
-                <AppText title={item.Allocated} />
-              </View>
-
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Invoice amount'} titleSize={2} />
-                <AppText title={item.Invoice_amount} />
-              </View>
-
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <AppText title={'Invoice Balance'} titleSize={2} />
-                <AppText title={item.invoce_balance} />
-              </View>
-            </View>
-          );
-        }}
-      />
+              <Text
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontSize: 12,
+                  borderRightWidth: 1,
+                  borderColor: '#ccc',
+                }}>
+                {row.reference}
+              </Text>
+              <Text
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontSize: 12,
+                  borderRightWidth: 1,
+                  borderColor: '#ccc',
+                }}>
+                {row.tran_date}
+              </Text>
+              <Text
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontSize: 12,
+                  borderRightWidth: 1,
+                  borderColor: '#ccc',
+                }}>
+                {row.days}
+              </Text>
+              <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
+                {row.row.Invoice_amount || '-'}
+              </Text>
+            </Animated.View>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 };
