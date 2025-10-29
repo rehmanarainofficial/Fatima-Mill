@@ -1,4 +1,4 @@
-import {View, FlatList, ScrollView, TouchableOpacity, Text} from 'react-native';
+import {View, FlatList, TouchableOpacity, Text} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -20,6 +20,7 @@ const Detail = ({navigation}) => {
       maximumFractionDigits: 2,
     });
   };
+  console.log(slider_data, 'slider_data');
 
   const revData = [
     {
@@ -43,8 +44,8 @@ const Detail = ({navigation}) => {
       title: 'Inventory Valuation',
       icon: 'warehouse',
       color: '#FF9800',
-      Amount: slider_data?.cur_m_inventory,
-      Prev_Amount: slider_data?.pre_m_inventory,
+      Amount: slider_data?.cur_m_inventory_val,
+      Prev_Amount: slider_data?.pre_m_inventory_val,
     },
     {
       id: 9,
@@ -108,120 +109,125 @@ const Detail = ({navigation}) => {
     }
   };
 
+  const renderItem = ({item, index}) => (
+    <Animated.View
+      entering={FadeInUp.delay(index * 120).duration(600)}
+      style={{
+        width: responsiveWidth(92),
+        alignSelf: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowOffset: {width: 0, height: 3},
+        shadowRadius: 5,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        marginBottom: 14,
+        borderLeftWidth: 5,
+        borderLeftColor: item.color,
+      }}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() =>
+          navigation.navigate('MoreDetail', {
+            slider_data: AllData,
+            selectedItem: item.title,
+          })
+        }>
+        {/* 🔹 Title + Icon */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 6,
+          }}>
+          <Icon
+            name={item.icon}
+            size={22}
+            color={item.color}
+            style={{marginRight: 8}}
+          />
+          <Text
+            style={{
+              fontWeight: '700',
+              fontSize: 15,
+              color: APPCOLORS.BLACK,
+            }}>
+            {item.title}
+          </Text>
+        </View>
+
+        {/* 🔹 Thin separator under heading */}
+        <View
+          style={{
+            height: 1,
+            backgroundColor: '#E0E0E0',
+            width: '65%',
+            alignSelf: 'flex-start',
+            marginBottom: 8,
+          }}
+        />
+
+        {/* 🔸 Values section */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingHorizontal: 4,
+          }}>
+          {/* Current Month */}
+          <View style={{alignItems: 'flex-start'}}>
+            <Text style={{fontSize: 12, color: '#888'}}>
+              Current Month
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: APPCOLORS.BLACK,
+                marginTop: 2,
+              }}>
+              {formatNumber(item.Amount)}
+            </Text>
+          </View>
+
+          {/* Previous Month */}
+          <View style={{alignItems: 'flex-end'}}>
+            <Text style={{fontSize: 12, color: '#888'}}>
+              Previous Month
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: APPCOLORS.BLACK,
+                marginTop: 2,
+              }}>
+              {formatNumber(item.Prev_Amount)}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+
   return (
     <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
       <SimpleHeader title="Detail" />
 
-      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}>
-        <FlatList
-          data={revData}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 16,
-          }}
-          renderItem={({item, index}) => (
-            <Animated.View
-              entering={FadeInUp.delay(index * 120).duration(600)}
-              style={{
-                width: responsiveWidth(92),
-                alignSelf: 'center',
-                backgroundColor: '#fff',
-                borderRadius: 14,
-                elevation: 5,
-                shadowColor: '#000',
-                shadowOpacity: 0.08,
-                shadowOffset: {width: 0, height: 3},
-                shadowRadius: 5,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                marginBottom: 14,
-                borderLeftWidth: 5,
-                borderLeftColor: item.color,
-              }}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() =>
-                  navigation.navigate('MoreDetail', {slider_data: AllData})
-                }>
-                {/* 🔹 Title + Icon */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: 6,
-                  }}>
-                  <Icon
-                    name={item.icon}
-                    size={22}
-                    color={item.color}
-                    style={{marginRight: 8}}
-                  />
-                  <Text
-                    style={{
-                      fontWeight: '700',
-                      fontSize: 15,
-                      color: APPCOLORS.BLACK,
-                    }}>
-                    {item.title}
-                  </Text>
-                </View>
-
-                {/* 🔹 Thin separator under heading */}
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: '#E0E0E0',
-                    width: '65%',
-                    alignSelf: 'flex-start',
-                    marginBottom: 8,
-                  }}
-                />
-
-                {/* 🔸 Values section */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    paddingHorizontal: 4,
-                  }}>
-                  {/* Current Month */}
-                  <View style={{alignItems: 'flex-start'}}>
-                    <Text style={{fontSize: 12, color: '#888'}}>
-                      Current Month
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '600',
-                        color: APPCOLORS.BLACK,
-                        marginTop: 2,
-                      }}>
-                      {formatNumber(item.Amount)}
-                    </Text>
-                  </View>
-
-                  {/* Previous Month */}
-                  <View style={{alignItems: 'flex-end'}}>
-                    <Text style={{fontSize: 12, color: '#888'}}>
-                      Previous Month
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '600',
-                        color: APPCOLORS.BLACK,
-                        marginTop: 2,
-                      }}>
-                      {formatNumber(item.Prev_Amount)}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
-        />
-      </ScrollView>
+      <FlatList
+        data={revData}
+        keyExtractor={item => item.id.toString()}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 100, // Scroll space ke liye
+        }}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={true}
+      />
     </View>
   );
 };

@@ -1,12 +1,11 @@
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import PieChart from 'react-native-pie-chart';
 import AppText from '../../../../components/AppText';
@@ -21,23 +20,11 @@ import {
 } from '../../../../global/ChartApisCall';
 
 const MoreDetail = ({navigation, route}) => {
-  const {slider_data} = route.params;
+  const {slider_data, selectedItem} = route.params;
 
-  const [AllBalanceDataState, setAllBalanceDataState] = useState(null);
-  const [BalanceCircleBarState, setBalanceCircleBarState] = useState(null);
-
-  const [AllSalesmanDataState, setAllSalesmanDataState] = useState(null);
-  const [SalesmanCircleBarState, setSalesmanCircleBarState] = useState(null);
-
-  const [AllItemBalanceDataState, setAllItemBalanceDataState] = useState(null);
-  const [ItemBalanceCircleBarState, setItemBalanceCircleBarState] =
-    useState(null);
-
-  const [AllPayableDataState, setAllPayableDataState] = useState(null);
-  const [PayableCircleBarState, setPayableCircleBarState] = useState(null);
-
-  const [AllRecivableDataState, setAllRecivableDataState] = useState(null);
-  const [RecivableCircleBarState, setRecivableCircleBarState] = useState(null);
+  const [activeData, setActiveData] = useState(null);
+  const [activeChartData, setActiveChartData] = useState(null);
+  const [loader, setLoader] = useState(false);
 
   const colors = [
     '#910000',
@@ -54,14 +41,41 @@ const MoreDetail = ({navigation, route}) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      getBankBalance();
-      getSalesman();
-      getItemBalance();
-      getPayable();
-      getReceivable();
+      if (selectedItem) {
+        loadSpecificData(selectedItem);
+      }
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, selectedItem]);
+
+  const loadSpecificData = async itemType => {
+    setLoader(true);
+    try {
+      switch (itemType) {
+        case 'Bank & Cash':
+          await getBankBalance();
+          break;
+        case 'Receivable':
+          await getReceivable();
+          break;
+        case 'Payable':
+          await getPayable();
+          break;
+        case 'Inventory Valuation':
+          await getItemBalance();
+          break;
+        case 'Salesman':
+          await getSalesman();
+          break;
+        default:
+          console.log('Unknown item type:', itemType);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoader(false);
+    }
+  };
 
   const getBankBalance = async () => {
     const allbalancedata = await GetBankBalance();
@@ -70,34 +84,48 @@ const MoreDetail = ({navigation, route}) => {
       const balanceBar = allbalancedata?.data_bank_bal.map((item, index) => {
         const rawValue = parseFloat(Math.round(item.bank_balance));
         const cleanValue = rawValue < 0 ? 5 : rawValue;
-
         return {
           value: cleanValue,
           color: colors[index % colors.length],
         };
       });
-      setBalanceCircleBarState(balanceBar);
+      setActiveChartData(balanceBar);
     }
-    setAllBalanceDataState(allbalancedata);
+    setActiveData(allbalancedata);
   };
 
-  const getSalesman = async () => {
-    const AllSalesman = await GetSalesman();
+  const getReceivable = async () => {
+    const AllRecivable = await GetReceivable();
 
-    if (AllSalesman?.data_salesman_bal) {
-      const SalesmanBar = AllSalesman?.data_salesman_bal.map((item, index) => {
+    if (AllRecivable?.data_cust_bal) {
+      const Recivable = AllRecivable?.data_cust_bal.map((item, index) => {
         const rawValue = parseFloat(Math.round(item.Balance));
         const cleanValue = rawValue < 0 ? 5 : rawValue;
-
         return {
           value: cleanValue,
           color: colors[index % colors.length],
         };
       });
-      setSalesmanCircleBarState(SalesmanBar);
+      setActiveChartData(Recivable);
     }
+    setActiveData(AllRecivable);
+  };
 
-    setAllSalesmanDataState(AllSalesman);
+  const getPayable = async () => {
+    const AllPayable = await GetPayable();
+
+    if (AllPayable?.data_supp_bal) {
+      const Payable = AllPayable?.data_supp_bal.map((item, index) => {
+        const rawValue = parseFloat(Math.round(item.Balance));
+        const cleanValue = rawValue < 0 ? 5 : rawValue;
+        return {
+          value: cleanValue,
+          color: colors[index % colors.length],
+        };
+      });
+      setActiveChartData(Payable);
+    }
+    setActiveData(AllPayable);
   };
 
   const getItemBalance = async () => {
@@ -108,408 +136,188 @@ const MoreDetail = ({navigation, route}) => {
         (item, index) => {
           const rawValue = parseFloat(Math.round(item.total));
           const cleanValue = rawValue < 0 ? 5 : rawValue;
-
           return {
             value: cleanValue,
             color: colors[index % colors.length],
           };
         },
       );
-      setItemBalanceCircleBarState(ItemBalanceBar);
+      setActiveChartData(ItemBalanceBar);
     }
-
-    setAllItemBalanceDataState(AllItemBalance);
+    setActiveData(AllItemBalance);
   };
 
-  const getPayable = async () => {
-    const AllPayable = await GetPayable();
+  const getSalesman = async () => {
+    const AllSalesman = await GetSalesman();
 
-    if (AllPayable?.data_supp_bal) {
-      const Payable = AllPayable?.data_supp_bal.map((item, index) => {
+    if (AllSalesman?.data_salesman_bal) {
+      const SalesmanBar = AllSalesman?.data_salesman_bal.map((item, index) => {
         const rawValue = parseFloat(Math.round(item.Balance));
         const cleanValue = rawValue < 0 ? 5 : rawValue;
-
         return {
           value: cleanValue,
           color: colors[index % colors.length],
         };
       });
-      setPayableCircleBarState(Payable);
+      setActiveChartData(SalesmanBar);
     }
-
-    setAllPayableDataState(AllPayable);
+    setActiveData(AllSalesman);
   };
 
-  const getReceivable = async () => {
-    const AllRecivable = await GetReceivable();
+  // Data ko render karne ke liye helper functions
+  const renderChart = () => (
+    <View
+      style={{alignItems: 'center', justifyContent: 'center', marginTop: 20}}>
+      <View style={{position: 'absolute', zIndex: 1}}>
+        <AppText title={selectedItem} titleSize={2} titleWeight />
+      </View>
+      {activeChartData && (
+        <PieChart
+          widthAndHeight={250}
+          series={activeChartData}
+          cover={0.7}
+          style={{alignSelf: 'center'}}
+        />
+      )}
+    </View>
+  );
 
-    if (AllRecivable?.data_cust_bal) {
-      const Recivable = AllRecivable?.data_cust_bal.map((item, index) => {
-        const rawValue = parseFloat(Math.round(item.Balance));
-        const cleanValue = rawValue < 0 ? 5 : rawValue;
+  const renderItem = ({item}) => {
+    let name = '';
+    let balance = '';
 
-        return {
-          value: cleanValue,
-          color: colors[index % colors.length],
-        };
-      });
-      setRecivableCircleBarState(Recivable);
+    switch (selectedItem) {
+      case 'Bank & Cash':
+        name = item?.bank_name;
+        balance = item?.bank_balance;
+        break;
+      case 'Receivable':
+        name = item?.name;
+        balance = item?.Balance;
+        break;
+      case 'Payable':
+        name = item?.supp_name;
+        balance = item?.Balance;
+        break;
+      case 'Inventory Valuation':
+        name = item?.description;
+        balance = item?.total;
+        break;
+      case 'Salesman':
+        name = item?.salesman_name;
+        balance = item?.Balance;
+        break;
+      default:
+        name = 'N/A';
+        balance = '0';
     }
 
-    setAllRecivableDataState(AllRecivable);
+    return <NameBalanceContainer Name={name} balance={balance} />;
   };
 
+  const getData = () => {
+    switch (selectedItem) {
+      case 'Bank & Cash':
+        return activeData?.data_bank_bal || [];
+      case 'Receivable':
+        return activeData?.data_cust_bal || [];
+      case 'Payable':
+        return activeData?.data_supp_bal || [];
+      case 'Inventory Valuation':
+        return activeData?.data_item_bal || [];
+      case 'Salesman':
+        return activeData?.data_salesman_bal || [];
+      default:
+        return [];
+    }
+  };
+
+  const getViewAllData = () => {
+    switch (selectedItem) {
+      case 'Bank & Cash':
+        return activeData?.data_bank_bal_view_all || [];
+      case 'Receivable':
+        return activeData?.data_view_cust_bal || [];
+      case 'Payable':
+        return activeData?.data_supp_bal_view_all || [];
+      case 'Inventory Valuation':
+        return activeData?.data_item_bal_view_all || [];
+      case 'Salesman':
+        return activeData?.data_salesman_bal_view_all || [];
+      default:
+        return [];
+    }
+  };
+
+  const getDataName = () => {
+    switch (selectedItem) {
+      case 'Bank & Cash':
+        return 'Bank';
+      case 'Receivable':
+        return 'Receivable';
+      case 'Payable':
+        return 'Payable';
+      case 'Inventory Valuation':
+        return 'item';
+      case 'Salesman':
+        return 'salesman';
+      default:
+        return '';
+    }
+  };
+
+  const ListHeaderComponent = () => (
+    <View>
+      {renderChart()}
+
+      <View style={styles.headerContainer}>
+        <AppText
+          title={`Top 10 ${selectedItem}`}
+          titleSize={2}
+          titleWeight
+          titleSizeWeight={40}
+        />
+        {getViewAllData().length > 0 && (
+          <ViewAll
+            onPress={() =>
+              navigation.navigate('NormalViewAll', {
+                AllData: getViewAllData(),
+                dataname: getDataName(),
+              })
+            }
+          />
+        )}
+      </View>
+    </View>
+  );
+
+  const ListEmptyComponent = () => (
+    <View style={{alignItems: 'center', justifyContent: 'center'}}>
+      <AppText title={`No ${selectedItem} data found`} titleSize={2} />
+    </View>
+  );
+
+  if (loader) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading {selectedItem} data...</Text>
+      </View>
+    );
+  }
 
   return (
-    <View>
-      <SimpleHeader title="Details" />
-      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 200}}>
-        <View style={{padding: 20}}>
-          {/* <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-
-                        <View style={{ position: 'absolute', zIndex: 1 }}>
-                            <AppText title='Customer balance' titleSize={2} titleWeight />
-                        </View>
-
-                        <PieChart widthAndHeight={250} series={series} cover={0.7} style={{ alignSelf: 'center' }} />
-                    </View>
-
-                    <View style={styles.headerContainer}>
-                        <AppText title='Top 10 Customer Balance' titleSize={2} titleWeight titleSizeWeight={40} />
-                        <ViewAll onPress={()=> navigation.navigate("NormalViewAll",{AllData: slider_data?.data_view_cust_bal, dataname: "Customer"})}/>
-                    </View>
-
-                    <View style={{ gap: 10, marginTop: 20 }}>
-
-                        <FlatList
-                            data={slider_data?.data_cust_bal}
-                            contentContainerStyle={{ gap: 10 }}
-                            renderItem={({ item }) => {
-                                console.log("item", item)
-                                return (
-                                    <NameBalanceContainer Name={item?.name} balance={item?.Balance} />
-                                )
-
-                            }}
-                        />
-                    </View> */}
-
-          {/* supplier info */}
-
-          {/* <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
-
-                        <View style={{ position: 'absolute', zIndex: 1 }}>
-                            <AppText title='Supplier balance' titleSize={2} titleWeight />
-                        </View>
-
-                        <PieChart widthAndHeight={250} series={data_supp_bal} cover={0.7} style={{ alignSelf: 'center' }} />
-                    </View>
-
-                    <View style={styles.headerContainer}>
-                        <AppText title='Top 10 Supplier Customer' titleSize={2} titleWeight titleSizeWeight={40} />
-                        <ViewAll onPress={()=> navigation.navigate("NormalViewAll",{AllData: slider_data?.data_supp_bal_view_all , dataname: "Supplier"})}/>
-                    </View>
-
-
-                    <View style={{ gap: 10, marginTop: 20 }}>
-
-                        <FlatList
-                            data={slider_data?.data_supp_bal}
-                            contentContainerStyle={{ gap: 10 }}
-                            renderItem={({ item }) => {
-                                console.log("item", item)
-                                return (
-                                    <NameBalanceContainer Name={item?.supp_name} balance={item?.Balance} />
-                                )
-
-                            }}
-                        />
-                    </View> */}
-
-          {/* Bank balance info */}
-
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 20,
-            }}>
-            <View style={{position: 'absolute', zIndex: 1}}>
-              <AppText title="Bank balance" titleSize={2} titleWeight />
-            </View>
-
-            {BalanceCircleBarState && (
-              <PieChart
-                widthAndHeight={250}
-                series={BalanceCircleBarState}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-            )}
-          </View>
-
-          <View style={styles.headerContainer}>
-            <AppText
-              title="Top 10 Bank Balance"
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
-            <ViewAll
-              onPress={() =>
-                navigation.navigate('NormalViewAll', {
-                  AllData: AllBalanceDataState?.data_bank_bal_view_all,
-                  dataname: 'Bank',
-                })
-              }
-            />
-          </View>
-
-          <View style={{gap: 10, marginTop: 20}}>
-            <FlatList
-              data={AllBalanceDataState?.data_bank_bal}
-              contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => {
-                return (
-                  <NameBalanceContainer
-                    Name={item?.bank_name}
-                    balance={item?.bank_balance}
-                  />
-                );
-              }}
-            />
-          </View>
-
-          {/* Salesman info */}
-
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 20,
-            }}>
-            <View style={{position: 'absolute', zIndex: 1}}>
-              <AppText title="Salesman" titleSize={2} titleWeight />
-            </View>
-
-            {SalesmanCircleBarState && (
-              <PieChart
-                widthAndHeight={250}
-                series={SalesmanCircleBarState}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-            )}
-          </View>
-          {console.log('AllSalesmanDataState', AllSalesmanDataState)}
-          <View style={styles.headerContainer}>
-            <AppText
-              title="Top 10 Salesman"
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
-            <ViewAll
-              onPress={() =>
-                navigation.navigate('NormalViewAll', {
-                  AllData: AllSalesmanDataState?.data_salesman_bal_view_all,
-                  dataname: 'salesman',
-                })
-              }
-            />
-          </View>
-
-          <View style={{gap: 10, marginTop: 20}}>
-            {AllSalesmanDataState?.data_salesman_bal > 0 ? (
-              <FlatList
-                data={AllSalesmanDataState?.data_salesman_bal}
-                contentContainerStyle={{gap: 10}}
-                renderItem={({item}) => {
-                  return (
-                    <NameBalanceContainer
-                      Name={item?.salesman_name}
-                      balance={item?.Balance}
-                    />
-                  );
-                }}
-              />
-            ) : (
-              <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                <AppText title="No top salesman found" titleSize={2} />
-              </View>
-            )}
-          </View>
-
-          {/* Item balacne info */}
-
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 20,
-            }}>
-            <View style={{position: 'absolute', zIndex: 1}}>
-              <AppText title="Item" titleSize={2} titleWeight />
-            </View>
-
-            {ItemBalanceCircleBarState && (
-              <PieChart
-                widthAndHeight={250}
-                series={ItemBalanceCircleBarState}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-            )}
-          </View>
-
-          <View style={styles.headerContainer}>
-            <AppText
-              title="Top 10 Item Balance"
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
-            <ViewAll
-              onPress={() =>
-                navigation.navigate('NormalViewAll', {
-                  AllData: AllItemBalanceDataState?.data_item_bal_view_all,
-                  dataname: 'item',
-                })
-              }
-            />
-          </View>
-
-          <View style={{gap: 10, marginTop: 20}}>
-            <FlatList
-              data={AllItemBalanceDataState?.data_item_bal}
-              contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => {
-                return (
-                  <NameBalanceContainer
-                    Name={item?.description}
-                    balance={item?.total}
-                  />
-                );
-              }}
-            />
-          </View>
-
-            
-                 {/* Payable info */}
-
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 20,
-            }}>
-            <View style={{position: 'absolute', zIndex: 1}}>
-              <AppText title="Payable balance" titleSize={2} titleWeight />
-            </View>
-
-            {PayableCircleBarState && (
-              <PieChart
-                widthAndHeight={250}
-                series={PayableCircleBarState}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-            )}
-          </View>
-          
-          <View style={styles.headerContainer}>
-            <AppText
-              title="Top 10 Payable"
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
-            <ViewAll
-              onPress={() =>
-                navigation.navigate('NormalViewAll', {
-                  AllData: AllPayableDataState?.data_supp_bal_view_all,
-                  dataname: 'Payable',
-                })
-              }
-            />
-          </View>
-
-          <View style={{gap: 10, marginTop: 20}}>
-            <FlatList
-              data={AllPayableDataState?.data_supp_bal}
-              contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => {
-                return (
-                  <NameBalanceContainer
-                    Name={item?.supp_name}
-                    balance={item?.Balance}
-                  />
-                );
-              }}
-            />
-          </View>
-
-
-                     {/* Payable info */}
-
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 20,
-            }}>
-            <View style={{position: 'absolute', zIndex: 1}}>
-              <AppText title="Receivable" titleSize={2} titleWeight />
-            </View>
-
-            {RecivableCircleBarState && (
-              <PieChart
-                widthAndHeight={250}
-                series={RecivableCircleBarState}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-            )}
-          </View>
-          
-          <View style={styles.headerContainer}>
-            <AppText
-              title="Top 10 Receivable"
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
-            <ViewAll
-              onPress={() =>
-                navigation.navigate('NormalViewAll', {
-                  
-                  AllData: AllRecivableDataState?.data_view_cust_bal,
-                  dataname: 'Receivable',
-                })
-              }
-            />
-          </View>
-
-          <View style={{gap: 10, marginTop: 20}}>
-            <FlatList
-              data={AllRecivableDataState?.data_cust_bal}
-              contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => {
-                return (
-                  <NameBalanceContainer
-                    Name={item?.name}
-                    balance={item?.Balance}
-                  />
-                );
-              }}
-            />
-          </View>
-
-
-
-              
-        </View>
-      </ScrollView>
+    <View style={{flex: 1}}>
+      <SimpleHeader title={selectedItem || 'Details'} />
+      <FlatList
+        data={getData()}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        ListHeaderComponent={ListHeaderComponent}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={{flexGrow: 1, padding: 20}}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };

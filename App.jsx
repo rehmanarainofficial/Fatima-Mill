@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-import { Store } from './redux/Store';
-import Routes from './routes/Routes';
+import { Store } from './src/redux/Store';
+import Routes from './src/routes/Routes';
 import { Notifications } from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
 
