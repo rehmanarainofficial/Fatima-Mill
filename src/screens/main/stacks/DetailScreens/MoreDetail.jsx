@@ -18,9 +18,12 @@ import {
   GetPayable,
   GetReceivable,
 } from '../../../../global/ChartApisCall';
+import Header from '../../../../components/Header';
 
 const MoreDetail = ({navigation, route}) => {
   const {slider_data, selectedItem} = route.params;
+  console.log(slider_data);
+  console.log(selectedItem);
 
   const [activeData, setActiveData] = useState(null);
   const [activeChartData, setActiveChartData] = useState(null);
@@ -40,13 +43,10 @@ const MoreDetail = ({navigation, route}) => {
   ];
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (selectedItem) {
-        loadSpecificData(selectedItem);
-      }
-    });
-    return unsubscribe;
-  }, [navigation, selectedItem]);
+    if (selectedItem) {
+      loadSpecificData(selectedItem);
+    }
+  }, [selectedItem]);
 
   const loadSpecificData = async itemType => {
     setLoader(true);
@@ -182,7 +182,7 @@ const MoreDetail = ({navigation, route}) => {
     </View>
   );
 
-  const renderItem = ({item}) => {
+  const renderItem = ({item, index}) => {
     let name = '';
     let balance = '';
 
@@ -212,7 +212,15 @@ const MoreDetail = ({navigation, route}) => {
         balance = '0';
     }
 
-    return <NameBalanceContainer Name={name} balance={balance} />;
+    return (
+      <NameBalanceContainer
+        Name={name}
+        balance={balance}
+        item={item}
+        type={selectedItem}
+        index={index} // added
+      />
+    );
   };
 
   const getData = () => {
@@ -308,7 +316,22 @@ const MoreDetail = ({navigation, route}) => {
 
   return (
     <View style={{flex: 1}}>
-      <SimpleHeader title={selectedItem || 'Details'} />
+      <Header
+        title={selectedItem || 'Details'}
+        rightIcon={
+          selectedItem === 'Inventory Valuation'
+            ? 'inventory' // custom icon for Inventory
+            : 'assignment' // default ledger icon
+        }
+        onRightPress={() => {
+          if (selectedItem === 'Inventory Valuation') {
+            navigation.navigate('StockSheetScreen');
+          } else {
+            navigation.navigate('ViewLedger');
+          }
+        }}
+      />
+
       <FlatList
         data={getData()}
         renderItem={renderItem}

@@ -1,15 +1,13 @@
 import {
   View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  ScrollView,
+  FlatList,
+  StyleSheet,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import BaseUrl from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import AppHeader from '../../../../components/AppHeader';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import AppButton from '../../../../components/AppButton';
@@ -18,9 +16,6 @@ import moment from 'moment';
 
 const Ledger = ({navigation, route}) => {
   const {name, item} = route.params;
-
-  console.log('item', item);
-
   const [aging, setAgingData] = useState([]);
   const [opening, setOpening] = useState(0);
 
@@ -30,312 +25,229 @@ const Ledger = ({navigation, route}) => {
   const [EndDate, setEndDate] = useState(new Date());
   const [openEnd, setOpenEnd] = useState(false);
 
-  const [Laoder, setLoader] = useState(false);
-
-  console.log('EndDate', name);
+  const [Loader, setLoader] = useState(false);
 
   useEffect(() => {
     const nav = navigation.addListener('focus', () => {
-      if (name == 'Customer') {
-        getLeger();
-      } else if (name == 'Suppliers') {
-        getSupplierLeger();
-      } else if (name == 'Items') {
-        getItemsLedger();
-      }
+      if (name === 'Customer') getLeger();
+      else if (name === 'Suppliers') getSupplierLeger();
+      else if (name === 'Items') getItemsLedger();
     });
 
     return nav;
   }, [navigation]);
 
   useEffect(() => {
-    if (name == 'Customer') {
-      getLeger();
-    } else if (name == 'Suppliers') {
-      getSupplierLeger();
-    } else if (name == 'Items') {
-      getSupplierLeger();
-    }
+    if (name === 'Customer') getLeger();
+    else if (name === 'Suppliers') getSupplierLeger();
+    else if (name === 'Items') getItemsLedger();
   }, [fromDate, EndDate]);
 
   const getLeger = () => {
     setLoader(true);
-
     let data = new FormData();
     data.append('customer_id', item.customer_id);
     data.append(
       'from_date',
-      moment(fromDate).subtract('months', 1).format('YYYY-MM-DD'),
+      moment(fromDate).subtract(1, 'months').format('YYYY-MM-DD'),
     );
     data.append('to_date', moment(EndDate).format('YYYY-MM-DD'));
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_cust_ledger.php`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: data,
-    };
-
     axios
-      .request(config)
-      .then(response => {
-        console.log(JSON.stringify(response.data.opening));
-        setAgingData(response.data.data_cust_age);
-        setOpening(response.data.opening);
-        setLoader(false);
+      .post(`${BaseUrl}/dash_cust_ledger.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
       })
-      .catch(error => {
-        console.log(error);
-        setLoader(false);
-      });
+      .then(res => {
+        setAgingData(res.data.data_cust_age);
+        setOpening(res.data.opening);
+      })
+      .catch(console.log)
+      .finally(() => setLoader(false));
   };
 
   const getSupplierLeger = () => {
     setLoader(true);
-
     let data = new FormData();
     data.append('supplier_id', item.supplier_id);
     data.append(
       'from_date',
-      moment(fromDate).subtract('months', 1).format('YYYY-MM-DD'),
+      moment(fromDate).subtract(1, 'months').format('YYYY-MM-DD'),
     );
     data.append('to_date', moment(EndDate).format('YYYY-MM-DD'));
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_supp_ledger.php`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: data,
-    };
-
     axios
-      .request(config)
-      .then(response => {
-        console.log('supplier iss s s', JSON.stringify(response.data));
-        setAgingData(response.data.data_cust_age);
-        setOpening(response.data.opening);
-        setLoader(false);
+      .post(`${BaseUrl}/dash_supp_ledger.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
       })
-      .catch(error => {
-        console.log(error);
-        setLoader(false);
-      });
+      .then(res => {
+        setAgingData(res.data.data_cust_age);
+        setOpening(res.data.opening);
+      })
+      .catch(console.log)
+      .finally(() => setLoader(false));
   };
 
   const getItemsLedger = () => {
-
-    let data = new FormData()
+    let data = new FormData();
     data.append('stock_id', item?.stock_id);
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_item_ledger.php`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: data,
-    }
-
     axios
-      .request(config)
-      .then(response => {
-        setAgingData(response.data.data_cust_age);
+      .post(`${BaseUrl}/dash_item_ledger.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
       })
-      .catch(error => {
-        console.log(error);
-      });
-  }
+      .then(res => {
+        setAgingData(res.data.data_cust_age);
+      })
+      .catch(console.log);
+  };
+
+  const renderItem = ({item}) => {
+    if (name === 'Items') {
+      return (
+        <View style={styles.card}>
+          <Row label="Location Name" value={item.location_name} />
+          <Row label="QOH" value={item.QOH} />
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.card}>
+          <Row label="Reference" value={item.reference} />
+          <Row label="Transaction Date" value={item.tran_date} />
+          <Row label="Debit" value={item.debit} />
+          <Row label="Credit" value={item.credit} />
+          <Row label="Balance" value={item.balance} />
+        </View>
+      );
+    }
+  };
+
+  const Row = ({label, value}) => (
+    <View style={styles.row}>
+      <AppText title={label} titleSize={2} />
+      <AppText title={value?.toString() || '-'} />
+    </View>
+  );
 
   return (
-    <View>
+    <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
       <SimpleHeader title="Ledger" />
 
-      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 150}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            marginTop: 10,
-          }}>
-          <View style={{gap: 10}}>
-            <AppText title="From Date" titleSize={2} titleWeight />
-            <AppButton
-              title={moment(fromDate)
-                .subtract('months', 1)
-                .format('YYYY-MM-DD')}
-              btnWidth={30}
-              onPress={() => setOpenFrom(true)}
-            />
-          </View>
-
-          <View style={{gap: 10}}>
-            <AppText title="End Date" titleSize={2} titleWeight />
-            <AppButton
-              title={moment(EndDate).format('YYYY-MM-DD')}
-              btnWidth={30}
-              onPress={() => setOpenEnd(true)}
-            />
-          </View>
-        </View>
-
-        {Laoder && <ActivityIndicator size={'large'} color={APPCOLORS.BLACK} />}
-
-        <DatePicker
-          modal
-          open={openFrom}
-          date={new Date()}
-          mode="date"
-          onConfirm={date => {
-            const foramtDate = moment(date).format('YYYY-MM-DD');
-            setOpenFrom(false);
-            setFromDate(foramtDate);
-          }}
-          onCancel={() => {
-            setOpenFrom(false);
-          }}
-        />
-
-        {
-          //End date
-        }
-        <DatePicker
-          modal
-          open={openEnd}
-          date={new Date()}
-          mode="date"
-          onConfirm={date => {
-            const foramtDate = moment(date).format('YYYY-MM-DD');
-            setOpenEnd(false);
-            setEndDate(foramtDate);
-          }}
-          onCancel={() => {
-            setOpenEnd(false);
-          }}
-        />
-
-        {opening && (
-          <View
-            style={{
-              padding: 20,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-            }}>
-            <AppText title={'Opening'} titleSize={2} titleWeight />
-            <AppText
-              title={Number(opening).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              titleSize={2}
-              titleWeight
-            />
-          </View>
-        )}
-
-        <FlatList
-          data={aging}
-          contentContainerStyle={{gap: 20, padding: 20}}
-          renderItem={({item}) => {
-            return (
-              <>
-                {
-                  name == "Items" ? (
-                    <View
-                style={{
-                  padding: 20,
-                  backgroundColor: APPCOLORS.Secondary,
-                  borderRadius: 10,
-                }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'location name'} titleSize={2} />
-                  <AppText title={item.location_name} />
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'QOH'} titleSize={2} />
-                  <AppText title={item.QOH} />
-                </View>
-
+      <FlatList
+        data={aging}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderItem}
+        ListHeaderComponent={
+          <>
+            {/* Date Section */}
+            <View style={styles.dateContainer}>
+              <View style={styles.dateColumn}>
+                <AppText title="From Date" titleSize={2} titleWeight />
+                <AppButton
+                  title={moment(fromDate)
+                    .subtract(1, 'months')
+                    .format('YYYY-MM-DD')}
+                  btnWidth={35}
+                  onPress={() => setOpenFrom(true)}
+                />
               </View>
-                  )
-                :(
-                  
-                <View
-                style={{
-                  padding: 20,
-                  backgroundColor: APPCOLORS.Secondary,
-                  borderRadius: 10,
-                }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'Reference'} titleSize={2} />
-                  <AppText title={item.reference} />
-                </View>
 
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'Transaction date'} titleSize={2} />
-                  <AppText title={item.tran_date} />
-                </View>
+              <View style={styles.dateColumn}>
+                <AppText title="End Date" titleSize={2} titleWeight />
+                <AppButton
+                  title={moment(EndDate).format('YYYY-MM-DD')}
+                  btnWidth={35}
+                  onPress={() => setOpenEnd(true)}
+                />
+              </View>
+            </View>
 
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'debit'} titleSize={2} />
-                  <AppText title={item.debit} />
-                </View>
+            {Loader && (
+              <ActivityIndicator
+                size="large"
+                color={APPCOLORS.BLACK}
+                style={{marginVertical: 20}}
+              />
+            )}
 
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'credit'} titleSize={2} />
-                  <AppText title={item.credit} />
-                </View>
+            {/* Date Pickers */}
+            <DatePicker
+              modal
+              open={openFrom}
+              date={new Date()}
+              mode="date"
+              onConfirm={date => {
+                setOpenFrom(false);
+                setFromDate(date);
+              }}
+              onCancel={() => setOpenFrom(false)}
+            />
 
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                  }}>
-                  <AppText title={'balance'} titleSize={2} />
-                  <AppText title={item.balance} />
-                </View>
-                </View>
-                )
-              }
-              </>
-            );
-          }}
-        />
-      </ScrollView>
+            <DatePicker
+              modal
+              open={openEnd}
+              date={new Date()}
+              mode="date"
+              onConfirm={date => {
+                setOpenEnd(false);
+                setEndDate(date);
+              }}
+              onCancel={() => setOpenEnd(false)}
+            />
+
+            {/* Opening Balance */}
+            {opening ? (
+              <View style={styles.openingCard}>
+                <AppText title="Opening" titleSize={2} titleWeight />
+                <AppText
+                  title={Number(opening).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                  titleSize={2}
+                  titleWeight
+                />
+              </View>
+            ) : null}
+          </>
+        }
+        contentContainerStyle={{paddingBottom: 100, paddingHorizontal: 15}}
+      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  dateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 15,
+    backgroundColor: '#F8F8F8',
+    paddingVertical: 15,
+    borderRadius: 12,
+    marginHorizontal: 10,
+  },
+  dateColumn: {alignItems: 'center', gap: 10},
+  openingCard: {
+    marginTop: 20,
+    marginHorizontal: 15,
+    backgroundColor: '#F1F1F1',
+    borderRadius: 10,
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  card: {
+    padding: 20,
+    backgroundColor: APPCOLORS.Secondary,
+    borderRadius: 12,
+    elevation: 3,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+});
 
 export default Ledger;

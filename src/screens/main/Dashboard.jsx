@@ -134,7 +134,7 @@ const Dashboard = ({navigation}) => {
       });
       setAllData(data);
     } catch (error) {
-      console.error('❌ Dashboard API Error:', error);
+      console.error('Dashboard API Error:', error);
     } finally {
       setLoader(false);
     }

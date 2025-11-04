@@ -71,7 +71,6 @@ export const GetReceivable = async () => {
     headers: {},
   };
 
-
  const res = await axios.request(config)
  return res.data
 };

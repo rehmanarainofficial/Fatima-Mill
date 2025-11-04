@@ -1,4 +1,10 @@
-import {View, FlatList, TouchableOpacity, Text} from 'react-native';
+import {
+  View,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -20,7 +26,6 @@ const Detail = ({navigation}) => {
       maximumFractionDigits: 2,
     });
   };
-  console.log(slider_data, 'slider_data');
 
   const revData = [
     {
@@ -88,13 +93,11 @@ const Detail = ({navigation}) => {
       Prev_Amount: slider_data?.pre_m_revenue,
     },
   ];
-
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (!slider_data) {
       getMoneyData();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    }
+  }, []);
 
   const getMoneyData = async () => {
     setLoader(true);
@@ -179,9 +182,7 @@ const Detail = ({navigation}) => {
           }}>
           {/* Current Month */}
           <View style={{alignItems: 'flex-start'}}>
-            <Text style={{fontSize: 12, color: '#888'}}>
-              Current Month
-            </Text>
+            <Text style={{fontSize: 12, color: '#888'}}>Current Month</Text>
             <Text
               style={{
                 fontSize: 15,
@@ -195,9 +196,7 @@ const Detail = ({navigation}) => {
 
           {/* Previous Month */}
           <View style={{alignItems: 'flex-end'}}>
-            <Text style={{fontSize: 12, color: '#888'}}>
-              Previous Month
-            </Text>
+            <Text style={{fontSize: 12, color: '#888'}}>Previous Month</Text>
             <Text
               style={{
                 fontSize: 15,
@@ -213,6 +212,22 @@ const Detail = ({navigation}) => {
     </Animated.View>
   );
 
+  if (loader) {
+    // 🔹 Show loader when data is being fetched
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: APPCOLORS.WHITE,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <ActivityIndicator size="large" color={APPCOLORS.Primary} />
+        <Text style={{marginTop: 10, color: '#555'}}>Loading data...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
       <SimpleHeader title="Detail" />
@@ -223,7 +238,7 @@ const Detail = ({navigation}) => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,
-          paddingBottom: 100, // Scroll space ke liye
+          paddingBottom: 100,
         }}
         renderItem={renderItem}
         showsVerticalScrollIndicator={true}

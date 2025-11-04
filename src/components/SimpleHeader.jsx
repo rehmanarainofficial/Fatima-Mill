@@ -6,11 +6,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import { responsiveFontSize, responsiveHeight } from '../utils/Responsive'
 import LinearGradient from 'react-native-linear-gradient'
 import { useNavigation } from '@react-navigation/native'
-type props = {
-    title?: string,
 
-}
-const SimpleHeader = ({ title }: props) => {
+const SimpleHeader = ({ title }) => {
       const nav = useNavigation()
     
     return (

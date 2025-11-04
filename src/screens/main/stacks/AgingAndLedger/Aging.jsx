@@ -1,7 +1,7 @@
 import {View, Text, FlatList, TouchableOpacity, ScrollView} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import BaseUrl from '../../../../utils/BaseUrl';
+import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
@@ -20,16 +20,12 @@ const Aging = ({navigation, route}) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const nav = navigation.addListener('focus', () => {
-      if (name == 'Customer') {
-        getCustomerAging();
-      } else if (name == 'Suppliers') {
-        getSupplierAging();
-      }
-    });
-
-    return nav;
-  }, [navigation]);
+    if (name === 'Customer') {
+      getCustomerAging();
+    } else if (name === 'Suppliers') {
+      getSupplierAging();
+    }
+  }, []);
 
   const getCustomerAging = () => {
     let data = new FormData();
@@ -38,7 +34,7 @@ const Aging = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_cust_aging.php`,
+      url: `${BASEURL}dash_cust_aging.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -63,7 +59,7 @@ const Aging = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_supp_aging.php`,
+      url: `${BASEURL}dash_supp_aging.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

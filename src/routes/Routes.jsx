@@ -1,4 +1,3 @@
-import { View, Text } from 'react-native'
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack';
 import Auth from './Auth';
@@ -8,10 +7,6 @@ import { useSelector } from 'react-redux';
 const Stack = createStackNavigator();
 const Routes = () => {
   const token = useSelector(state => state.Data.token)
-
-
-
-
   return (
     <Stack.Navigator screenOptions={{headerShown:false}}>
       {
