@@ -104,7 +104,7 @@ const NormalViewAll = ({ navigation, route }) => {
         data={filteredData}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{
-          paddingBottom: 350,
+          paddingBottom: 20,
           paddingHorizontal: 15,
           paddingTop: 10,
         }}

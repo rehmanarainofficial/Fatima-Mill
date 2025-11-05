@@ -237,8 +237,7 @@ const Detail = ({navigation}) => {
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 100,
+          paddingVertical: 16,
         }}
         renderItem={renderItem}
         showsVerticalScrollIndicator={true}

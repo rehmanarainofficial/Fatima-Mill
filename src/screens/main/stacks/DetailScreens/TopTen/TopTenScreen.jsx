@@ -26,6 +26,8 @@ import {
 
 const TopTenScreen = ({route, navigation}) => {
   const {name} = route.params;
+  console.log(name);
+  
   const [top, setTop] = useState([]);
   const [allData, setAllData] = useState([]);
   const [loader, setLoader] = useState(false);

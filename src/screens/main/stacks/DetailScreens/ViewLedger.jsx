@@ -8,17 +8,20 @@ import {
   Animated,
   TouchableOpacity,
   StatusBar,
-  TextInput,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {Dropdown} from 'react-native-element-dropdown';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
+
+const {width} = Dimensions.get('window');
 
 const ViewLedger = ({navigation}) => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +29,6 @@ const ViewLedger = ({navigation}) => {
   const [ledgerData, setLedgerData] = useState([]);
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
-  const [runningBalance, setRunningBalance] = useState(0);
 
   // Filter states
   const [accounts, setAccounts] = useState([]);
@@ -37,6 +39,10 @@ const ViewLedger = ({navigation}) => {
     moment().subtract(1, 'month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
+
+  // Date picker states
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
 
   // Loading states
   const [accountsLoading, setAccountsLoading] = useState(false);
@@ -57,7 +63,7 @@ const ViewLedger = ({navigation}) => {
     }).start();
   }, [fadeAnim]);
 
-  // Fetch accounts for 1st dropdown
+  // Fetch accounts for 1st dropdown - GET request
   const fetchAccounts = async () => {
     try {
       setAccountsLoading(true);
@@ -80,38 +86,31 @@ const ViewLedger = ({navigation}) => {
     }
   };
 
-  // Fetch counter parties for 2nd dropdown
-  const fetchCounterParties = async (type = '-1', account = '') => {
-    if (!selectedAccount) {
-      console.log('Please select account first');
-      return;
-    }
-
+  const fetchCounterParties = async accountValue => {
     try {
       setCounterPartiesLoading(true);
-      const requestBody = {
-        type: type,
-        account: selectedAccount.value,
-      };
+
+      const formData = new FormData();
+      formData.append('account', accountValue);
 
       const response = await fetch(`${BASEURL}get_counter_party.php`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+        headers: {'Content-Type': 'multipart/form-data'},
+        body: formData,
       });
 
       const json = await response.json();
+      console.log('Counter parties response:', json);
 
       if (json.status === 'true' && Array.isArray(json.data)) {
-        const formattedCounterParties = json.data.map(party => ({
-          label: party.name,
-          value: party.id,
-          name: party.name,
-          inactive: party.inactive,
-        }));
-        setCounterParties(formattedCounterParties);
+        setCounterParties(
+          json.data.map(party => ({
+            label: party.name,
+            value: party.id,
+            name: party.name,
+            inactive: party.inactive,
+          })),
+        );
       } else {
         setCounterParties([]);
       }
@@ -123,35 +122,32 @@ const ViewLedger = ({navigation}) => {
     }
   };
 
-  // Fetch ledger data with filters
+  // Fetch ledger data with filters - FORM DATA with POST
   const fetchData = async () => {
-    if (!selectedAccount) {
-      console.log('Please select an account first');
-      return;
-    }
-
     try {
       setLoading(true);
-      const requestBody = {
-        account: selectedAccount.value,
-        date_from: fromDate,
-        date_to: toDate,
-        type: '-1',
-        person_id: selectedCounterParty ? selectedCounterParty.value : '',
-      };
+
+      // FormData use karenge
+      const formData = new FormData();
+      formData.append('account', selectedAccount.value);
+      formData.append('from_date', fromDate);
+      formData.append('to_date', toDate);
+      if (selectedCounterParty) {
+        formData.append('person_id', selectedCounterParty.value);
+      }
 
       const response = await fetch(`${BASEURL}gl_account_inquiry.php`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
-        body: JSON.stringify(requestBody),
+        body: formData,
       });
 
       const json = await response.json();
+      console.log('inquiry', json);
 
       if (json.status === 'true') {
-        // Set opening balance (null ko 0 karo)
         const opening = json.opening !== null ? parseFloat(json.opening) : 0;
         setOpeningBalance(opening);
 
@@ -159,10 +155,8 @@ const ViewLedger = ({navigation}) => {
           const grouped = groupByDate(json.data);
           setLedgerData(grouped);
 
-          // Calculate running balances
           calculateRunningBalances(json.data, opening);
 
-          // Calculate closing balance
           let currentBalance = opening;
           json.data.forEach(item => {
             currentBalance += parseFloat(item.amount);
@@ -221,10 +215,48 @@ const ViewLedger = ({navigation}) => {
 
   const handleAccountChange = account => {
     setSelectedAccount(account);
-    setSelectedCounterParty(null); // Reset counter party when account changes
+    setSelectedCounterParty(null);
+    setLedgerData([]);
+    setOpeningBalance(0);
+    setClosingBalance(0);
+    setCounterParties([]); // Reset counter parties
     if (account) {
-      fetchCounterParties('-1', account.value);
+      fetchCounterParties(account.value);
     }
+  };
+
+  const handleResetFilter = () => {
+    setSelectedAccount(null);
+    setSelectedCounterParty(null);
+    setFromDate(moment().subtract(1, 'month').format('YYYY-MM-DD'));
+    setToDate(moment().format('YYYY-MM-DD'));
+    setLedgerData([]);
+    setOpeningBalance(0);
+    setClosingBalance(0);
+    setCounterParties([]); // Reset counter parties
+  };
+
+  // Date picker handlers
+  const onFromDateChange = (event, selectedDate) => {
+    setShowFromDatePicker(false);
+    if (selectedDate) {
+      setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+    }
+  };
+
+  const onToDateChange = (event, selectedDate) => {
+    setShowToDatePicker(false);
+    if (selectedDate) {
+      setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+    }
+  };
+
+  const showFromDatepicker = () => {
+    setShowFromDatePicker(true);
+  };
+
+  const showToDatepicker = () => {
+    setShowToDatePicker(true);
   };
 
   const renderTransaction = ({item, index}) => {
@@ -263,14 +295,16 @@ const ViewLedger = ({navigation}) => {
     );
   };
 
-  const renderSection = ({item}) => {
+  const renderSection = ({item, index}) => {
     return (
-      <View>
+      <View key={index}>
         <Text style={styles.dateHeader}>
           {moment(item.date).format('dddd, DD MMM YYYY')}
         </Text>
-        {item.transactions.map((tx, index) => (
-          <View key={index}>{renderTransaction({item: tx, index})}</View>
+        {item.transactions.map((tx, txIndex) => (
+          <View key={txIndex}>
+            {renderTransaction({item: tx, index: txIndex})}
+          </View>
         ))}
       </View>
     );
@@ -279,7 +313,8 @@ const ViewLedger = ({navigation}) => {
   if (loading && ledgerData.length === 0) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color={APPCOLORS.BLACK} />
+        <ActivityIndicator size="large" color={APPCOLORS.Primary} />
+        <Text style={styles.loadingText}>Loading transactions...</Text>
       </View>
     );
   }
@@ -298,156 +333,214 @@ const ViewLedger = ({navigation}) => {
 
         <Text style={styles.headerTitle}>View Transactions</Text>
 
-        <TouchableOpacity onPress={handleDownload} disabled={downloadLoading}>
+        <TouchableOpacity
+          onPress={handleDownload}
+          disabled={downloadLoading || ledgerData.length === 0}>
           {downloadLoading ? (
             <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
           ) : (
             <MaterialIcons
               name="file-download"
               size={26}
-              color={APPCOLORS.WHITE}
+              color={
+                ledgerData.length === 0
+                  ? APPCOLORS.TEXTFIELDCOLOR
+                  : APPCOLORS.WHITE
+              }
             />
           )}
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Filter Section */}
+      {/* Improved Filter Section - Compact Design */}
       <View style={styles.filterContainer}>
-        {/* 1st Dropdown - Accounts */}
+        {/* First Row - Account Only */}
         <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>Account *</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={accounts}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder={accountsLoading ? 'Loading...' : 'Select Account'}
-            searchPlaceholder="Search accounts..."
-            value={selectedAccount}
-            onChange={handleAccountChange}
-            renderLeftIcon={() =>
-              accountsLoading ? (
-                <ActivityIndicator size="small" color={APPCOLORS.Primary} />
-              ) : (
-                <MaterialIcons
-                  name="account-balance"
-                  size={20}
-                  color={APPCOLORS.Primary}
-                />
-              )
-            }
-          />
-        </View>
-
-        {/* 2nd Dropdown - Counter Parties */}
-        <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>Counter Party</Text>
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={counterParties}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder={
-              counterPartiesLoading ? 'Loading...' : 'Select Counter Party'
-            }
-            searchPlaceholder="Search counter parties..."
-            value={selectedCounterParty}
-            onChange={setSelectedCounterParty}
-            renderLeftIcon={() =>
-              counterPartiesLoading ? (
-                <ActivityIndicator size="small" color={APPCOLORS.Primary} />
-              ) : (
-                <MaterialIcons
-                  name="people"
-                  size={20}
-                  color={APPCOLORS.Primary}
-                />
-              )
-            }
-            disable={!selectedAccount}
-          />
-        </View>
-
-        {/* Date Filters */}
-        <View style={styles.filterRow}>
-          <View style={styles.dateInputContainer}>
-            <Text style={styles.filterLabel}>From Date</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={fromDate}
-              onChangeText={setFromDate}
-              placeholder="YYYY-MM-DD"
+          <View style={styles.fullWidthContainer}>
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              iconStyle={styles.iconStyle}
+              data={accounts}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={
+                accountsLoading ? 'Loading accounts...' : 'Select Account'
+              }
+              searchPlaceholder="Search accounts..."
+              value={selectedAccount}
+              onChange={handleAccountChange}
+              renderLeftIcon={() =>
+                accountsLoading && (
+                  <ActivityIndicator size="small" color={APPCOLORS.Primary} />
+                )
+              }
             />
           </View>
-
-          <View style={styles.dateInputContainer}>
-            <Text style={styles.filterLabel}>To Date</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={toDate}
-              onChangeText={setToDate}
-              placeholder="YYYY-MM-DD"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.applyButton}
-            onPress={handleApplyFilter}>
-            <MaterialIcons name="search" size={20} color={APPCOLORS.WHITE} />
-          </TouchableOpacity>
         </View>
 
-        {/* Opening Balance */}
+        {/* Second Row - Counter Party (Only show when account is selected AND counter parties available) */}
+        {selectedAccount && counterParties.length > 0 && (
+          <View style={styles.filterRow}>
+            <View style={styles.fullWidthContainer}>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={counterParties}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={
+                  counterPartiesLoading
+                    ? 'Loading counter parties...'
+                    : 'Select Counter Party'
+                }
+                searchPlaceholder="Search counter parties..."
+                value={selectedCounterParty}
+                onChange={setSelectedCounterParty}
+                renderLeftIcon={() =>
+                  counterPartiesLoading && (
+                    <ActivityIndicator size="small" color={APPCOLORS.Primary} />
+                  )
+                }
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Third Row - Dates & Action Buttons */}
+        <View style={styles.filterRow}>
+          {/* From Date */}
+          <View style={styles.dateContainer}>
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={showFromDatepicker}>
+              <Text
+                style={[styles.dateText, !fromDate && styles.placeholderText]}>
+                {fromDate || 'From Date'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* To Date */}
+          <View style={styles.dateContainer}>
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={showToDatepicker}>
+              <Text
+                style={[styles.dateText, !toDate && styles.placeholderText]}>
+                {toDate || 'To Date'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsContainer}>
+            {/* Reset Button */}
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={handleResetFilter}>
+              <MaterialIcons
+                name="refresh"
+                size={20}
+                color={APPCOLORS.Primary}
+              />
+            </TouchableOpacity>
+
+            {/* Apply Button */}
+            <TouchableOpacity
+              style={[
+                styles.applyButton,
+                !selectedAccount && styles.disabledButton,
+              ]}
+              onPress={handleApplyFilter}
+              disabled={!selectedAccount || loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+              ) : (
+                <MaterialIcons
+                  name="search"
+                  size={20}
+                  color={APPCOLORS.WHITE}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Date Pickers */}
+        {showFromDatePicker && (
+          <DateTimePicker
+            value={new Date(fromDate)}
+            mode="date"
+            display="default"
+            onChange={onFromDateChange}
+          />
+        )}
+        {showToDatePicker && (
+          <DateTimePicker
+            value={new Date(toDate)}
+            mode="date"
+            display="default"
+            onChange={onToDateChange}
+          />
+        )}
+
+        {/* Balance Information */}
         {selectedAccount && (
           <View style={styles.balanceContainer}>
-            <Text style={styles.balanceLabel}>Opening Balance:</Text>
-            <Text style={styles.balanceValue}>
-              ${openingBalance.toFixed(2)}
-            </Text>
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceLabel}>Opening Balance</Text>
+              <Text style={styles.balanceValue}>
+                {openingBalance.toFixed(2)}
+              </Text>
+            </View>
+            {ledgerData.length > 0 && (
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Closing Balance</Text>
+                <Text style={styles.balanceValue}>
+                  {closingBalance.toFixed(2)}
+                </Text>
+              </View>
+            )}
           </View>
         )}
       </View>
 
+      {/* Transactions List */}
       <Animated.ScrollView
         style={[styles.container, {opacity: fadeAnim}]}
         showsVerticalScrollIndicator={false}>
         {ledgerData.length === 0 ? (
           <View style={styles.noDataContainer}>
+            <MaterialIcons
+              name="receipt-long"
+              size={60}
+              color={APPCOLORS.TEXTFIELDCOLOR}
+            />
             <Text style={styles.noDataText}>
-              {selectedAccount
-                ? 'No transactions found'
+              {selectedAccount && loading
+                ? 'Loading transactions...'
+                : selectedAccount
+                ? 'No transactions found for selected filters'
                 : 'Please select an account to view transactions'}
             </Text>
           </View>
         ) : (
-          <>
-            <FlatList
-              data={ledgerData}
-              renderItem={renderSection}
-              keyExtractor={(item, index) => index.toString()}
-              scrollEnabled={false}
-            />
-
-            {/* Closing Balance */}
-            <View style={styles.closingBalanceContainer}>
-              <Text style={styles.closingBalanceLabel}>Closing Balance:</Text>
-              <Text style={styles.closingBalanceValue}>
-                ${closingBalance.toFixed(2)}
-              </Text>
-            </View>
-          </>
+          <FlatList
+            data={ledgerData}
+            renderItem={renderSection}
+            keyExtractor={(item, index) => index.toString()}
+            scrollEnabled={false}
+          />
         )}
       </Animated.ScrollView>
     </View>
@@ -459,7 +552,7 @@ export default ViewLedger;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: APPCOLORS.WHITE,
+    backgroundColor: '#F0F2F5',
   },
   header: {
     alignItems: 'center',
@@ -470,6 +563,11 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     paddingTop: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   headerTitle: {
     color: APPCOLORS.WHITE,
@@ -477,106 +575,167 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   filterContainer: {
-    backgroundColor: APPCOLORS.WHITE,
+    backgroundColor: '#F0F2F5',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: APPCOLORS.TEXTFIELDCOLOR,
+    margin: 12,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
+    gap: 10,
   },
-  filterLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: APPCOLORS.BLACK,
-    marginBottom: 4,
+  fullWidthContainer: {
+    flex: 1,
+  },
+  dateContainer: {
+    flex: 1,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    width: 100,
+    gap: 8,
   },
   dropdown: {
-    height: 50,
-    borderColor: APPCOLORS.TEXTFIELDCOLOR,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: APPCOLORS.WHITE,
+    height: 48,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   placeholderStyle: {
     fontSize: 14,
-    color: APPCOLORS.Secondary,
+    color: '#9CA3AF',
   },
   selectedTextStyle: {
     fontSize: 14,
     color: APPCOLORS.BLACK,
+    fontWeight: '500',
   },
   inputSearchStyle: {
     height: 40,
     fontSize: 14,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   iconStyle: {
     width: 20,
     height: 20,
   },
-  dateInputContainer: {
-    marginBottom: 8,
-  },
   dateInput: {
-    borderWidth: 1,
-    borderColor: APPCOLORS.TEXTFIELDCOLOR,
-    borderRadius: 8,
-    padding: 12,
+    justifyContent: 'center',
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    height: 48,
+  },
+  dateText: {
     fontSize: 14,
-    backgroundColor: APPCOLORS.WHITE,
+    color: APPCOLORS.BLACK,
+    fontWeight: '500',
+  },
+  placeholderText: {
+    color: '#9CA3AF',
+  },
+  resetButton: {
+    backgroundColor: '#E8EAED',
+    borderRadius: 12,
+    width: 46,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   applyButton: {
     backgroundColor: APPCOLORS.Primary,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    width: 46,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    shadowColor: APPCOLORS.Primary,
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  disabledButton: {
+    backgroundColor: '#D1D5DB',
+    shadowColor: '#9CA3AF',
   },
   balanceContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  balanceInfo: {
     alignItems: 'center',
-    backgroundColor: APPCOLORS.CLOSETOWHITE,
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
   },
   balanceLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: APPCOLORS.BLACK,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: APPCOLORS.Primary,
   },
   container: {
     flex: 1,
-    padding: 12,
+    paddingHorizontal: 12,
   },
   dateHeader: {
     fontSize: 15,
     color: APPCOLORS.BLACK,
     fontWeight: 'bold',
-    marginVertical: 10,
-    backgroundColor: APPCOLORS.CLOSETOWHITE,
-    padding: 8,
-    borderRadius: 6,
+    marginVertical: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   card: {
     backgroundColor: APPCOLORS.WHITE,
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 16,
-    marginVertical: 8,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     shadowOffset: {width: 0, height: 3},
     elevation: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: APPCOLORS.Primary,
   },
   transactionContent: {
     flexDirection: 'row',
@@ -594,15 +753,15 @@ const styles = StyleSheet.create({
     color: APPCOLORS.BLACK,
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   personText: {
-    color: '#333',
+    color: '#4B5563',
     fontSize: 13,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   memoText: {
-    color: '#666',
+    color: '#6B7280',
     fontSize: 12,
     marginTop: 4,
   },
@@ -613,42 +772,32 @@ const styles = StyleSheet.create({
   },
   balanceText: {
     fontSize: 12,
-    color: APPCOLORS.Secondary,
-  },
-  closingBalanceContainer: {
-    backgroundColor: APPCOLORS.Primary,
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  closingBalanceLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: APPCOLORS.WHITE,
-  },
-  closingBalanceValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: APPCOLORS.WHITE,
+    color: '#6B7280',
   },
   loader: {
     flex: 1,
-    backgroundColor: APPCOLORS.WHITE,
+    backgroundColor: '#F0F2F5',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: APPCOLORS.Primary,
+    fontWeight: '500',
   },
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 50,
+    paddingVertical: 60,
   },
   noDataText: {
     fontSize: 16,
-    color: APPCOLORS.Secondary,
+    color: '#6B7280',
     textAlign: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
+    lineHeight: 24,
   },
 });

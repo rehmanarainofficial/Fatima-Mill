@@ -6,8 +6,9 @@ import {responsiveWidth} from '../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const NameBalanceContainer = ({Name, balance = 0, type, item}) => {
+const NameBalanceContainer = ({Name, balance = 0, type, item, index}) => {
   const navigation = useNavigation();
+  console.log('Name', Name, 'balance', balance, 'type', type, 'item', item);
 
   return (
     <TouchableOpacity activeOpacity={0.9} style={styles.container}>
@@ -36,13 +37,23 @@ const NameBalanceContainer = ({Name, balance = 0, type, item}) => {
         <View style={styles.iconContainer}>
           <TouchableOpacity
             style={[styles.iconButton, {backgroundColor: '#E9F7EF'}]}
-            onPress={() => navigation.navigate('Aging', {name: type, item})}>
+            onPress={() =>
+              navigation.navigate('Aging', {
+                name: type === 'Receivable' ? 'Customer' : 'Supplier',
+                item,
+              })
+            }>
             <Icon name="clock-outline" size={20} color="#2E7D32" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
-            onPress={() => navigation.navigate('Ledger', {name: type, item})}>
+            onPress={() =>
+              navigation.navigate('Ledger', {
+                name: type === 'Payable' ? 'Customer' : 'Suppliers',
+                item,
+              })
+            }>
             <Icon name="book-open-outline" size={20} color="#1565C0" />
           </TouchableOpacity>
         </View>
@@ -63,14 +74,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     marginVertical: 6,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    shadowOffset: {width: 0, height: 2},
   },
   nameContainer: {
-    width: responsiveWidth(35),
+    width: responsiveWidth(30),
   },
   balanceContainer: {
     width: responsiveWidth(25),

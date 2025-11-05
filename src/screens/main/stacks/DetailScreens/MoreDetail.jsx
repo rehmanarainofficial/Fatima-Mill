@@ -6,7 +6,6 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
-import SimpleHeader from '../../../../components/SimpleHeader';
 import PieChart from 'react-native-pie-chart';
 import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
@@ -22,9 +21,10 @@ import Header from '../../../../components/Header';
 
 const MoreDetail = ({navigation, route}) => {
   const {slider_data, selectedItem} = route.params;
-  console.log(slider_data);
-  console.log(selectedItem);
-
+  console.log("slider_data", slider_data);
+  console.log("selectedItem", selectedItem);
+  
+  
   const [activeData, setActiveData] = useState(null);
   const [activeChartData, setActiveChartData] = useState(null);
   const [loader, setLoader] = useState(false);

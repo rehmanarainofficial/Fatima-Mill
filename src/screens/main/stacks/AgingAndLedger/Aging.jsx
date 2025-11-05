@@ -4,7 +4,6 @@ import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import AppText from '../../../../components/AppText';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import {PermissionsAndroid, Platform, Alert} from 'react-native';
 import RNFS from 'react-native-fs';
@@ -15,7 +14,7 @@ import Animated, {FadeInUp} from 'react-native-reanimated';
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
 
-  console.log('name, item', name, item);
+  console.log('name',name, 'item', name, item);
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -333,7 +332,7 @@ const Aging = ({navigation, route}) => {
                 {row.days}
               </Text>
               <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
-                {row.row.Invoice_amount || '-'}
+                {row.Invoice_amount || '-'}
               </Text>
             </Animated.View>
           ))}

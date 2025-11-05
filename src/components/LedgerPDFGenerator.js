@@ -1,53 +1,49 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import {PDFDocument, StandardFonts, rgb} from 'pdf-lib';
 import RNFetchBlob from 'react-native-blob-util';
-import { fromByteArray } from 'base64-js';
-import { ToastAndroid, PermissionsAndroid, Platform } from 'react-native';
+import {fromByteArray} from 'base64-js';
+import {ToastAndroid, PermissionsAndroid, Platform} from 'react-native';
 
 export const generateLedgerPDF = async (ledgerData, setLoading) => {
   try {
     setLoading(true);
 
-    // ✅ Handle storage permission (Android 13+ safe)
+    // ✅ Handle Android storage rules cleanly (works on Android 11–14)
     if (Platform.OS === 'android') {
-      const sdk = Platform.constants?.Release ? parseInt(Platform.constants.Release) : 30;
+      const sdk = parseInt(Platform.Version, 10);
 
-      if (sdk < 13) {
+      if (sdk < 33) {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
           {
             title: 'Storage Permission Required',
-            message: 'App needs storage access to save PDF in Downloads folder.',
+            message: 'App needs access to save PDF file.',
             buttonPositive: 'OK',
-          }
+          },
         );
-
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
           ToastAndroid.show('Storage permission denied!', ToastAndroid.SHORT);
           setLoading(false);
           return;
         }
       } else {
-        // Android 13+ (no WRITE_EXTERNAL_STORAGE)
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-        ]);
-        // No need to check; PDFs are allowed in Downloads by default
+        // Android 13+ → WRITE_EXTERNAL_STORAGE is deprecated; no need to request
+        console.log(
+          'No storage permission needed for Android 13+ (Scoped Storage)',
+        );
       }
     }
 
     // 🧾 Create PDF
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
+    const {width, height} = page.getSize();
 
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const fontSize = 12;
-    const lineHeight = 20;
-    let yPos = height - 60;
+    const fontSize = 10;
+    const lineHeight = 15;
+    let yPos = height - 50;
 
     const drawText = (text, x, y, size = fontSize, bold = false) => {
       page.drawText(text, {
@@ -59,111 +55,129 @@ export const generateLedgerPDF = async (ledgerData, setLoading) => {
       });
     };
 
+    // Helper function to clean text from special characters
+    const cleanText = text => {
+      if (!text) return '-';
+      // Replace tab characters with spaces and remove other problematic characters
+      return text
+        .replace(/\t/g, '    ') // Replace tabs with 4 spaces
+        .replace(/[^\x20-\x7E\n\r]/g, '') // Remove non-printable ASCII characters
+        .trim();
+    };
+
     // Title
-    drawText('Ledger Transactions', width / 2 - 80, yPos, 18, true);
-    yPos -= 40;
+    drawText('Ledger Transactions Report', width / 2 - 90, yPos, 16, true);
+    yPos -= 30;
+
+    // Generated date
+    const currentDate = new Date().toLocaleDateString();
+    drawText(`Generated on: ${currentDate}`, 50, yPos, 10);
+    yPos -= 20;
 
     // Content
     for (const section of ledgerData) {
-      if (yPos < 100) {
+      if (yPos < 80) {
         page = pdfDoc.addPage();
-        yPos = height - 60;
+        yPos = height - 50;
       }
 
-      const headerText = section.date;
-      const textWidth = font.widthOfTextAtSize(headerText, 14);
-      const padding = 6;
+      // Date header
+      const headerText = `Date: ${section.date}`;
+      drawText(headerText, 50, yPos, 12, true);
+      yPos -= 20;
 
-      page.drawRectangle({
-        x: 50 - padding,
-        y: yPos - padding,
-        width: textWidth + 2 * padding,
-        height: 20 + padding / 2,
-        color: rgb(0, 0, 0),
-      });
-
-      page.drawText(headerText, {
-        x: 50,
-        y: yPos,
-        size: 14,
-        font,
-        color: rgb(1, 1, 1),
-      });
-
-      yPos -= lineHeight * 1.5;
-
+      // Table headers
       drawText('Reference', 50, yPos, fontSize, true);
-      drawText('Name', 150, yPos, fontSize, true);
-      drawText('Memo', 300, yPos, fontSize, true);
-      drawText('Amount', 480, yPos, fontSize, true);
+      drawText('Name', 120, yPos, fontSize, true);
+      drawText('Amount', 450, yPos, fontSize, true);
+      drawText('Balance', 520, yPos, fontSize, true);
 
-      yPos -= lineHeight;
+      yPos -= 15;
 
+      // Horizontal line
       page.drawLine({
-        start: { x: 50, y: yPos + 5 },
-        end: { x: width - 50, y: yPos + 5 },
+        start: {x: 50, y: yPos},
+        end: {x: width - 50, y: yPos},
         color: rgb(0, 0, 0),
         thickness: 0.5,
       });
 
       yPos -= 10;
 
+      // Transactions
       for (const tx of section.transactions) {
-        if (yPos < 60) {
+        if (yPos < 50) {
           page = pdfDoc.addPage();
-          yPos = height - 60;
+          yPos = height - 50;
+
+          // Add headers on new page
+          drawText('Reference', 50, yPos, fontSize, true);
+          drawText('Name', 120, yPos, fontSize, true);
+          drawText('Amount', 450, yPos, fontSize, true);
+          drawText('Balance', 520, yPos, fontSize, true);
+          yPos -= 25;
         }
 
-        drawText(`${tx.reference || '-'}`, 50, yPos);
-        drawText(`${tx.person_name || '-'}`, 150, yPos);
+        // Clean the data before drawing
+        const reference = cleanText(tx.reference);
+        const personName = cleanText(tx.person_name);
+        const memo = cleanText(tx.memo);
+        const amount = parseFloat(tx.amount || 0);
+        const balance = parseFloat(tx.balance || 0);
 
-        // Wrap memo
-        const memo = tx.memo || '-';
-        const memoLines = [];
-        const maxWidth = 160;
-        let currentLine = '';
+        drawText(reference.substring(0, 25), 50, yPos);
 
-        for (const word of memo.split(' ')) {
-          const testLine = currentLine + word + ' ';
-          const textWidth = font.widthOfTextAtSize(testLine, fontSize);
-          if (textWidth > maxWidth) {
-            memoLines.push(currentLine.trim());
-            currentLine = word + ' ';
-          } else {
-            currentLine = testLine;
+        drawText(personName.substring(0, 35), 120, yPos);
+
+        const amountText = `${amount >= 0 ? '+' : ''}${amount.toFixed(2)}`;
+        drawText(amountText, 450, yPos);
+
+        drawText(balance.toFixed(2), 520, yPos);
+
+        yPos -= lineHeight;
+
+        if (memo && memo !== '-') {
+          if (yPos < 50) {
+            page = pdfDoc.addPage();
+            yPos = height - 50;
           }
-        }
-        memoLines.push(currentLine.trim());
 
-        for (const line of memoLines) {
-          drawText(line, 300, yPos);
-          yPos -= lineHeight * 0.8;
+          drawText(`Memo: ${memo.substring(0, 80)}`, 50, yPos, 9);
+          yPos -= lineHeight;
         }
-
-        const amountText = `${parseFloat(tx.amount) > 0 ? '+' : '-'}${Math.abs(tx.amount)}`;
-        drawText(amountText, 480, yPos + lineHeight * 0.8, fontSize, true);
 
         yPos -= 5;
       }
 
-      yPos -= 20;
+      yPos -= 15;
     }
 
     // 🗂 Save PDF
     const pdfBytes = await pdfDoc.save();
     const base64Data = fromByteArray(pdfBytes);
 
+    // 📂 Save in Downloads/MyAppReports (visible in File Manager)
     const downloadDir = RNFetchBlob.fs.dirs.DownloadDir;
-    const filePath = `${downloadDir}/ledger_report_${Date.now()}.pdf`;
+    const appFolder = `${downloadDir}/MyAppReports`;
+    await RNFetchBlob.fs.mkdir(appFolder).catch(() => {});
+    const filePath = `${appFolder}/ledger_report_${Date.now()}.pdf`;
 
     await RNFetchBlob.fs.writeFile(filePath, base64Data, 'base64');
 
-    ToastAndroid.show('PDF saved to Downloads folder!', ToastAndroid.LONG);
+    // ✅ Optional: open file instantly
+    RNFetchBlob.android.actionViewIntent(filePath, 'application/pdf');
 
-    console.log('✅ Saved path:', filePath);
+    ToastAndroid.show(
+      '✅ PDF saved to Downloads/MyAppReports',
+      ToastAndroid.LONG,
+    );
+    console.log('📄 File saved at:', filePath);
   } catch (error) {
     console.error('PDF generation failed:', error);
-    ToastAndroid.show('PDF generation failed!', ToastAndroid.SHORT);
+    ToastAndroid.show(
+      'PDF generation failed! Check console for details.',
+      ToastAndroid.SHORT,
+    );
   } finally {
     setLoading(false);
   }
