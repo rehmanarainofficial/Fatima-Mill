@@ -17,8 +17,6 @@ import Toast from 'react-native-toast-message';
 import {useDispatch} from 'react-redux';
 import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
 import {responsiveFontSize, responsiveHeight} from '../../utils/Responsive';
-import {APPCOLORS} from '../../utils/APPCOLORS';
-import AppButton from '../../components/AppButton';
 import AppText from '../../components/AppText';
 import BaseUrl from '../../utils/BaseUrl';
 
@@ -76,7 +74,7 @@ const Login = ({navigation}) => {
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={{
-            height: responsiveHeight(35),
+            height: responsiveHeight(45),
             borderBottomLeftRadius: 50,
             borderBottomRightRadius: 50,
             paddingHorizontal: 30,
@@ -94,7 +92,7 @@ const Login = ({navigation}) => {
                 fontSize: responsiveFontSize(4),
                 fontWeight: 'bold',
               }}>
-              Hello
+              Fatima Board And Paper Mill PVT
             </Text>
             <Text
               style={{

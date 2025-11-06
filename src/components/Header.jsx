@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
 
-const SimpleHeader = ({ title, onRightPress, rightIcon, onBack }) => {
+const Header = ({ title, onRightPress, rightIcon, onBack }) => {
   return (
     <LinearGradient
       colors={['#1D4452', '#4199B8']}
@@ -52,4 +52,4 @@ const SimpleHeader = ({ title, onRightPress, rightIcon, onBack }) => {
   );
 };
 
-export default SimpleHeader;
+export default Header;

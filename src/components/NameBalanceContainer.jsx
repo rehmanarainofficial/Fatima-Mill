@@ -39,7 +39,7 @@ const NameBalanceContainer = ({Name, balance = 0, type, item, index}) => {
             style={[styles.iconButton, {backgroundColor: '#E9F7EF'}]}
             onPress={() =>
               navigation.navigate('Aging', {
-                name: type === 'Receivable' ? 'Customer' : 'Supplier',
+                name: type === 'Receivable' ? 'Customer' : 'Suppliers',
                 item,
               })
             }>
@@ -50,7 +50,7 @@ const NameBalanceContainer = ({Name, balance = 0, type, item, index}) => {
             style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
             onPress={() =>
               navigation.navigate('Ledger', {
-                name: type === 'Payable' ? 'Customer' : 'Suppliers',
+                name: type === 'Receivable' ? 'Customer' : 'Suppliers',
                 item,
               })
             }>

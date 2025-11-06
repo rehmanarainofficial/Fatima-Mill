@@ -205,9 +205,10 @@ const ViewLedger = ({navigation}) => {
     }));
   };
 
-  const handleDownload = async () => {
-    await generateLedgerPDF(ledgerData, setDownloadLoading);
-  };
+ const handleDownload = async () => {
+  await generateLedgerPDF(ledgerData, setDownloadLoading, fromDate, toDate);
+};
+
 
   const handleApplyFilter = () => {
     fetchData();

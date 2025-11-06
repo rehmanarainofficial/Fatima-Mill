@@ -5,17 +5,17 @@ import {
   ActivityIndicator,
   StyleSheet,
   FlatList,
-  Text, // 💡 NEW: Native Text component imported for custom heading
+  Text,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   FadeInUp,
   FadeInDown,
+  FadeInLeft,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  FadeInLeft,
 } from 'react-native-reanimated';
 import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -32,7 +32,12 @@ import {
   responsiveWidth,
 } from '../../utils/Responsive';
 
-// 💡 Custom Animated Card Component (Functional version)
+// 🔹 Simple cache object to store Dashboard data globally
+const dashboardCache = {
+  data: null,
+  lastFetched: null,
+};
+
 const ScaleCard = ({children, onPress}) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -42,7 +47,6 @@ const ScaleCard = ({children, onPress}) => {
   const handlePressIn = () => {
     scale.value = withSpring(0.95, {damping: 8, stiffness: 100});
   };
-
   const handlePressOut = () => {
     scale.value = withSpring(1, {damping: 8, stiffness: 100});
   };
@@ -63,9 +67,9 @@ const ScaleCard = ({children, onPress}) => {
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
-  const [AllData, setAllData] = useState();
+  const [AllData, setAllData] = useState(dashboardCache.data);
   const [Type, setType] = useState();
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState(!dashboardCache.data);
 
   const companyData = [
     {
@@ -117,12 +121,12 @@ const Dashboard = ({navigation}) => {
       onPress: () => navigation.navigate('Detail', {type: 'Inventory'}),
     },
   ];
+
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (!dashboardCache.data) {
       getMoneyData();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    }
+  }, []);
 
   const getMoneyData = async () => {
     setLoader(true);
@@ -133,6 +137,8 @@ const Dashboard = ({navigation}) => {
         params: {current_date: todayDate, pre_month_date: '2025-04-19'},
       });
       setAllData(data);
+      dashboardCache.data = data; // 🔹 Cache it
+      dashboardCache.lastFetched = Date.now();
     } catch (error) {
       console.error('Dashboard API Error:', error);
     } finally {
@@ -153,7 +159,7 @@ const Dashboard = ({navigation}) => {
         />
       </Animated.View>
 
-      {/* 🔹 Modal (Unchanged) */}
+      {/* 🔹 Modal */}
       <Modal
         isVisible={visible}
         animationIn="slideInUp"
@@ -171,7 +177,6 @@ const Dashboard = ({navigation}) => {
                 size={responsiveFontSize(2.2)}
               />
             </TouchableOpacity>
-
             <AppText
               title={
                 Type === 'bell'
@@ -191,11 +196,10 @@ const Dashboard = ({navigation}) => {
         </View>
       </Modal>
 
-      {/* 💡 Solution: ScrollView to wrap main content */}
+      {/* 🔹 Scroll Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}>
-        {/* 🔹 Loader */}
         {loader && (
           <ActivityIndicator
             size="large"
@@ -204,7 +208,6 @@ const Dashboard = ({navigation}) => {
           />
         )}
 
-        {/* 🔹 Animated Cards (Grid View) */}
         <View style={styles.cardGridContainer}>
           <View style={styles.gridRow}>
             {companyData.slice(0, 2).map((item, index) => (
@@ -214,7 +217,6 @@ const Dashboard = ({navigation}) => {
                 <ScaleCard onPress={item.onPress}>
                   <View style={styles.cardInnerView}>
                     {item.icon}
-                    {/* AppText used here as required for card titles */}
                     <AppText
                       title={item.name}
                       titleColor={APPCOLORS.BLACK}
@@ -226,6 +228,7 @@ const Dashboard = ({navigation}) => {
               </Animated.View>
             ))}
           </View>
+
           <View style={styles.gridRow}>
             {companyData.slice(2, 4).map((item, index) => (
               <Animated.View
@@ -234,7 +237,6 @@ const Dashboard = ({navigation}) => {
                 <ScaleCard onPress={item.onPress}>
                   <View style={styles.cardInnerView}>
                     {item.icon}
-                    {/* AppText used here as required for card titles */}
                     <AppText
                       title={item.name}
                       titleColor={APPCOLORS.BLACK}
@@ -248,13 +250,10 @@ const Dashboard = ({navigation}) => {
           </View>
         </View>
 
-        {/* 🔹 Info Banner Slider (Horizontal FlatList) */}
         <Animated.View entering={FadeInLeft.delay(800).duration(1000)}>
-          {/* 💡 CHANGE 1: AppText removed, native Text component used for custom heading */}
           <Text style={styles.updateHeading}>
             <Text style={{fontWeight: 'bold'}}>Latest</Text> Updates
           </Text>
-          {/* 💡 CHANGE 2: Horizontal FlatList's wrapper view now has top margin from the heading style */}
           <FlatList
             data={[1, 2, 3]}
             horizontal
@@ -266,7 +265,6 @@ const Dashboard = ({navigation}) => {
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
                 style={styles.infoBannerGradient}>
-                {/* AppText used here as required for banner content */}
                 <AppText
                   title="🎉 New Feature Release"
                   titleColor={APPCOLORS.WHITE}
@@ -290,18 +288,9 @@ const Dashboard = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  scrollViewContent: {
-    paddingBottom: 20,
-  },
-  cardGridContainer: {
-    paddingHorizontal: 20,
-    marginTop: 30,
-    gap: 20,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+  scrollViewContent: {paddingBottom: 20},
+  cardGridContainer: {paddingHorizontal: 20, marginTop: 30, gap: 20},
+  gridRow: {flexDirection: 'row', justifyContent: 'space-between'},
   cardWrapper: {
     width: responsiveWidth(42),
     height: responsiveHeight(18),
@@ -314,32 +303,16 @@ const styles = StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
   },
-  cardTouchArea: {
-    flex: 1,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardInnerView: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 15,
-    gap: 10,
-  },
-  // 💡 NEW STYLE for the custom heading
+  cardTouchArea: {flex: 1, borderRadius: 20, justifyContent: 'center', alignItems: 'center'},
+  cardInnerView: {justifyContent: 'center', alignItems: 'center', padding: 15, gap: 10},
   updateHeading: {
-    fontSize: responsiveFontSize(2.2), // Same size as previous AppText
+    fontSize: responsiveFontSize(2.2),
     color: APPCOLORS.BLACK,
-    // Margin for spacing: Top margin for spacing below the main cards.
     marginTop: responsiveHeight(3),
     marginBottom: 10,
-    paddingHorizontal: 20, // Alignment with other content
+    paddingHorizontal: 20,
   },
-  infoBannerContainer: {
-    gap: 20,
-    paddingLeft: 20,
-    paddingBottom: 10,
-  },
+  infoBannerContainer: {gap: 20, paddingLeft: 20, paddingBottom: 10},
   infoBannerGradient: {
     height: responsiveHeight(18),
     width: responsiveWidth(80),

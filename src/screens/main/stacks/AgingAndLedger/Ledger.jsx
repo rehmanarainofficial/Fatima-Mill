@@ -1,12 +1,8 @@
-import {
-  View,
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import {View, ActivityIndicator, FlatList, StyleSheet} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import BaseUrl from '../../../../utils/BaseUrl';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
@@ -16,6 +12,7 @@ import moment from 'moment';
 
 const Ledger = ({navigation, route}) => {
   const {name, item} = route.params;
+
   const [aging, setAgingData] = useState([]);
   const [opening, setOpening] = useState(0);
 
@@ -137,6 +134,22 @@ const Ledger = ({navigation, route}) => {
         data={aging}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
+        ListEmptyComponent={
+          !Loader && (
+            <View style={{alignItems: 'center', marginTop: 40}}>
+              <Icon
+                name="alert-circle-outline"
+                size={40}
+                color={APPCOLORS.GRAY}
+              />
+              <AppText
+                title="No data available"
+                titleSize={2}
+                titleColor={APPCOLORS.GRAY}
+              />
+            </View>
+          )
+        }
         ListHeaderComponent={
           <>
             {/* Date Section */}
@@ -242,6 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: APPCOLORS.Secondary,
     borderRadius: 12,
     elevation: 3,
+    marginVertical: 6,
   },
   row: {
     flexDirection: 'row',

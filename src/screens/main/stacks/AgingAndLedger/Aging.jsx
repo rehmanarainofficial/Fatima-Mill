@@ -1,22 +1,31 @@
-import {View, Text, FlatList, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import {PermissionsAndroid, Platform, Alert} from 'react-native';
 import RNFS from 'react-native-fs';
+import {PermissionsAndroid, Platform} from 'react-native';
 import {Notifications} from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
-import Animated, {FadeInUp} from 'react-native-reanimated';
 
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
+  console.log('aging name', name);
+  console.log('aging type', item);
 
-  console.log('name',name, 'item', name, item);
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (name === 'Customer') {
@@ -25,54 +34,40 @@ const Aging = ({navigation, route}) => {
       getSupplierAging();
     }
   }, []);
-
   const getCustomerAging = () => {
+    setDataLoading(true);
     let data = new FormData();
     data.append('customer_id', item?.customer_id);
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BASEURL}dash_cust_aging.php`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: data,
-    };
-
     axios
-      .request(config)
-      .then(response => {
-        console.log(JSON.stringify(response.data));
-        setAgingData(response.data.data_cust_age);
+      .post(`${BASEURL}dash_cust_aging.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
+        timeout: 10000,
       })
-      .catch(error => {
-        console.log(error);
-      });
+      .then(res => setAgingData(res.data.data_cust_age || []))
+      .catch(err => console.warn('API error', err.message))
+      .finally(() => setDataLoading(false));
   };
 
   const getSupplierAging = () => {
+    setDataLoading(true); // 👈 start loader
     let data = new FormData();
     data.append('supplier_id', item?.supplier_id);
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${BASEURL}dash_supp_aging.php`,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: data,
-    };
-
     axios
-      .request(config)
+      .post(`${BASEURL}dash_supp_aging.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
+        maxBodyLength: Infinity,
+      })
       .then(response => {
-        console.log(JSON.stringify(response.data));
+        console.log('Supplier Aging:', response.data);
         setAgingData(response.data.data_cust_age);
       })
       .catch(error => {
         console.log(error);
+      })
+      .finally(() => {
+        setDataLoading(false); // 👈 stop loader
       });
   };
 
@@ -237,6 +232,22 @@ const Aging = ({navigation, route}) => {
     }
   };
 
+  if (dataLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#fff',
+        }}>
+        <Text style={{fontSize: 16, marginBottom: 10}}>
+          Loading Aging Data...
+        </Text>
+        <ActivityIndicator size="large" color={APPCOLORS.Primary} />
+      </View>
+    );
+  }
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
       <SimpleHeader title="Aging" />
@@ -255,16 +266,76 @@ const Aging = ({navigation, route}) => {
         </Text>
       </TouchableOpacity>
 
-      <ScrollView horizontal={false}>
-        <View
-          style={{
-            width: '100%',
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 0,
-            overflow: 'hidden',
-          }}>
-          {/* ===== Table Header ===== */}
+      <FlatList
+        data={aging}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item, index}) => (
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9',
+              borderTopWidth: 1,
+              borderColor: '#ccc',
+              paddingVertical: 10,
+            }}>
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 12,
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              {item.reference}
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 12,
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              {item.tran_date}
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 12,
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              {item.days}
+            </Text>
+            <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
+              {item.Invoice_amount || '-'}
+            </Text>
+          </View>
+        )}
+        ListEmptyComponent={
+          !dataLoading && (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 50,
+              }}>
+              <Icon name="alert-circle-outline" size={50} color="#999" />
+              <Text
+                style={{
+                  marginTop: 10,
+                  fontSize: 16,
+                  color: '#999',
+                  fontWeight: '500',
+                }}>
+                No aging data available
+              </Text>
+            </View>
+          )
+        }
+        ListHeaderComponent={() => (
           <View
             style={{
               flexDirection: 'row',
@@ -288,56 +359,8 @@ const Aging = ({navigation, route}) => {
               </View>
             ))}
           </View>
-
-          {/* ===== Animated Table Rows ===== */}
-          {aging.map((row, i) => (
-            <Animated.View
-              key={i}
-              entering={FadeInUp.delay(i * 100).springify()}
-              style={{
-                flexDirection: 'row',
-                backgroundColor: i % 2 === 0 ? '#fff' : '#f9f9f9',
-                borderTopWidth: 1,
-                borderColor: '#ccc',
-                paddingVertical: 10,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'center',
-                  fontSize: 12,
-                  borderRightWidth: 1,
-                  borderColor: '#ccc',
-                }}>
-                {row.reference}
-              </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'center',
-                  fontSize: 12,
-                  borderRightWidth: 1,
-                  borderColor: '#ccc',
-                }}>
-                {row.tran_date}
-              </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'center',
-                  fontSize: 12,
-                  borderRightWidth: 1,
-                  borderColor: '#ccc',
-                }}>
-                {row.days}
-              </Text>
-              <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
-                {row.Invoice_amount || '-'}
-              </Text>
-            </Animated.View>
-          ))}
-        </View>
-      </ScrollView>
+        )}
+      />
     </View>
   );
 };

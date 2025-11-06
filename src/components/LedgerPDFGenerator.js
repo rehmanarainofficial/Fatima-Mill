@@ -1,16 +1,19 @@
-import {PDFDocument, StandardFonts, rgb} from 'pdf-lib';
-import RNFetchBlob from 'react-native-blob-util';
-import {fromByteArray} from 'base64-js';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import RNFS from 'react-native-fs';
 import {ToastAndroid, PermissionsAndroid, Platform} from 'react-native';
 
-export const generateLedgerPDF = async (ledgerData, setLoading) => {
+export const generateLedgerPDF = async (
+  ledgerData,
+  setLoading,
+  fromDate,
+  toDate,
+) => {
   try {
     setLoading(true);
 
-    // ✅ Handle Android storage rules cleanly (works on Android 11–14)
+    //  Handle Android storage rules
     if (Platform.OS === 'android') {
       const sdk = parseInt(Platform.Version, 10);
-
       if (sdk < 33) {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
@@ -26,158 +29,126 @@ export const generateLedgerPDF = async (ledgerData, setLoading) => {
           return;
         }
       } else {
-        // Android 13+ → WRITE_EXTERNAL_STORAGE is deprecated; no need to request
-        console.log(
-          'No storage permission needed for Android 13+ (Scoped Storage)',
-        );
+        console.log('No storage permission needed for Android 13+');
       }
     }
 
-    // 🧾 Create PDF
-    const pdfDoc = await PDFDocument.create();
-    let page = pdfDoc.addPage();
-    const {width, height} = page.getSize();
-
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-    const fontSize = 10;
-    const lineHeight = 15;
-    let yPos = height - 50;
-
-    const drawText = (text, x, y, size = fontSize, bold = false) => {
-      page.drawText(text, {
-        x,
-        y,
-        size,
-        font: bold ? boldFont : font,
-        color: rgb(0, 0, 0),
-      });
-    };
-
-    // Helper function to clean text from special characters
-    const cleanText = text => {
-      if (!text) return '-';
-      // Replace tab characters with spaces and remove other problematic characters
-      return text
-        .replace(/\t/g, '    ') // Replace tabs with 4 spaces
-        .replace(/[^\x20-\x7E\n\r]/g, '') // Remove non-printable ASCII characters
-        .trim();
-    };
-
-    // Title
-    drawText('Ledger Transactions Report', width / 2 - 90, yPos, 16, true);
-    yPos -= 30;
-
-    // Generated date
     const currentDate = new Date().toLocaleDateString();
-    drawText(`Generated on: ${currentDate}`, 50, yPos, 10);
-    yPos -= 20;
+    const firstTx = ledgerData?.[0]?.transactions?.[0]?.person_name || 'N/A';
+    const customerName = firstTx;
 
-    // Content
-    for (const section of ledgerData) {
-      if (yPos < 80) {
-        page = pdfDoc.addPage();
-        yPos = height - 50;
-      }
+    const htmlContent = `
+  <div style="font-family: Arial, sans-serif; padding: 10px;">
+    <h2 style="text-align: center; color: #222;">Ledger Transactions Report</h2>
 
-      // Date header
-      const headerText = `Date: ${section.date}`;
-      drawText(headerText, 50, yPos, 12, true);
-      yPos -= 20;
+  <!-- Customer & Company -->
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  "
+>
+  <p style="margin: 0;"><strong>Customer:</strong> ${customerName}</p>
+  <p style="margin: 0;"><strong>Company:</strong> FATIMA BOARD AND PAPER MILL (PVT) LTD</p>
+</div>
 
-      // Table headers
-      drawText('Reference', 50, yPos, fontSize, true);
-      drawText('Name', 120, yPos, fontSize, true);
-      drawText('Amount', 450, yPos, fontSize, true);
-      drawText('Balance', 520, yPos, fontSize, true);
+<!-- From-To & Generated On -->
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #444;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  "
+>
+  <p style="margin: 0;"><strong>From:</strong> ${fromDate} &nbsp;&nbsp; <strong>To:</strong> ${toDate}</p>
+  <p style="margin: 0;"><strong>Generated on:</strong> ${currentDate}</p>
+</div>
 
-      yPos -= 15;
+    <table border="1" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead>
+        <tr style="background-color: #f0f0f0;">
+          <th style="padding: 6px;">Date</th>
+          <th style="padding: 6px;">Reference</th>
+          <th style="padding: 6px;">Name</th>
+          <th style="padding: 6px;">Amount</th>
+          <th style="padding: 6px;">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ledgerData
+          .map(section =>
+            section.transactions
+              .map(
+                tx => `
+                <tr>
+                  <td style="padding: 6px;">${section.date}</td>
+                  <td style="padding: 6px;">${tx.reference || '-'}</td>
+                  <td style="padding: 6px;">${tx.person_name || '-'}</td>
+                  <td style="padding: 6px; text-align: right;">${parseFloat(
+                    tx.amount || 0,
+                  ).toFixed(2)}</td>
+                  <td style="padding: 6px; text-align: right;">${parseFloat(
+                    tx.balance || 0,
+                  ).toFixed(2)}</td>
+                </tr>
+                ${
+                  tx.memo
+                    ? `<tr><td colspan="5" style="padding: 4px; font-style: italic;">Memo: ${tx.memo}</td></tr>`
+                    : ''
+                }
+              `,
+              )
+              .join(''),
+          )
+          .join('')}
+      </tbody>
+    </table>
 
-      // Horizontal line
-      page.drawLine({
-        start: {x: 50, y: yPos},
-        end: {x: width - 50, y: yPos},
-        color: rgb(0, 0, 0),
-        thickness: 0.5,
-      });
+    <hr style="margin: 30px 0;"/>
+    <p style="text-align: center; font-size: 12px; color: #666;">
+      FATIMA BOARD AND PAPER MILL (PVT) LTD
+    </p>
+  </div>
+`;
 
-      yPos -= 10;
+    // 🧠 Safe filename
+    const safeName = (customerName || 'Ledger_Report').replace(
+      /[^a-zA-Z0-9_]/g,
+      '_',
+    );
+    const fileName = `${safeName}_${Date.now()}`;
 
-      // Transactions
-      for (const tx of section.transactions) {
-        if (yPos < 50) {
-          page = pdfDoc.addPage();
-          yPos = height - 50;
+    // 📄 Generate PDF file in app sandbox
+    const options = {
+      html: htmlContent,
+      fileName,
+      directory: 'Documents',
+    };
 
-          // Add headers on new page
-          drawText('Reference', 50, yPos, fontSize, true);
-          drawText('Name', 120, yPos, fontSize, true);
-          drawText('Amount', 450, yPos, fontSize, true);
-          drawText('Balance', 520, yPos, fontSize, true);
-          yPos -= 25;
-        }
+    const file = await RNHTMLtoPDF.convert(options);
 
-        // Clean the data before drawing
-        const reference = cleanText(tx.reference);
-        const personName = cleanText(tx.person_name);
-        const memo = cleanText(tx.memo);
-        const amount = parseFloat(tx.amount || 0);
-        const balance = parseFloat(tx.balance || 0);
+    // ✅ Move to visible Downloads/MyAppReports folder
+    const downloadDir =
+      Platform.Version >= 29
+        ? RNFS.DownloadDirectoryPath
+        : RNFS.ExternalStorageDirectoryPath + '/Download';
 
-        drawText(reference.substring(0, 25), 50, yPos);
-
-        drawText(personName.substring(0, 35), 120, yPos);
-
-        const amountText = `${amount >= 0 ? '+' : ''}${amount.toFixed(2)}`;
-        drawText(amountText, 450, yPos);
-
-        drawText(balance.toFixed(2), 520, yPos);
-
-        yPos -= lineHeight;
-
-        if (memo && memo !== '-') {
-          if (yPos < 50) {
-            page = pdfDoc.addPage();
-            yPos = height - 50;
-          }
-
-          drawText(`Memo: ${memo.substring(0, 80)}`, 50, yPos, 9);
-          yPos -= lineHeight;
-        }
-
-        yPos -= 5;
-      }
-
-      yPos -= 15;
-    }
-
-    // 🗂 Save PDF
-    const pdfBytes = await pdfDoc.save();
-    const base64Data = fromByteArray(pdfBytes);
-
-    // 📂 Save in Downloads/MyAppReports (visible in File Manager)
-    const downloadDir = RNFetchBlob.fs.dirs.DownloadDir;
     const appFolder = `${downloadDir}/MyAppReports`;
-    await RNFetchBlob.fs.mkdir(appFolder).catch(() => {});
-    const filePath = `${appFolder}/ledger_report_${Date.now()}.pdf`;
+    await RNFS.mkdir(appFolder).catch(() => {});
+    const destPath = `${appFolder}/${fileName}.pdf`;
 
-    await RNFetchBlob.fs.writeFile(filePath, base64Data, 'base64');
+    await RNFS.copyFile(file.filePath, destPath);
 
-    // ✅ Optional: open file instantly
-    RNFetchBlob.android.actionViewIntent(filePath, 'application/pdf');
-
-    ToastAndroid.show(
-      '✅ PDF saved to Downloads/MyAppReports',
-      ToastAndroid.LONG,
-    );
-    console.log('📄 File saved at:', filePath);
+    ToastAndroid.show('PDF saved to Downloads', ToastAndroid.LONG);
   } catch (error) {
-    console.error('PDF generation failed:', error);
-    ToastAndroid.show(
-      'PDF generation failed! Check console for details.',
-      ToastAndroid.SHORT,
-    );
+    console.error('PDF generation error:', error);
+    ToastAndroid.show('PDF generation failed!', ToastAndroid.SHORT);
   } finally {
     setLoading(false);
   }

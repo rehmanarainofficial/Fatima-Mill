@@ -15,7 +15,6 @@ import ApprovalScreen from '../screens/main/stacks/ProfitAndLoss/ApprovalScreen'
 import Aging from '../screens/main/stacks/AgingAndLedger/Aging';
 import Ledger from '../screens/main/stacks/AgingAndLedger/Ledger';
 import TopTenScreen from '../screens/main/stacks/DetailScreens/TopTen/TopTenScreen';
-import AgingAndLedger from '../screens/main/stacks/AgingAndLedger/AgingAndLedger';
 import ViewAllTopTen from '../screens/main/stacks/DetailScreens/TopTen/ViewAllTopTen';
 import ShowUnapprovedDetails from '../screens/main/stacks/AppAlerts/ShowUnapprovedDetails';
 import ViewLedger from '../screens/main/stacks/DetailScreens/ViewLedger';
@@ -47,7 +46,6 @@ const Main = () => {
       <Stack.Screen name="TopTenScreen" component={TopTenScreen} />
       <Stack.Screen name="ViewAllTopTen" component={ViewAllTopTen} />
 
-      <Stack.Screen name="AgingAndLedger" component={AgingAndLedger} />
       <Stack.Screen name="ViewLedger" component={ViewLedger} />
       <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
       <Stack.Screen

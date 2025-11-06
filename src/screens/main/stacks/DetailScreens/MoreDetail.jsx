@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -20,11 +20,9 @@ import {
 import Header from '../../../../components/Header';
 
 const MoreDetail = ({navigation, route}) => {
-  const {slider_data, selectedItem} = route.params;
-  console.log("slider_data", slider_data);
-  console.log("selectedItem", selectedItem);
-  
-  
+  const {selectedItem} = route.params;
+  const cachedData = useRef({});
+
   const [activeData, setActiveData] = useState(null);
   const [activeChartData, setActiveChartData] = useState(null);
   const [loader, setLoader] = useState(false);
@@ -44,124 +42,74 @@ const MoreDetail = ({navigation, route}) => {
 
   useEffect(() => {
     if (selectedItem) {
-      loadSpecificData(selectedItem);
+      if (cachedData.current[selectedItem]) {
+        setActiveData(cachedData.current[selectedItem].data);
+        setActiveChartData(cachedData.current[selectedItem].chart);
+      } else {
+        loadSpecificData(selectedItem);
+      }
     }
   }, [selectedItem]);
 
   const loadSpecificData = async itemType => {
     setLoader(true);
     try {
+      let data, chart;
+
       switch (itemType) {
         case 'Bank & Cash':
-          await getBankBalance();
+          data = await GetBankBalance();
+          chart = data?.data_bank_bal?.map((item, index) => ({
+            value: Math.max(5, parseFloat(Math.round(item.bank_balance))),
+            color: colors[index % colors.length],
+          }));
           break;
+
         case 'Receivable':
-          await getReceivable();
+          data = await GetReceivable();
+          chart = data?.data_cust_bal?.map((item, index) => ({
+            value: Math.max(5, parseFloat(Math.round(item.Balance))),
+            color: colors[index % colors.length],
+          }));
           break;
+
         case 'Payable':
-          await getPayable();
+          data = await GetPayable();
+          chart = data?.data_supp_bal?.map((item, index) => ({
+            value: Math.max(5, parseFloat(Math.round(item.Balance))),
+            color: colors[index % colors.length],
+          }));
           break;
+
         case 'Inventory Valuation':
-          await getItemBalance();
+          data = await GetItemBalance();
+          chart = data?.data_item_bal?.map((item, index) => ({
+            value: Math.max(5, parseFloat(Math.round(item.total))),
+            color: colors[index % colors.length],
+          }));
           break;
+
         case 'Salesman':
-          await getSalesman();
+          data = await GetSalesman();
+          chart = data?.data_salesman_bal?.map((item, index) => ({
+            value: Math.max(5, parseFloat(Math.round(item.Balance))),
+            color: colors[index % colors.length],
+          }));
           break;
+
         default:
           console.log('Unknown item type:', itemType);
       }
+
+      cachedData.current[itemType] = {data, chart};
+
+      setActiveData(data);
+      setActiveChartData(chart);
     } catch (error) {
       console.error(error);
     } finally {
       setLoader(false);
     }
-  };
-
-  const getBankBalance = async () => {
-    const allbalancedata = await GetBankBalance();
-
-    if (allbalancedata?.data_bank_bal) {
-      const balanceBar = allbalancedata?.data_bank_bal.map((item, index) => {
-        const rawValue = parseFloat(Math.round(item.bank_balance));
-        const cleanValue = rawValue < 0 ? 5 : rawValue;
-        return {
-          value: cleanValue,
-          color: colors[index % colors.length],
-        };
-      });
-      setActiveChartData(balanceBar);
-    }
-    setActiveData(allbalancedata);
-  };
-
-  const getReceivable = async () => {
-    const AllRecivable = await GetReceivable();
-
-    if (AllRecivable?.data_cust_bal) {
-      const Recivable = AllRecivable?.data_cust_bal.map((item, index) => {
-        const rawValue = parseFloat(Math.round(item.Balance));
-        const cleanValue = rawValue < 0 ? 5 : rawValue;
-        return {
-          value: cleanValue,
-          color: colors[index % colors.length],
-        };
-      });
-      setActiveChartData(Recivable);
-    }
-    setActiveData(AllRecivable);
-  };
-
-  const getPayable = async () => {
-    const AllPayable = await GetPayable();
-
-    if (AllPayable?.data_supp_bal) {
-      const Payable = AllPayable?.data_supp_bal.map((item, index) => {
-        const rawValue = parseFloat(Math.round(item.Balance));
-        const cleanValue = rawValue < 0 ? 5 : rawValue;
-        return {
-          value: cleanValue,
-          color: colors[index % colors.length],
-        };
-      });
-      setActiveChartData(Payable);
-    }
-    setActiveData(AllPayable);
-  };
-
-  const getItemBalance = async () => {
-    const AllItemBalance = await GetItemBalance();
-
-    if (AllItemBalance?.data_item_bal) {
-      const ItemBalanceBar = AllItemBalance?.data_item_bal.map(
-        (item, index) => {
-          const rawValue = parseFloat(Math.round(item.total));
-          const cleanValue = rawValue < 0 ? 5 : rawValue;
-          return {
-            value: cleanValue,
-            color: colors[index % colors.length],
-          };
-        },
-      );
-      setActiveChartData(ItemBalanceBar);
-    }
-    setActiveData(AllItemBalance);
-  };
-
-  const getSalesman = async () => {
-    const AllSalesman = await GetSalesman();
-
-    if (AllSalesman?.data_salesman_bal) {
-      const SalesmanBar = AllSalesman?.data_salesman_bal.map((item, index) => {
-        const rawValue = parseFloat(Math.round(item.Balance));
-        const cleanValue = rawValue < 0 ? 5 : rawValue;
-        return {
-          value: cleanValue,
-          color: colors[index % colors.length],
-        };
-      });
-      setActiveChartData(SalesmanBar);
-    }
-    setActiveData(AllSalesman);
   };
 
   // Data ko render karne ke liye helper functions

@@ -1,10 +1,8 @@
 import axios from 'axios';
 import BaseUrl from '../utils/BaseUrl';
-import { Alert } from 'react-native';
-
+import {Alert} from 'react-native';
 
 export const GetBankBalance = async () => {
-
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -12,14 +10,11 @@ export const GetBankBalance = async () => {
     headers: {},
   };
 
- const res = await axios.request(config)
- return res.data
-
+  const res = await axios.request(config);
+  return res.data;
 };
 
-
 export const GetSalesman = async () => {
-
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -27,28 +22,26 @@ export const GetSalesman = async () => {
     headers: {},
   };
 
-
- const res = await axios.request(config)
- return res.data
+  const res = await axios.request(config);
+  return res.data;
 };
 
-
 export const GetItemBalance = async () => {
-
   let config = {
     method: 'get',
-    maxBodyLength: Infinity,
     url: `${BaseUrl}dash_items.php`,
-    headers: {},
+    timeout: 5000, // ⏱️ prevent long wait
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
   };
 
-
- const res = await axios.request(config)
- return res.data
+  const res = await axios.request(config);
+  return res.data;
 };
 
 export const GetPayable = async () => {
-
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -56,14 +49,11 @@ export const GetPayable = async () => {
     headers: {},
   };
 
-
- const res = await axios.request(config)
- return res.data
+  const res = await axios.request(config);
+  return res.data;
 };
 
-
 export const GetReceivable = async () => {
-
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -71,6 +61,6 @@ export const GetReceivable = async () => {
     headers: {},
   };
 
- const res = await axios.request(config)
- return res.data
+  const res = await axios.request(config);
+  return res.data;
 };
