@@ -6,9 +6,11 @@ import {responsiveWidth} from '../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const NameBalanceContainer = ({Name, balance = 0, type, item, index}) => {
+const NameBalanceContainer = ({Name, balance = 0, type, item}) => {
   const navigation = useNavigation();
-  console.log('Name', Name, 'balance', balance, 'type', type, 'item', item);
+
+  const showAgingAndLedger = type === 'Receivable' || type === 'Payable';
+  const showOnlyLedger = type === 'Inventory Valuation';
 
   return (
     <TouchableOpacity activeOpacity={0.9} style={styles.container}>
@@ -33,31 +35,51 @@ const NameBalanceContainer = ({Name, balance = 0, type, item, index}) => {
       </View>
 
       {/* Right: Icons */}
-      {type === 'Receivable' || type === 'Payable' ? (
-        <View style={styles.iconContainer}>
-          <TouchableOpacity
-            style={[styles.iconButton, {backgroundColor: '#E9F7EF'}]}
-            onPress={() =>
-              navigation.navigate('Aging', {
-                name: type === 'Receivable' ? 'Customer' : 'Suppliers',
-                item,
-              })
-            }>
-            <Icon name="clock-outline" size={20} color="#2E7D32" />
-          </TouchableOpacity>
+      <View style={styles.iconContainer}>
+        {/* Receivable & Payable - Aging + Ledger */}
+        {showAgingAndLedger && (
+          <>
+            <TouchableOpacity
+              style={[styles.iconButton, {backgroundColor: '#E9F7EF'}]}
+              onPress={() =>
+                navigation.navigate('Aging', {
+                  name: type === 'Receivable' ? 'Customer' : 'Suppliers',
+                  item,
+                })
+              }>
+              <Icon name="clock-outline" size={20} color="#2E7D32" />
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
+              onPress={() =>
+                navigation.navigate('Ledgers', {
+                  item: item,
+                })
+              }>
+              <Icon name="book-open-outline" size={20} color="#1565C0" />
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Inventory Valuation - Only Ledger */}
+        {showOnlyLedger && (
           <TouchableOpacity
             style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
             onPress={() =>
-              navigation.navigate('Ledger', {
-                name: type === 'Receivable' ? 'Customer' : 'Suppliers',
-                item,
+              navigation.navigate('Ledgers', {
+                item: item,
               })
             }>
             <Icon name="book-open-outline" size={20} color="#1565C0" />
           </TouchableOpacity>
-        </View>
-      ) : null}
+        )}
+
+        {/* Bank & Cash, Salesman, etc. - No buttons */}
+        {!showAgingAndLedger && !showOnlyLedger && (
+          <View style={styles.placeholder} />
+        )}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -88,6 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     gap: 10,
+    minHeight: 36, // Consistent height rakhen
   },
   iconButton: {
     width: 36,
@@ -95,5 +118,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  placeholder: {
+    width: 36, // Same width as buttons for consistent spacing
+    height: 36,
   },
 });

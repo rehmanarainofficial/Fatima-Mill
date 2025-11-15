@@ -68,7 +68,6 @@ export default function StockSheetScreen({navigation}) {
         payload,
         {headers: {'Content-Type': 'multipart/form-data'}},
       );
-
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         setData(res.data.data);
       } else {

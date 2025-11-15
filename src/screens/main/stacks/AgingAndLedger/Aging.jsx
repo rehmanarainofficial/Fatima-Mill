@@ -5,6 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
+  StatusBar,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
@@ -17,15 +18,16 @@ import RNFS from 'react-native-fs';
 import {PermissionsAndroid, Platform} from 'react-native';
 import {Notifications} from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
-  console.log('aging name', name);
-  console.log('aging type', item);
-
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  console.log(aging);
 
   useEffect(() => {
     if (name === 'Customer') {
@@ -34,6 +36,7 @@ const Aging = ({navigation, route}) => {
       getSupplierAging();
     }
   }, []);
+  
   const getCustomerAging = () => {
     setDataLoading(true);
     let data = new FormData();
@@ -50,7 +53,7 @@ const Aging = ({navigation, route}) => {
   };
 
   const getSupplierAging = () => {
-    setDataLoading(true); // 👈 start loader
+    setDataLoading(true);
     let data = new FormData();
     data.append('supplier_id', item?.supplier_id);
 
@@ -67,7 +70,7 @@ const Aging = ({navigation, route}) => {
         console.log(error);
       })
       .finally(() => {
-        setDataLoading(false); // 👈 stop loader
+        setDataLoading(false);
       });
   };
 
@@ -76,7 +79,6 @@ const Aging = ({navigation, route}) => {
 
     try {
       if (Platform.Version >= 33) {
-        // Android 13+ media-specific permission
         const granted = await PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
@@ -88,7 +90,6 @@ const Aging = ({navigation, route}) => {
           PermissionsAndroid.RESULTS.GRANTED
         );
       } else {
-        // Android 12 and below
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         );
@@ -106,9 +107,11 @@ const Aging = ({navigation, route}) => {
     0,
   );
   const totalInvoice = aging.reduce(
-    (sum, row) => sum + parseFloat(row.Invoice_amount || 0),
+    (sum, row) =>
+      sum + parseFloat(String(row.Invoice_amount || '0').replace(/,/g, '')),
     0,
   );
+
   const totalBalance = aging.reduce(
     (sum, row) => sum + parseFloat(row.invoce_balance || 0),
     0,
@@ -184,7 +187,6 @@ const Aging = ({navigation, route}) => {
       const safeName = customerName.replace(/[^a-zA-Z0-9_]/g, '_');
       const fileName = `${safeName}_${Date.now()}`;
 
-      // Generate PDF in app sandbox first
       const options = {
         html: htmlContent,
         fileName,
@@ -194,7 +196,6 @@ const Aging = ({navigation, route}) => {
       const file = await RNHTMLtoPDF.convert(options);
       console.log('📄 Internal PDF created at:', file.filePath);
 
-      // ✅ Move to public Download folder
       const publicDir =
         Platform.Version >= 29
           ? RNFS.DownloadDirectoryPath
@@ -204,7 +205,6 @@ const Aging = ({navigation, route}) => {
       await RNFS.copyFile(file.filePath, destPath);
       console.log('✅ PDF moved to visible folder:', destPath);
 
-      // ✅ Toast message
       Toast.show({
         type: 'success',
         text1: 'PDF Saved',
@@ -248,23 +248,39 @@ const Aging = ({navigation, route}) => {
       </View>
     );
   }
+  
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
-      <SimpleHeader title="Aging" />
+      <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
-      <TouchableOpacity
-        style={{
-          backgroundColor: APPCOLORS.Primary,
-          margin: 20,
-          padding: 15,
-          borderRadius: 10,
-          elevation: 2,
-        }}
-        onPress={generatePDF}>
-        <Text style={{color: 'white', textAlign: 'center', fontWeight: '600'}}>
-          {loading ? 'Generating...' : 'Download PDF'}
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>
+          Aging - {item?.name || item?.customer_name || item?.supplier_name || ''}
         </Text>
-      </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={generatePDF}
+          disabled={loading || aging.length === 0}>
+          {loading ? (
+            <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+          ) : (
+            <MaterialIcons
+              name="file-download"
+              size={26}
+              color={
+                aging.length === 0 ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE
+              }
+            />
+          )}
+        </TouchableOpacity>
+      </LinearGradient>
 
       <FlatList
         data={aging}
@@ -360,9 +376,68 @@ const Aging = ({navigation, route}) => {
             ))}
           </View>
         )}
+        ListFooterComponent={() => (
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: '#e6e6e6',
+              paddingVertical: 12,
+              borderTopWidth: 1,
+              borderColor: '#ccc',
+              marginTop: 5,
+            }}>
+            <Text
+              style={{
+                flex: 3,
+                textAlign: 'center',
+                fontSize: 14,
+                fontWeight: 'bold',
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              TOTAL
+            </Text>
+
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 14,
+                fontWeight: 'bold',
+              }}>
+              {totalInvoice.toLocaleString()}
+            </Text>
+          </View>
+        )}
       />
     </View>
   );
+};
+
+const styles = {
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 80,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    paddingTop: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  headerTitle: {
+    color: APPCOLORS.WHITE,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+    marginHorizontal: 10,
+  },
 };
 
 export default Aging;

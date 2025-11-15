@@ -19,6 +19,7 @@ import ViewAllTopTen from '../screens/main/stacks/DetailScreens/TopTen/ViewAllTo
 import ShowUnapprovedDetails from '../screens/main/stacks/AppAlerts/ShowUnapprovedDetails';
 import ViewLedger from '../screens/main/stacks/DetailScreens/ViewLedger';
 import StockSheetScreen from '../screens/main/stacks/DetailScreens/StockSheetScreen';
+import LedgersScreen from '../screens/main/stacks/AgingAndLedger/LedgersScreen';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,10 @@ const Main = () => {
       <Stack.Screen
         name="ShowUnapprovedDetails"
         component={ShowUnapprovedDetails}
+      />
+      <Stack.Screen
+        name="Ledgers"
+        component={LedgersScreen}
       />
     </Stack.Navigator>
   );
