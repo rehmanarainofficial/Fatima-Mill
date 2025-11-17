@@ -20,6 +20,7 @@ import ShowUnapprovedDetails from '../screens/main/stacks/AppAlerts/ShowUnapprov
 import ViewLedger from '../screens/main/stacks/DetailScreens/ViewLedger';
 import StockSheetScreen from '../screens/main/stacks/DetailScreens/StockSheetScreen';
 import LedgersScreen from '../screens/main/stacks/AgingAndLedger/LedgersScreen';
+import StockMovements from '../screens/main/stacks/AgingAndLedger/StockMovements';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +50,7 @@ const Main = () => {
 
       <Stack.Screen name="ViewLedger" component={ViewLedger} />
       <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
+      <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen
         name="ShowUnapprovedDetails"
         component={ShowUnapprovedDetails}

@@ -5,8 +5,11 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import PieChart from 'react-native-pie-chart';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
@@ -112,6 +115,35 @@ const MoreDetail = ({navigation, route}) => {
     }
   };
 
+  // Custom Header Component for Inventory Valuation
+  const CustomHeader = () => (
+    <View style={styles.customHeader}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="white" />
+      </TouchableOpacity>
+      
+      <Text style={styles.headerTitle}>{selectedItem || 'Details'}</Text>
+      
+      <View style={styles.headerIcons}>
+        {/* All Movements Icon */}
+        <TouchableOpacity 
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('StockMovements', { fromAllMovements: true })}
+        >
+          <MaterialIcons name="swap-horiz" size={22} color="white" />
+        </TouchableOpacity>
+        
+        {/* Stock Sheet Icon */}
+        <TouchableOpacity 
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('StockSheetScreen')}
+        >
+          <MaterialIcons name="inventory" size={22} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   // Data ko render karne ke liye helper functions
   const renderChart = () => (
     <View
@@ -166,7 +198,7 @@ const MoreDetail = ({navigation, route}) => {
         balance={balance}
         item={item}
         type={selectedItem}
-        index={index} // added
+        index={index}
       />
     );
   };
@@ -264,21 +296,16 @@ const MoreDetail = ({navigation, route}) => {
 
   return (
     <View style={{flex: 1}}>
-      <Header
-        title={selectedItem || 'Details'}
-        rightIcon={
-          selectedItem === 'Inventory Valuation'
-            ? 'inventory' // custom icon for Inventory
-            : 'assignment' // default ledger icon
-        }
-        onRightPress={() => {
-          if (selectedItem === 'Inventory Valuation') {
-            navigation.navigate('StockSheetScreen');
-          } else {
-            navigation.navigate('ViewLedger');
-          }
-        }}
-      />
+      {/* Use Custom Header for Inventory Valuation */}
+      {selectedItem === 'Inventory Valuation' ? (
+        <CustomHeader />
+      ) : (
+        <Header
+          title={selectedItem || 'Details'}
+          rightIcon="assignment"
+          onRightPress={() => navigation.navigate('ViewLedger')}
+        />
+      )}
 
       <FlatList
         data={getData()}
@@ -301,5 +328,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 20,
+  },
+  customHeader: {
+    height: 70,
+    backgroundColor: '#0784B5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 8,
+    marginLeft: 10,
   },
 });

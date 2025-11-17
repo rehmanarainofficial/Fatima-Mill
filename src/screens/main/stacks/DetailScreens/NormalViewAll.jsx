@@ -5,7 +5,7 @@ import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import { responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppButton from '../../../../components/AppButton';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // 👈 add this import
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const NormalViewAll = ({ navigation, route }) => {
   const { AllData, dataname } = route.params;
@@ -40,12 +40,35 @@ const NormalViewAll = ({ navigation, route }) => {
     }
   }, [searchQuery, AllData]);
 
+  // Handle navigation based on dataname
+  const handleAgingPress = () => {
+    if (dataname === 'Customer' || dataname === 'Supplier') {
+      navigation.navigate('PdfScreen');
+    }
+  };
+
+  const handleLedgerPress = () => {
+    if (dataname === 'Customer' || dataname === 'Supplier') {
+      navigation.navigate('PdfScreen');
+    } else if (dataname === 'item') {
+      // For Inventory items, navigate to All Stock Movements
+      navigation.navigate('StockMovements', {
+        fromAllMovements: true
+      });
+    }
+  };
+
+  const getButtonTitle = () => {
+    if (dataname === 'item') return 'All Movements';
+    return 'Ledger';
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <SimpleHeader title="View All" />
 
-      {/* Aging & Ledger Buttons */}
-      {(dataname === 'Customer' || dataname === 'Supplier') && (
+      {/* Action Buttons */}
+      {(dataname === 'Customer' || dataname === 'Supplier' || dataname === 'item') && (
         <View
           style={{
             flexDirection: 'row',
@@ -53,17 +76,23 @@ const NormalViewAll = ({ navigation, route }) => {
             gap: 15,
             marginVertical: 15,
           }}>
+          
+          {/* Aging Button - Only for Customer/Supplier */}
+          {(dataname === 'Customer' || dataname === 'Supplier') && (
+            <AppButton
+              title="Aging"
+              onPress={handleAgingPress}
+              btnWidth={40}
+              bgColor={APPCOLORS.BLUE || '#007AFF'}
+            />
+          )}
+          
+          {/* Ledger/All Movements Button */}
           <AppButton
-            title="Aging"
-            onPress={() => navigation.navigate('PdfScreen')}
-            btnWidth={40}
-            bgColor={APPCOLORS.BLUE || '#007AFF'}
-          />
-          <AppButton
-            title="Ledger"
-            onPress={() => navigation.navigate('PdfScreen')}
-            btnWidth={40}
-            bgColor={'#4CAF50'}
+            title={getButtonTitle()}
+            onPress={handleLedgerPress}
+            btnWidth={dataname === 'item' ? 50 : 40}
+            bgColor={dataname === 'item' ? APPCOLORS.Primary : '#4CAF50'}
           />
         </View>
       )}
@@ -132,10 +161,18 @@ const NormalViewAll = ({ navigation, route }) => {
                 ? item?.total
                 : item?.Balance
             }
-            type={dataname}
+            type={dataname === 'item' ? 'Inventory Valuation' : dataname}
             item={item}
+            fromViewAll={true} // This tells StockMovements to show stock dropdown
           />
         )}
+        ListEmptyComponent={
+          <View style={{ alignItems: 'center', marginTop: 50 }}>
+            <Text style={{ color: '#666', fontSize: 16 }}>
+              No items found
+            </Text>
+          </View>
+        }
       />
     </View>
   );

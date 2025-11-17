@@ -6,14 +6,34 @@ import {responsiveWidth} from '../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const NameBalanceContainer = ({Name, balance = 0, type, item}) => {
+const NameBalanceContainer = ({Name, balance = 0, type, item, fromViewAll = false}) => {
   const navigation = useNavigation();
 
   const showAgingAndLedger = type === 'Receivable' || type === 'Payable';
   const showOnlyLedger = type === 'Inventory Valuation';
 
+  const handlePress = () => {
+    if (type === 'Inventory Valuation') {
+      navigation.navigate('StockMovements', {
+        item: item,
+        fromAllMovements: fromViewAll // Pass this parameter to distinguish
+      });
+    }
+  };
+
+  const handleIconPress = () => {
+    navigation.navigate('StockMovements', {
+      item: item,
+      fromAllMovements: fromViewAll
+    });
+  };
+
   return (
-    <TouchableOpacity activeOpacity={0.9} style={styles.container}>
+    <TouchableOpacity 
+      activeOpacity={0.9} 
+      style={styles.container}
+      onPress={handlePress}
+    >
       {/* Left: Name */}
       <View style={styles.nameContainer}>
         <AppText
@@ -62,16 +82,12 @@ const NameBalanceContainer = ({Name, balance = 0, type, item}) => {
           </>
         )}
 
-        {/* Inventory Valuation - Only Ledger */}
+        {/* Inventory Valuation - Stock Movements */}
         {showOnlyLedger && (
           <TouchableOpacity
             style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
-            onPress={() =>
-              navigation.navigate('Ledgers', {
-                item: item,
-              })
-            }>
-            <Icon name="book-open-outline" size={20} color="#1565C0" />
+            onPress={handleIconPress}>
+            <Icon name="swap-horizontal" size={20} color="#1565C0" />
           </TouchableOpacity>
         )}
 
@@ -110,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     gap: 10,
-    minHeight: 36, // Consistent height rakhen
+    minHeight: 36,
   },
   iconButton: {
     width: 36,
@@ -120,7 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholder: {
-    width: 36, // Same width as buttons for consistent spacing
+    width: 36,
     height: 36,
   },
 });
