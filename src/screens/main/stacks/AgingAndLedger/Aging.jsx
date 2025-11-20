@@ -2,7 +2,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   FlatList,
   StatusBar,
@@ -12,7 +11,6 @@ import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import SimpleHeader from '../../../../components/SimpleHeader';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
 import {PermissionsAndroid, Platform} from 'react-native';

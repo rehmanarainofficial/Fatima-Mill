@@ -8,7 +8,6 @@ import {
   Animated,
   TouchableOpacity,
   StatusBar,
-  Dimensions,
 } from 'react-native';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,10 +18,7 @@ import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
 
-const {width} = Dimensions.get('window');
-
 const LedgersScreen = ({route, navigation}) => {
-  // Route params se account aur person_id receive karenge
   const {item} = route.params || {};
   
   const [loading, setLoading] = useState(false);
@@ -88,11 +84,7 @@ const LedgersScreen = ({route, navigation}) => {
         setOpeningBalance(opening);
 
         if (Array.isArray(json.data) && json.data.length > 0) {
-          console.log('Transactions found:', json.data.length);
-          setAllTransactions(json.data);
-          
           const grouped = groupByDate(json.data);
-          console.log('Grouped data:', grouped);
           setLedgerData(grouped);
 
           calculateRunningBalances(json.data, opening);
@@ -105,14 +97,12 @@ const LedgersScreen = ({route, navigation}) => {
         } else {
           console.log('No transactions array found');
           setLedgerData([]);
-          setAllTransactions([]);
           setClosingBalance(opening);
           setTransactionBalances({});
         }
       } else {
         console.log('API status false');
         setLedgerData([]);
-        setAllTransactions([]);
         setOpeningBalance(0);
         setClosingBalance(0);
         setTransactionBalances({});
@@ -133,7 +123,6 @@ const LedgersScreen = ({route, navigation}) => {
       balances[index] = currentBalance;
     });
 
-    console.log('Calculated balances:', balances);
     setTransactionBalances(balances);
   };
 
@@ -150,7 +139,6 @@ const LedgersScreen = ({route, navigation}) => {
       transactions: groupedData[date],
     }));
     
-    console.log('Grouped result:', result);
     return result;
   };
 
@@ -268,10 +256,6 @@ const LedgersScreen = ({route, navigation}) => {
   const keyExtractor = (item, index) => {
     return `section-${index}-${item.date}`;
   };
-
-  console.log('Current ledgerData:', ledgerData);
-  console.log('ledgerData length:', ledgerData.length);
-  console.log('transactionBalances:', transactionBalances);
 
   if (loading && ledgerData.length === 0) {
     return (
