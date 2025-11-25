@@ -2,7 +2,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   FlatList,
   StatusBar,
@@ -12,7 +11,6 @@ import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import SimpleHeader from '../../../../components/SimpleHeader';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
 import {PermissionsAndroid, Platform} from 'react-native';
@@ -27,7 +25,6 @@ const Aging = ({navigation, route}) => {
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
-  console.log(aging);
 
   useEffect(() => {
     if (name === 'Customer') {
@@ -36,7 +33,7 @@ const Aging = ({navigation, route}) => {
       getSupplierAging();
     }
   }, []);
-  
+
   const getCustomerAging = () => {
     setDataLoading(true);
     let data = new FormData();
@@ -248,7 +245,7 @@ const Aging = ({navigation, route}) => {
       </View>
     );
   }
-  
+
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
@@ -262,7 +259,8 @@ const Aging = ({navigation, route}) => {
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>
-          Aging - {item?.name || item?.customer_name || item?.supplier_name || ''}
+          Aging -{' '}
+          {item?.name || item?.customer_name || item?.supplier_name || ''}
         </Text>
 
         <TouchableOpacity

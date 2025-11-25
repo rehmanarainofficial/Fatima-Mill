@@ -21,8 +21,6 @@ import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
 
-const {width} = Dimensions.get('window');
-
 const ViewLedger = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -205,10 +203,9 @@ const ViewLedger = ({navigation}) => {
     }));
   };
 
- const handleDownload = async () => {
-  await generateLedgerPDF(ledgerData, setDownloadLoading, fromDate, toDate);
-};
-
+  const handleDownload = async () => {
+    await generateLedgerPDF(ledgerData, setDownloadLoading, fromDate, toDate);
+  };
 
   const handleApplyFilter = () => {
     fetchData();

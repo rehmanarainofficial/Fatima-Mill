@@ -6,34 +6,55 @@ import {responsiveWidth} from '../utils/Responsive';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const NameBalanceContainer = ({Name, balance = 0, type, item, fromViewAll = false}) => {
+const NameBalanceContainer = ({
+  Name,
+  balance = 0,
+  type,
+  item,
+  fromViewAll = false,
+}) => {
   const navigation = useNavigation();
 
   const showAgingAndLedger = type === 'Receivable' || type === 'Payable';
-  const showOnlyLedger = type === 'Inventory Valuation';
+  const showInventoryLedger = type === 'Inventory Valuation';
+  const showBankLedger = type === 'Bank & Cash';
 
   const handlePress = () => {
     if (type === 'Inventory Valuation') {
       navigation.navigate('StockMovements', {
         item: item,
-        fromAllMovements: fromViewAll // Pass this parameter to distinguish
+        fromAllMovements: fromViewAll,
+      });
+    }
+    if (type === 'Bank & Cash') {
+      navigation.navigate('Ledgers', {
+        item: item,
+        type: 'Bank & Cash',
       });
     }
   };
 
-  const handleIconPress = () => {
-    navigation.navigate('StockMovements', {
+  const handleInventoryIconPress = () => {
+    const categoryId = item?.category_id || '';
+
+    navigation.navigate('StockSheetScreen', {
+      category_id: categoryId,
       item: item,
-      fromAllMovements: fromViewAll
+    });
+  };
+
+  const handleBankIconPress = () => {
+    navigation.navigate('Ledgers', {
+      item: item,
+      type: 'Bank & Cash',
     });
   };
 
   return (
-    <TouchableOpacity 
-      activeOpacity={0.9} 
+    <TouchableOpacity
+      activeOpacity={0.9}
       style={styles.container}
-      onPress={handlePress}
-    >
+      onPress={handlePress}>
       {/* Left: Name */}
       <View style={styles.nameContainer}>
         <AppText
@@ -75,6 +96,7 @@ const NameBalanceContainer = ({Name, balance = 0, type, item, fromViewAll = fals
               onPress={() =>
                 navigation.navigate('Ledgers', {
                   item: item,
+                  type: type,
                 })
               }>
               <Icon name="book-open-outline" size={20} color="#1565C0" />
@@ -82,17 +104,26 @@ const NameBalanceContainer = ({Name, balance = 0, type, item, fromViewAll = fals
           </>
         )}
 
-        {/* Inventory Valuation - Stock Movements */}
-        {showOnlyLedger && (
+        {/* Inventory Valuation - Stock Movements Icon */}
+        {showInventoryLedger && (
           <TouchableOpacity
             style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
-            onPress={handleIconPress}>
+            onPress={handleInventoryIconPress}>
             <Icon name="swap-horizontal" size={20} color="#1565C0" />
           </TouchableOpacity>
         )}
 
-        {/* Bank & Cash, Salesman, etc. - No buttons */}
-        {!showAgingAndLedger && !showOnlyLedger && (
+        {/* Bank & Cash - Ledger Icon */}
+        {showBankLedger && (
+          <TouchableOpacity
+            style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
+            onPress={handleBankIconPress}>
+            <Icon name="book-open-outline" size={20} color="#1565C0" />
+          </TouchableOpacity>
+        )}
+
+        {/* Salesman, etc. - No buttons */}
+        {!showAgingAndLedger && !showInventoryLedger && !showBankLedger && (
           <View style={styles.placeholder} />
         )}
       </View>

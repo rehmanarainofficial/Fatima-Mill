@@ -67,7 +67,6 @@ const ScaleCard = ({children, onPress}) => {
 
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
-  const [AllData, setAllData] = useState(dashboardCache.data);
   const [Type, setType] = useState();
   const [loader, setLoader] = useState(!dashboardCache.data);
 
@@ -136,7 +135,6 @@ const Dashboard = ({navigation}) => {
         headers: {'content-type': 'multipart/form-data'},
         params: {current_date: todayDate, pre_month_date: '2025-04-19'},
       });
-      setAllData(data);
       dashboardCache.data = data; // 🔹 Cache it
       dashboardCache.lastFetched = Date.now();
     } catch (error) {
@@ -193,6 +191,26 @@ const Dashboard = ({navigation}) => {
             />
             <View />
           </LinearGradient>
+
+          {/* 🔹 Modal Body Content */}
+          <ScrollView style={styles.modalBody}>
+            <View style={styles.modalContentContainer}>
+              <AppText
+                title={`This is ${Type} content`}
+                titleColor={APPCOLORS.BLACK}
+                titleSize={1.8}
+                style={styles.modalText}
+              />
+              <View style={styles.sampleDataContainer}>
+                <AppText
+                  title="Sample data will be displayed here based on the selected type."
+                  titleColor={APPCOLORS.GRAY}
+                  titleSize={1.6}
+                  style={styles.sampleText}
+                />
+              </View>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -303,8 +321,18 @@ const styles = StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
   },
-  cardTouchArea: {flex: 1, borderRadius: 20, justifyContent: 'center', alignItems: 'center'},
-  cardInnerView: {justifyContent: 'center', alignItems: 'center', padding: 15, gap: 10},
+  cardTouchArea: {
+    flex: 1,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardInnerView: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 15,
+    gap: 10,
+  },
   updateHeading: {
     fontSize: responsiveFontSize(2.2),
     color: APPCOLORS.BLACK,
@@ -332,6 +360,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  modalBody: {
+    flex: 1,
+    padding: 15,
+  },
+  modalContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalText: {
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  sampleDataContainer: {
+    padding: 20,
+    backgroundColor: APPCOLORS.LIGHT_GRAY,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  sampleText: {
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

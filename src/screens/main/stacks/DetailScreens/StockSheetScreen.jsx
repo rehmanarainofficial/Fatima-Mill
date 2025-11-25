@@ -15,11 +15,14 @@ import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
-export default function StockSheetScreen({navigation}) {
+export default function StockSheetScreen({navigation, route}) {
+  // 🔹 Receive params from navigation
+  const {category_id = '', item = {}} = route.params || {};
+
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState(null);
   const [locations, setLocations] = useState([]);
-  const [category, setCategory] = useState(null);
+  const [category, setCategory] = useState(category_id || null); // 🔹 Set initial category from params
   const [categories, setCategories] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +42,22 @@ export default function StockSheetScreen({navigation}) {
       'description',
     );
   }, []);
+
+  // 🔹 Auto-apply category filter when category_id is received from params
+  useEffect(() => {
+    if (category_id) {
+      setCategory(category_id);
+      // Auto-fetch data with category filter after a short delay
+      const timer = setTimeout(() => {
+        fetchStockData({category: category_id});
+      }, 500);
+
+      return () => clearTimeout(timer);
+    } else {
+      // If no category_id, fetch all data
+      fetchStockData({});
+    }
+  }, [category_id]);
 
   const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
@@ -63,11 +82,9 @@ export default function StockSheetScreen({navigation}) {
       payload.append('loc_code', filters.location || '');
       payload.append('category_id', filters.category || '');
 
-      const res = await axios.post(
-        `${BASEURL}stock_check_sheet.php`,
-        payload,
-        {headers: {'Content-Type': 'multipart/form-data'}},
-      );
+      const res = await axios.post(`${BASEURL}stock_check_sheet.php`, payload, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         setData(res.data.data);
       } else {
@@ -81,10 +98,6 @@ export default function StockSheetScreen({navigation}) {
     }
   };
 
-  useEffect(() => {
-    fetchStockData({});
-  }, []);
-
   const applyFilters = () => {
     fetchStockData({search, location, category});
   };
@@ -92,9 +105,9 @@ export default function StockSheetScreen({navigation}) {
   const clearFilters = () => {
     setSearch('');
     setLocation(null);
-    setCategory(null);
+    setCategory(category_id || null); // 🔹 Reset to received category_id or null
     setData([]);
-    fetchStockData({});
+    fetchStockData({category: category_id || ''});
   };
 
   const renderCard = ({item}) => (
@@ -124,7 +137,9 @@ export default function StockSheetScreen({navigation}) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" color={APPCOLORS.WHITE} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Stock Sheet</Text>
+        <Text style={styles.headerTitle}>
+          Stock Sheet {category_id ? '(Filtered)' : ''}
+        </Text>
         <TouchableOpacity onPress={clearFilters}>
           <Text style={{color: APPCOLORS.WHITE, fontSize: 14}}>Clear</Text>
         </TouchableOpacity>

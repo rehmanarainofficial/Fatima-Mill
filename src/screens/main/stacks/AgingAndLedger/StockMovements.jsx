@@ -19,8 +19,13 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import BASEURL from '../../../../utils/BaseUrl';
 
 const StockMovements = ({navigation, route}) => {
-const {item, fromAllMovements = false, fromViewAll = false} = route.params || {};
-const shouldShowStockDropdown = fromAllMovements || fromViewAll;
+  const {
+    item,
+    fromAllMovements = false,
+    fromViewAll = false,
+  } = route.params || {};
+
+  const shouldShowStockDropdown = fromAllMovements || fromViewAll;
   const [locations, setLocations] = useState([]);
   const [stocks, setStocks] = useState([]);
   const [filteredStocks, setFilteredStocks] = useState([]);
@@ -79,14 +84,15 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
   // ------------------------------
   // SEARCH STOCKS
   // ------------------------------
-  const searchStocks = (query) => {
+  const searchStocks = query => {
     setSearchQuery(query);
     if (query.trim() === '') {
       setFilteredStocks(stocks);
     } else {
-      const filtered = stocks.filter(stock => 
-        stock.description?.toLowerCase().includes(query.toLowerCase()) ||
-        stock.stock_id?.toLowerCase().includes(query.toLowerCase())
+      const filtered = stocks.filter(
+        stock =>
+          stock.description?.toLowerCase().includes(query.toLowerCase()) ||
+          stock.stock_id?.toLowerCase().includes(query.toLowerCase()),
       );
       setFilteredStocks(filtered);
     }
@@ -100,7 +106,7 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
       setLoading(true);
 
       const formData = new FormData();
-      formData.append('stock_id', selectedStock);
+      formData.append('category_id', item?.category_id);
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
       formData.append('StockLocation', selectedLocation);
@@ -111,11 +117,11 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
       });
 
       const json = await res.json();
-      console.log('Stock movement response:', json);
+      console.log('json', json);
 
       if (json.status === 'true') {
         setMovementData(json.data || []);
-        
+
         // Set opening balance from API response
         const opening = json.opening !== null ? parseFloat(json.opening) : 0;
         setOpeningBalance(opening);
@@ -168,11 +174,11 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
   // ------------------------------
   // FORMAT NUMBER WITH COMMAS
   // ------------------------------
-  const formatNumber = (num) => {
+  const formatNumber = num => {
     if (num === null || num === undefined) return '0';
     const number = typeof num === 'string' ? parseFloat(num) : num;
     if (isNaN(number)) return '0';
-    
+
     // Round to 2 decimal places and format with commas
     return Math.round(number).toLocaleString('en-US');
   };
@@ -183,7 +189,7 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
   const renderCard = ({item: transaction, index}) => {
     const qty = parseFloat(transaction.qty || 0);
     const isPositive = qty > 0;
-    
+
     // Use the balance directly from API response instead of calculating
     const balance = parseFloat(transaction.balance) || 0;
 
@@ -303,7 +309,9 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
         </View>
 
         {/* BALANCE ROW - Always show when we have data */}
-        {(movementData.length > 0 || openingBalance !== 0 || closingBalance !== 0) && (
+        {(movementData.length > 0 ||
+          openingBalance !== 0 ||
+          closingBalance !== 0) && (
           <View style={styles.balanceRow}>
             <View style={styles.balanceItem}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
@@ -334,15 +342,16 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Select Stock</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowStockModal(false);
-                  setSearchQuery('');
-                  setFilteredStocks(stocks);
-                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowStockModal(false);
+                    setSearchQuery('');
+                    setFilteredStocks(stocks);
+                  }}>
                   <Ionicons name="close" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Search Bar */}
               <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" />
@@ -492,10 +501,9 @@ const shouldShowStockDropdown = fromAllMovements || fromViewAll;
             <View style={styles.noDataContainer}>
               <MaterialIcons name="inventory-2" size={60} color="#ccc" />
               <Text style={styles.noData}>
-                {selectedStock || !fromAllMovements 
-                  ? 'No movement found for selected filters' 
-                  : 'Please select a stock to view movements'
-                }
+                {selectedStock || !fromAllMovements
+                  ? 'No movement found for selected filters'
+                  : 'Please select a stock to view movements'}
               </Text>
             </View>
           }

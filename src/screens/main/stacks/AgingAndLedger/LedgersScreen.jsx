@@ -19,8 +19,7 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
 
 const LedgersScreen = ({route, navigation}) => {
-  const {item} = route.params || {};
-  
+  const {item, type} = route.params || {};
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState([]);
@@ -58,14 +57,14 @@ const LedgersScreen = ({route, navigation}) => {
   const fetchData = async () => {
     try {
       if (!item) return;
-      
+
       setLoading(true);
 
       const formData = new FormData();
       formData.append('account', item.account);
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
-      formData.append('person_id', item.person_id);
+      formData.append('person_id', type == 'Bank & Cash' ? '' : item.person_id);
 
       const response = await fetch(`${BASEURL}gl_account_inquiry.php`, {
         method: 'POST',
@@ -74,9 +73,7 @@ const LedgersScreen = ({route, navigation}) => {
         },
         body: formData,
       });
-
       const json = await response.json();
-      console.log('API Response:', json);
 
       if (json.status === 'true') {
         const opening = json.opening !== null ? parseFloat(json.opening) : 0;
@@ -132,25 +129,25 @@ const LedgersScreen = ({route, navigation}) => {
       if (!groupedData[date]) groupedData[date] = [];
       groupedData[date].push(item);
     });
-    
+
     const result = Object.keys(groupedData).map(date => ({
       date,
       transactions: groupedData[date],
     }));
-    
+
     return result;
   };
 
   // Global transaction index finder
   const findGlobalTransactionIndex = (sectionIndex, transactionIndex) => {
     let globalIndex = 0;
-    
+
     for (let i = 0; i < sectionIndex; i++) {
       if (ledgerData[i] && ledgerData[i].transactions) {
         globalIndex += ledgerData[i].transactions.length;
       }
     }
-    
+
     globalIndex += transactionIndex;
     return globalIndex;
   };
@@ -195,16 +192,18 @@ const LedgersScreen = ({route, navigation}) => {
   };
 
   const renderTransaction = (transaction, sectionIndex, transactionIndex) => {
-    const globalIndex = findGlobalTransactionIndex(sectionIndex, transactionIndex);
+    const globalIndex = findGlobalTransactionIndex(
+      sectionIndex,
+      transactionIndex,
+    );
     const isCredit = parseFloat(transaction.amount) > 0;
     const amount = parseFloat(transaction.amount);
     const currentBalance = transactionBalances[globalIndex] || closingBalance;
 
     return (
-      <Animated.View 
+      <Animated.View
         key={`${sectionIndex}-${transactionIndex}`}
-        style={[styles.card, {opacity: fadeAnim}]}
-      >
+        style={[styles.card, {opacity: fadeAnim}]}>
         <View style={styles.transactionContent}>
           <View style={styles.transactionDetails}>
             {transaction.reference && (
@@ -213,7 +212,9 @@ const LedgersScreen = ({route, navigation}) => {
             {transaction.person_name && (
               <Text style={styles.personText}>{transaction.person_name}</Text>
             )}
-            {transaction.memo && <Text style={styles.memoText}>{transaction.memo}</Text>}
+            {transaction.memo && (
+              <Text style={styles.memoText}>{transaction.memo}</Text>
+            )}
           </View>
 
           <View style={styles.amountSection}>
@@ -244,8 +245,8 @@ const LedgersScreen = ({route, navigation}) => {
         <Text style={styles.dateHeader}>
           {moment(section.date).format('dddd, DD MMM YYYY')}
         </Text>
-        {section.transactions.map((transaction, transactionIndex) => 
-          renderTransaction(transaction, sectionIndex, transactionIndex)
+        {section.transactions.map((transaction, transactionIndex) =>
+          renderTransaction(transaction, sectionIndex, transactionIndex),
         )}
       </View>
     );

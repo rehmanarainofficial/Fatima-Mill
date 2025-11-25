@@ -1,19 +1,14 @@
-import { View, TouchableOpacity, Animated } from 'react-native';
-import React, { useRef, useEffect } from 'react';
+import {View, TouchableOpacity, Animated} from 'react-native';
+import React, {useRef, useEffect} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
-import { APPCOLORS } from '../utils/APPCOLORS';
+import {responsiveFontSize, responsiveHeight} from '../utils/Responsive';
+import {APPCOLORS} from '../utils/APPCOLORS';
 import AppText from './AppText';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
-import { setLogout } from '../redux/AuthSlice';
+import {useDispatch} from 'react-redux';
+import {setLogout} from '../redux/AuthSlice';
 
-const AppHeader = ({ title, onPress }) => {
-  const nav = useNavigation();
+const AppHeader = ({title, onPress}) => {
   const dispatch = useDispatch();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -26,11 +21,11 @@ const AppHeader = ({ title, onPress }) => {
   }, []);
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={{opacity: fadeAnim}}>
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
         style={{
           height: responsiveHeight(25),
           borderBottomRightRadius: 25,
@@ -51,40 +46,8 @@ const AppHeader = ({ title, onPress }) => {
             titleWeight
           />
 
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TouchableOpacity onPress={() => onPress('bell')}>
-              <FontAwesome
-                name="bell"
-                color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2.5)}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => onPress('mail')}>
-              <Entypo
-                name="mail"
-                color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2.5)}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => onPress('chat')}>
-              <Ionicons
-                name="chatbubble"
-                color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2.5)}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => nav.navigate('ProfitAndLossScreen')}>
-              <Ionicons
-                name="person"
-                color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2.5)}
-              />
-            </TouchableOpacity>
-
-            {/* 🔹 Logout Icon Added */}
+          {/* 🔹 Only Logout Icon Remaining - Other 4 icons removed */}
+          <View style={{flexDirection: 'row'}}>
             <TouchableOpacity onPress={() => dispatch(setLogout())}>
               <MaterialIcons
                 name="logout"
