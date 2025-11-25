@@ -16,18 +16,24 @@ import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
 export default function StockSheetScreen({navigation, route}) {
-  // 🔹 Receive params from navigation
   const {category_id = '', item = {}} = route.params || {};
 
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState(null);
   const [locations, setLocations] = useState([]);
-  const [category, setCategory] = useState(category_id || null); // 🔹 Set initial category from params
+  const [category, setCategory] = useState(category_id || null);
   const [categories, setCategories] = useState([]);
+
+  // 🔹 New states for combo1 and combo2
+  const [combo1, setCombo1] = useState(null);
+  const [combo1Data, setCombo1Data] = useState([]);
+  const [combo2, setCombo2] = useState(null);
+  const [combo2Data, setCombo2Data] = useState([]);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Fetch dropdowns
+  // 🔹 Fetch all dropdowns
   useEffect(() => {
     fetchDropdownData(
       `${BASEURL}locations.php`,
@@ -41,23 +47,54 @@ export default function StockSheetScreen({navigation, route}) {
       'category_id',
       'description',
     );
+    fetchCombo1Data();
+    fetchCombo2Data();
   }, []);
 
-  // 🔹 Auto-apply category filter when category_id is received from params
   useEffect(() => {
     if (category_id) {
       setCategory(category_id);
-      // Auto-fetch data with category filter after a short delay
       const timer = setTimeout(() => {
         fetchStockData({category: category_id});
       }, 500);
 
       return () => clearTimeout(timer);
     } else {
-      // If no category_id, fetch all data
       fetchStockData({});
     }
   }, [category_id]);
+
+  // 🔹 Fetch Combo1 Data
+  const fetchCombo1Data = async () => {
+    try {
+      const {data} = await axios.get(`${BASEURL}combo1.php`);
+      if (data?.status === 'true') {
+        const mapped = data.data.map(i => ({
+          label: i.description,
+          value: i.combo_code,
+        }));
+        setCombo1Data(mapped);
+      }
+    } catch (e) {
+      console.log('Combo1 Fetch Error:', e);
+    }
+  };
+
+  // 🔹 Fetch Combo2 Data
+  const fetchCombo2Data = async () => {
+    try {
+      const {data} = await axios.get(`${BASEURL}combo2.php`);
+      if (data?.status === 'true') {
+        const mapped = data.data.map(i => ({
+          label: i.description,
+          value: i.combo_code,
+        }));
+        setCombo2Data(mapped);
+      }
+    } catch (e) {
+      console.log('Combo2 Fetch Error:', e);
+    }
+  };
 
   const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
@@ -81,6 +118,9 @@ export default function StockSheetScreen({navigation, route}) {
       payload.append('description', filters.search || '');
       payload.append('loc_code', filters.location || '');
       payload.append('category_id', filters.category || '');
+      // 🔹 Add combo1 and combo2 to payload
+      payload.append('combo_code1', filters.combo1 || '');
+      payload.append('combo_code2', filters.combo2 || '');
 
       const res = await axios.post(`${BASEURL}stock_check_sheet.php`, payload, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -99,15 +139,27 @@ export default function StockSheetScreen({navigation, route}) {
   };
 
   const applyFilters = () => {
-    fetchStockData({search, location, category});
+    fetchStockData({
+      search,
+      location,
+      category,
+      combo1, // 🔹 Include combo1 in filters
+      combo2, // 🔹 Include combo2 in filters
+    });
   };
 
   const clearFilters = () => {
     setSearch('');
     setLocation(null);
-    setCategory(category_id || null); // 🔹 Reset to received category_id or null
+    setCategory(category_id || null);
+    setCombo1(null); // 🔹 Clear combo1
+    setCombo2(null); // 🔹 Clear combo2
     setData([]);
-    fetchStockData({category: category_id || ''});
+    fetchStockData({
+      category: category_id || '',
+      combo1: '', // 🔹 Send empty for combo1
+      combo2: '', // 🔹 Send empty for combo2
+    });
   };
 
   const renderCard = ({item}) => (
@@ -147,6 +199,7 @@ export default function StockSheetScreen({navigation, route}) {
 
       {/* Filters */}
       <View style={{padding: 16}}>
+        {/* First Row: Search + Location */}
         <View style={{flexDirection: 'row', gap: 12}}>
           <View style={[styles.glassInput, {flex: 1}]}>
             <TextInput
@@ -172,6 +225,7 @@ export default function StockSheetScreen({navigation, route}) {
           />
         </View>
 
+        {/* Second Row: Category + Combo1 */}
         <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
           <Dropdown
             style={[styles.dropdown, {flex: 1}]}
@@ -185,6 +239,36 @@ export default function StockSheetScreen({navigation, route}) {
             itemTextStyle={{color: APPCOLORS.BLACK}}
             value={category}
             onChange={item => setCategory(item.value)}
+          />
+          <Dropdown
+            style={[styles.dropdown, {flex: 1}]}
+            data={combo1Data}
+            search
+            labelField="label"
+            valueField="value"
+            placeholder="Select Combo1"
+            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+            selectedTextStyle={{color: APPCOLORS.WHITE}}
+            itemTextStyle={{color: APPCOLORS.BLACK}}
+            value={combo1}
+            onChange={item => setCombo1(item.value)}
+          />
+        </View>
+
+        {/* Third Row: Combo2 + Apply Button */}
+        <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
+          <Dropdown
+            style={[styles.dropdown, {flex: 1}]}
+            data={combo2Data}
+            search
+            labelField="label"
+            valueField="value"
+            placeholder="Select Combo2"
+            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+            selectedTextStyle={{color: APPCOLORS.WHITE}}
+            itemTextStyle={{color: APPCOLORS.BLACK}}
+            value={combo2}
+            onChange={item => setCombo2(item.value)}
           />
           <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
             <Text style={{color: APPCOLORS.WHITE, fontWeight: '700'}}>
