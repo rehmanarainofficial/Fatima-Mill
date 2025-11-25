@@ -26,7 +26,6 @@ const LedgersScreen = ({route, navigation}) => {
   const [ledgerData, setLedgerData] = useState([]);
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
-  const [allTransactions, setAllTransactions] = useState([]);
 
   // Filter states - sirf dates ke liye
   const [fromDate, setFromDate] = useState(
