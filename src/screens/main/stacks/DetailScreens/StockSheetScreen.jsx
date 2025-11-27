@@ -119,8 +119,8 @@ export default function StockSheetScreen({navigation, route}) {
       payload.append('loc_code', filters.location || '');
       payload.append('category_id', filters.category || '');
       // 🔹 Add combo1 and combo2 to payload
-      payload.append('combo_code1', filters.combo1 || '');
-      payload.append('combo_code2', filters.combo2 || '');
+      payload.append('sub_cat1', filters.combo1 || '');
+      payload.append('sub_cat2', filters.combo2 || '');
 
       const res = await axios.post(`${BASEURL}stock_check_sheet.php`, payload, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -246,7 +246,7 @@ export default function StockSheetScreen({navigation, route}) {
             search
             labelField="label"
             valueField="value"
-            placeholder="Select Combo1"
+            placeholder="Sub Category1"
             placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
             selectedTextStyle={{color: APPCOLORS.WHITE}}
             itemTextStyle={{color: APPCOLORS.BLACK}}
@@ -263,7 +263,7 @@ export default function StockSheetScreen({navigation, route}) {
             search
             labelField="label"
             valueField="value"
-            placeholder="Select Combo2"
+            placeholder="Sub Category2"
             placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
             selectedTextStyle={{color: APPCOLORS.WHITE}}
             itemTextStyle={{color: APPCOLORS.BLACK}}
