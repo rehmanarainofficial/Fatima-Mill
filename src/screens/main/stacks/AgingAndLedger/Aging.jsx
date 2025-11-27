@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
 import {PermissionsAndroid, Platform} from 'react-native';
-import {Notifications} from 'react-native-notifications';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -38,13 +37,14 @@ const Aging = ({navigation, route}) => {
     setDataLoading(true);
     let data = new FormData();
     data.append('customer_id', item?.customer_id);
-
     axios
       .post(`${BASEURL}dash_cust_aging.php`, data, {
         headers: {'Content-Type': 'multipart/form-data'},
-        timeout: 10000,
       })
-      .then(res => setAgingData(res.data.data_cust_age || []))
+      .then(res => {
+        setAgingData(res.data.data_cust_age || [])
+        console.log('Customer Aging:', res.data);
+      })
       .catch(err => console.warn('API error', err.message))
       .finally(() => setDataLoading(false));
   };
@@ -98,11 +98,30 @@ const Aging = ({navigation, route}) => {
     }
   };
 
+  // Format date from "2024-05-18" to "18/05/2024"
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Format amount - remove .00 if whole number
+  const formatAmount = (amount) => {
+    if (!amount) return '0';
+    // Remove commas and convert to number
+    const num = parseFloat(String(amount).replace(/,/g, ''));
+    // Format with commas but without .00 for whole numbers
+    if (num % 1 === 0) {
+      return num.toLocaleString();
+    } else {
+      return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+  };
+
   // Calculate totals
-  const totalAllocated = aging.reduce(
-    (sum, row) => sum + parseFloat(row.Allocated || 0),
-    0,
-  );
   const totalInvoice = aging.reduce(
     (sum, row) =>
       sum + parseFloat(String(row.Invoice_amount || '0').replace(/,/g, '')),
@@ -110,7 +129,7 @@ const Aging = ({navigation, route}) => {
   );
 
   const totalBalance = aging.reduce(
-    (sum, row) => sum + parseFloat(row.invoce_balance || 0),
+    (sum, row) => sum + parseFloat(String(row.invoce_balance || '0').replace(/,/g, '')),
     0,
   );
 
@@ -129,11 +148,9 @@ const Aging = ({navigation, route}) => {
   <table border="1" style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
     <thead>
       <tr style="background-color: #f0f0f0;">
-        <th style="padding: 8px;">Reference</th>
         <th style="padding: 8px;">Tran Date</th>
         <th style="padding: 8px;">Days</th>
-        <th style="padding: 8px;">Allocated</th>
-        <th style="padding: 8px;">Invoice Amt</th>
+        <th style="padding: 8px;">Amount</th>
         <th style="padding: 8px;">Balance</th>
       </tr>
     </thead>
@@ -142,12 +159,10 @@ const Aging = ({navigation, route}) => {
         .map(
           row => `
           <tr>
-            <td style="padding: 8px;">${row.reference}</td>
-            <td style="padding: 8px;">${row.tran_date}</td>
+            <td style="padding: 8px;">${formatDate(row.tran_date)}</td>
             <td style="padding: 8px;">${row.days}</td>
-            <td style="padding: 8px; text-align: right;">${row.Allocated}</td>
-            <td style="padding: 8px; text-align: right;">${row.Invoice_amount}</td>
-            <td style="padding: 8px; text-align: right;">${row.invoce_balance}</td>
+            <td style="padding: 8px; text-align: right;">${formatAmount(row.Invoice_amount)}</td>
+            <td style="padding: 8px; text-align: right;">${formatAmount(row.invoce_balance)}</td>
           </tr>
         `,
         )
@@ -155,16 +170,9 @@ const Aging = ({navigation, route}) => {
     </tbody>
     <tfoot>
       <tr style="font-weight: bold; background-color: #e6e6e6;">
-        <td colspan="3" style="padding: 8px; text-align: right;">TOTAL</td>
-        <td style="padding: 8px; text-align: right;">${totalAllocated.toFixed(
-          2,
-        )}</td>
-        <td style="padding: 8px; text-align: right;">${totalInvoice.toFixed(
-          2,
-        )}</td>
-        <td style="padding: 8px; text-align: right;">${totalBalance.toFixed(
-          2,
-        )}</td>
+        <td colspan="2" style="padding: 8px; text-align: right;">TOTAL</td>
+        <td style="padding: 8px; text-align: right;">${formatAmount(totalInvoice)}</td>
+        <td style="padding: 8px; text-align: right;">${formatAmount(totalBalance)}</td>
       </tr>
     </tfoot>
   </table>
@@ -207,15 +215,6 @@ const Aging = ({navigation, route}) => {
         text1: 'PDF Saved',
         text2: `Saved to Downloads as ${fileName}.pdf`,
         visibilityTime: 3000,
-      });
-
-      Notifications.postLocalNotification({
-        title: '📄 PDF Saved',
-        body: `Your Aging Report (${customerName}) is saved in Downloads.`,
-        sound: 'default',
-        silent: false,
-        channelId: 'pdf-saved-channel',
-        userInfo: {filePath: destPath},
       });
     } catch (error) {
       console.error('❌ PDF generation error:', error);
@@ -292,6 +291,7 @@ const Aging = ({navigation, route}) => {
               borderColor: '#ccc',
               paddingVertical: 10,
             }}>
+            {/* Tran Date - formatted as dd/mm/yyyy */}
             <Text
               style={{
                 flex: 1,
@@ -300,18 +300,10 @@ const Aging = ({navigation, route}) => {
                 borderRightWidth: 1,
                 borderColor: '#ccc',
               }}>
-              {item.reference}
+              {formatDate(item.tran_date)}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontSize: 12,
-                borderRightWidth: 1,
-                borderColor: '#ccc',
-              }}>
-              {item.tran_date}
-            </Text>
+            
+            {/* Days */}
             <Text
               style={{
                 flex: 1,
@@ -322,8 +314,22 @@ const Aging = ({navigation, route}) => {
               }}>
               {item.days}
             </Text>
+            
+            {/* Amount - formatted without .00 */}
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 12,
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              {formatAmount(item.Invoice_amount)}
+            </Text>
+            
+            {/* Balance - formatted without .00 */}
             <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
-              {item.Invoice_amount || '-'}
+              {formatAmount(item.invoce_balance)}
             </Text>
           </View>
         )}
@@ -356,7 +362,8 @@ const Aging = ({navigation, route}) => {
               backgroundColor: APPCOLORS.Primary,
               paddingVertical: 10,
             }}>
-            {['Reference', 'Tran Date', 'Days', 'Amount'].map((col, index) => (
+            {/* Updated Headers: Reference removed, Balance added at the end */}
+            {['Tran Date', 'Days', 'Amount', 'Balance'].map((col, index) => (
               <View
                 key={index}
                 style={{
@@ -384,9 +391,10 @@ const Aging = ({navigation, route}) => {
               borderColor: '#ccc',
               marginTop: 5,
             }}>
+            {/* TOTAL spans first 2 columns */}
             <Text
               style={{
-                flex: 3,
+                flex: 2,
                 textAlign: 'center',
                 fontSize: 14,
                 fontWeight: 'bold',
@@ -396,6 +404,20 @@ const Aging = ({navigation, route}) => {
               TOTAL
             </Text>
 
+            {/* Total Amount - formatted without .00 */}
+            <Text
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: 14,
+                fontWeight: 'bold',
+                borderRightWidth: 1,
+                borderColor: '#ccc',
+              }}>
+              {formatAmount(totalInvoice)}
+            </Text>
+
+            {/* Total Balance - formatted without .00 */}
             <Text
               style={{
                 flex: 1,
@@ -403,7 +425,7 @@ const Aging = ({navigation, route}) => {
                 fontSize: 14,
                 fontWeight: 'bold',
               }}>
-              {totalInvoice.toLocaleString()}
+              {formatAmount(totalBalance)}
             </Text>
           </View>
         )}

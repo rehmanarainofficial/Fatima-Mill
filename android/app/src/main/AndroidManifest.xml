@@ -45,28 +45,29 @@
             </intent-filter>
         </activity>
 
-        <!-- ✅ React Native Notifications (Fixed Conflict) -->
+        <!-- React Native Notifications (FCM services removed because Firebase is not configured)
+             If you later configure Firebase properly, you can re-add these services. -->
+
+        <!-- Explicitly remove FCM-related services/receivers from the library manifest -->
         <service
             android:name="com.wix.reactnativenotifications.fcm.FcmInstanceIdListenerService"
-            android:exported="true"
-            tools:replace="android:exported" />
+            tools:node="remove" />
 
         <service
             android:name="com.wix.reactnativenotifications.fcm.FcmMessagingService"
-            android:exported="true"
-            tools:replace="android:exported">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+            tools:node="remove" />
+
+        <service
+            android:name="com.wix.reactnativenotifications.fcm.FcmInstanceIdRefreshHandlerService"
+            tools:node="remove" />
 
         <receiver
             android:name="com.wix.reactnativenotifications.notification.NotificationReceiver"
-            android:exported="false" />
+            tools:node="remove" />
 
         <receiver
             android:name="com.wix.reactnativenotifications.notification.ActionReceiver"
-            android:exported="false" />
+            tools:node="remove" />
 
     </application>
 
