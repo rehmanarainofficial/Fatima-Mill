@@ -5,18 +5,22 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import {responsiveWidth} from '../../../../utils/Responsive';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
 import BaseUrl from '../../../../utils/BaseUrl';
 import axios from 'axios';
-import Animated, {FadeInUp} from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const cachedData = { slider_data: null, all_data: null }; // 🔹 Global cache (module-level)
 
-const Detail = ({navigation}) => {
+const Detail = ({ navigation }) => {
   const [slider_data, setslider_data] = useState(cachedData.slider_data);
   const [AllData, setAllData] = useState(cachedData.all_data);
   const [loader, setLoader] = useState(!cachedData.slider_data);
@@ -49,7 +53,7 @@ const Detail = ({navigation}) => {
   const getMoneyData = async () => {
     setLoader(true);
     try {
-      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`);
+      const { data } = await axios.get(`${BaseUrl}dashboard_view.php`);
       setslider_data(data?.slider_data);
       setAllData(data);
       // 🔹 Save to cache
@@ -62,7 +66,7 @@ const Detail = ({navigation}) => {
     }
   };
 
-  const renderItem = ({item, index}) => (
+  const renderItem = ({ item, index }) => (
     <Animated.View
       entering={FadeInUp.delay(index * 120).duration(600)}
       style={{
@@ -73,11 +77,11 @@ const Detail = ({navigation}) => {
         elevation: 5,
         shadowColor: '#000',
         shadowOpacity: 0.08,
-        shadowOffset: {width: 0, height: 3},
+        shadowOffset: { width: 0, height: 3 },
         shadowRadius: 5,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        marginBottom: 14,
+        paddingVertical: responsiveHeight(1.5),
+        paddingHorizontal: responsiveWidth(4),
+        marginBottom: responsiveHeight(1.5),
         borderLeftWidth: 5,
         borderLeftColor: item.color,
       }}>
@@ -89,9 +93,19 @@ const Detail = ({navigation}) => {
             selectedItem: item.title,
           })
         }>
-        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 6}}>
-          <Icon name={item.icon} size={22} color={item.color} style={{marginRight: 8}} />
-          <Text style={{fontWeight: '700', fontSize: 15, color: APPCOLORS.BLACK}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+          <Icon
+            name={item.icon}
+            size={responsiveFontSize(2.5)}
+            color={item.color}
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={{
+              fontWeight: '700',
+              fontSize: responsiveFontSize(1.8),
+              color: APPCOLORS.BLACK,
+            }}>
             {item.title}
           </Text>
         </View>
@@ -102,21 +116,21 @@ const Detail = ({navigation}) => {
             backgroundColor: '#E0E0E0',
             width: '65%',
             alignSelf: 'flex-start',
-            marginBottom: 8,
+            marginBottom: responsiveHeight(1),
           }}
         />
 
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4}}>
-          <View style={{alignItems: 'flex-start'}}>
-            <Text style={{fontSize: 12, color: '#888'}}>Current Month</Text>
-            <Text style={{fontSize: 15, fontWeight: '600', color: APPCOLORS.BLACK, marginTop: 2}}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <View style={{ alignItems: 'flex-start' }}>
+            <Text style={{ fontSize: responsiveFontSize(1.5), color: '#888' }}>Current Month</Text>
+            <Text style={{ fontSize: responsiveFontSize(1.8), fontWeight: '600', color: APPCOLORS.BLACK, marginTop: 2 }}>
               {formatNumber(item.Amount)}
             </Text>
           </View>
 
-          <View style={{alignItems: 'flex-end'}}>
-            <Text style={{fontSize: 12, color: '#888'}}>Previous Month</Text>
-            <Text style={{fontSize: 15, fontWeight: '600', color: APPCOLORS.BLACK, marginTop: 2}}>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ fontSize: responsiveFontSize(1.5), color: '#888' }}>Previous Month</Text>
+            <Text style={{ fontSize: responsiveFontSize(1.8), fontWeight: '600', color: APPCOLORS.BLACK, marginTop: 2 }}>
               {formatNumber(item.Prev_Amount)}
             </Text>
           </View>
@@ -127,20 +141,23 @@ const Detail = ({navigation}) => {
 
   if (loader) {
     return (
-      <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
-        <Text style={{marginTop: 10, color: '#555'}}>Loading data...</Text>
+        <Text style={{ marginTop: 10, color: '#555' }}>Loading data...</Text>
       </View>
     );
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
+    <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE }}>
       <SimpleHeader title="Detail" />
       <FlatList
         data={revData}
         keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{paddingHorizontal: 16, paddingVertical: 16}}
+        contentContainerStyle={{
+          paddingHorizontal: responsiveWidth(4),
+          paddingVertical: responsiveHeight(2),
+        }}
         renderItem={renderItem}
         showsVerticalScrollIndicator={true}
       />

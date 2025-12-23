@@ -20,6 +20,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
 
 const ViewLedger = ({navigation}) => {
   const [loading, setLoading] = useState(false);
@@ -326,7 +331,11 @@ const ViewLedger = ({navigation}) => {
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(2.5)}
+            color={APPCOLORS.WHITE}
+          />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>View Transactions</Text>
@@ -339,7 +348,7 @@ const ViewLedger = ({navigation}) => {
           ) : (
             <MaterialIcons
               name="file-download"
-              size={26}
+              size={responsiveFontSize(3)}
               color={
                 ledgerData.length === 0
                   ? APPCOLORS.TEXTFIELDCOLOR
@@ -521,7 +530,7 @@ const ViewLedger = ({navigation}) => {
           <View style={styles.noDataContainer}>
             <MaterialIcons
               name="receipt-long"
-              size={60}
+              size={responsiveFontSize(8)}
               color={APPCOLORS.TEXTFIELDCOLOR}
             />
             <Text style={styles.noDataText}>
@@ -556,11 +565,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 80,
+    paddingHorizontal: responsiveWidth(5),
+    height: responsiveHeight(10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: 10,
+    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
@@ -569,13 +578,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: APPCOLORS.WHITE,
-    fontSize: 18,
+    fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
   },
   filterContainer: {
     backgroundColor: '#F0F2F5',
-    padding: 16,
-    margin: 12,
+    padding: responsiveWidth(4),
+    margin: responsiveWidth(3),
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -586,7 +595,7 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: responsiveHeight(1.5),
     gap: 10,
   },
   fullWidthContainer: {
@@ -597,11 +606,11 @@ const styles = StyleSheet.create({
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    width: 100,
+    width: responsiveWidth(25),
     gap: 8,
   },
   dropdown: {
-    height: 48,
+    height: responsiveHeight(6),
     borderRadius: 12,
     paddingHorizontal: 14,
     backgroundColor: '#FFFFFF',
@@ -612,17 +621,17 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   placeholderStyle: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.8),
     color: '#9CA3AF',
   },
   selectedTextStyle: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.8),
     color: APPCOLORS.BLACK,
     fontWeight: '500',
   },
   inputSearchStyle: {
-    height: 40,
-    fontSize: 14,
+    height: responsiveHeight(5),
+    fontSize: responsiveFontSize(1.8),
     borderRadius: 10,
   },
   iconStyle: {
@@ -639,10 +648,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-    height: 48,
+    height: responsiveHeight(6),
   },
   dateText: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.8),
     color: APPCOLORS.BLACK,
     fontWeight: '500',
   },
@@ -652,8 +661,8 @@ const styles = StyleSheet.create({
   resetButton: {
     backgroundColor: '#E8EAED',
     borderRadius: 12,
-    width: 46,
-    height: 48,
+    width: responsiveWidth(11),
+    height: responsiveHeight(6),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -665,8 +674,8 @@ const styles = StyleSheet.create({
   applyButton: {
     backgroundColor: APPCOLORS.Primary,
     borderRadius: 12,
-    width: 46,
-    height: 48,
+    width: responsiveWidth(11),
+    height: responsiveHeight(6),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: APPCOLORS.Primary,
@@ -695,13 +704,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   balanceLabel: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.5),
     fontWeight: '600',
     color: '#6B7280',
     marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.8),
     fontWeight: 'bold',
     color: APPCOLORS.Primary,
   },
@@ -710,10 +719,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dateHeader: {
-    fontSize: 15,
+    fontSize: responsiveFontSize(1.8),
     color: APPCOLORS.BLACK,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginVertical: responsiveHeight(1.5),
     backgroundColor: '#FFFFFF',
     padding: 16,
     borderRadius: 12,
@@ -734,6 +743,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderLeftWidth: 4,
     borderLeftColor: APPCOLORS.Primary,
+    marginBottom: responsiveHeight(1),
   },
   transactionContent: {
     flexDirection: 'row',
@@ -749,27 +759,27 @@ const styles = StyleSheet.create({
   },
   refText: {
     color: APPCOLORS.BLACK,
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.8),
     fontWeight: 'bold',
     marginBottom: 6,
   },
   personText: {
     color: '#4B5563',
-    fontSize: 13,
+    fontSize: responsiveFontSize(1.6),
     marginBottom: 6,
   },
   memoText: {
     color: '#6B7280',
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.5),
     marginTop: 4,
   },
   amountText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     marginBottom: 4,
   },
   balanceText: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.5),
     color: '#6B7280',
   },
   loader: {
@@ -780,7 +790,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
+    fontSize: responsiveFontSize(2),
     color: APPCOLORS.Primary,
     fontWeight: '500',
   },
@@ -788,10 +798,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: responsiveHeight(8),
   },
   noDataText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(2),
     color: '#6B7280',
     textAlign: 'center',
     marginTop: 16,

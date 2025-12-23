@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,20 @@ import {
   FlatList,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Dropdown} from 'react-native-element-dropdown';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
+import { Platform } from 'react-native';
+import { Dropdown } from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 
-export default function StockSheetScreen({navigation, route}) {
-  const {category_id = '', item = {}} = route.params || {};
+export default function StockSheetScreen({ navigation, route }) {
+  const { category_id = '', item = {} } = route.params || {};
 
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState(null);
@@ -55,7 +61,7 @@ export default function StockSheetScreen({navigation, route}) {
     if (category_id) {
       setCategory(category_id);
       const timer = setTimeout(() => {
-        fetchStockData({category: category_id});
+        fetchStockData({ category: category_id });
       }, 500);
 
       return () => clearTimeout(timer);
@@ -67,7 +73,7 @@ export default function StockSheetScreen({navigation, route}) {
   // 🔹 Fetch Combo1 Data
   const fetchCombo1Data = async () => {
     try {
-      const {data} = await axios.get(`${BASEURL}combo1.php`);
+      const { data } = await axios.get(`${BASEURL}combo1.php`);
       if (data?.status === 'true') {
         const mapped = data.data.map(i => ({
           label: i.description,
@@ -83,7 +89,7 @@ export default function StockSheetScreen({navigation, route}) {
   // 🔹 Fetch Combo2 Data
   const fetchCombo2Data = async () => {
     try {
-      const {data} = await axios.get(`${BASEURL}combo2.php`);
+      const { data } = await axios.get(`${BASEURL}combo2.php`);
       if (data?.status === 'true') {
         const mapped = data.data.map(i => ({
           label: i.description,
@@ -98,7 +104,7 @@ export default function StockSheetScreen({navigation, route}) {
 
   const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
-      const {data} = await axios.get(url);
+      const { data } = await axios.get(url);
       if (data?.status === 'true') {
         const mapped = data.data.map(i => ({
           label: i[labelField],
@@ -123,7 +129,7 @@ export default function StockSheetScreen({navigation, route}) {
       payload.append('sub_cat2', filters.combo2 || '');
 
       const res = await axios.post(`${BASEURL}stock_check_sheet.php`, payload, {
-        headers: {'Content-Type': 'multipart/form-data'},
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         setData(res.data.data);
@@ -162,7 +168,7 @@ export default function StockSheetScreen({navigation, route}) {
     });
   };
 
-  const renderCard = ({item}) => (
+  const renderCard = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{item.description}</Text>
       <View style={styles.cardRow}>
@@ -183,25 +189,35 @@ export default function StockSheetScreen({navigation, route}) {
   return (
     <LinearGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.DARKLIGHTBLUE]}
-      style={{flex: 1}}>
+      style={{ flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" color={APPCOLORS.WHITE} size={28} />
+          <Ionicons
+            name="chevron-back"
+            color={APPCOLORS.WHITE}
+            size={responsiveFontSize(4)}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           Stock Sheet {category_id ? '(Filtered)' : ''}
         </Text>
         <TouchableOpacity onPress={clearFilters}>
-          <Text style={{color: APPCOLORS.WHITE, fontSize: 14}}>Clear</Text>
+          <Text
+            style={{
+              color: APPCOLORS.WHITE,
+              fontSize: responsiveFontSize(1.6),
+            }}>
+            Clear
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Filters */}
-      <View style={{padding: 16}}>
+      <View style={{ padding: 16 }}>
         {/* First Row: Search + Location */}
-        <View style={{flexDirection: 'row', gap: 12}}>
-          <View style={[styles.glassInput, {flex: 1}]}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={[styles.glassInput, { flex: 1 }]}>
             <TextInput
               style={styles.textInput}
               placeholder="Search by Name"
@@ -211,67 +227,67 @@ export default function StockSheetScreen({navigation, route}) {
             />
           </View>
           <Dropdown
-            style={[styles.dropdown, {flex: 1}]}
+            style={[styles.dropdown, { flex: 1 }]}
             data={locations}
             search
             labelField="label"
             valueField="value"
             placeholder="Select Location"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: APPCOLORS.WHITE}}
-            itemTextStyle={{color: APPCOLORS.BLACK}}
+            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            selectedTextStyle={{ color: APPCOLORS.WHITE }}
+            itemTextStyle={{ color: APPCOLORS.BLACK }}
             value={location}
             onChange={item => setLocation(item.value)}
           />
         </View>
 
         {/* Second Row: Category + Combo1 */}
-        <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
           <Dropdown
-            style={[styles.dropdown, {flex: 1}]}
+            style={[styles.dropdown, { flex: 1 }]}
             data={categories}
             search
             labelField="label"
             valueField="value"
             placeholder="Select Category"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: APPCOLORS.WHITE}}
-            itemTextStyle={{color: APPCOLORS.BLACK}}
+            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            selectedTextStyle={{ color: APPCOLORS.WHITE }}
+            itemTextStyle={{ color: APPCOLORS.BLACK }}
             value={category}
             onChange={item => setCategory(item.value)}
           />
           <Dropdown
-            style={[styles.dropdown, {flex: 1}]}
+            style={[styles.dropdown, { flex: 1 }]}
             data={combo1Data}
             search
             labelField="label"
             valueField="value"
             placeholder="Sub Category1"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: APPCOLORS.WHITE}}
-            itemTextStyle={{color: APPCOLORS.BLACK}}
+            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            selectedTextStyle={{ color: APPCOLORS.WHITE }}
+            itemTextStyle={{ color: APPCOLORS.BLACK }}
             value={combo1}
             onChange={item => setCombo1(item.value)}
           />
         </View>
 
         {/* Third Row: Combo2 + Apply Button */}
-        <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
           <Dropdown
-            style={[styles.dropdown, {flex: 1}]}
+            style={[styles.dropdown, { flex: 1 }]}
             data={combo2Data}
             search
             labelField="label"
             valueField="value"
             placeholder="Sub Category2"
-            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-            selectedTextStyle={{color: APPCOLORS.WHITE}}
-            itemTextStyle={{color: APPCOLORS.BLACK}}
+            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            selectedTextStyle={{ color: APPCOLORS.WHITE }}
+            itemTextStyle={{ color: APPCOLORS.BLACK }}
             value={combo2}
             onChange={item => setCombo2(item.value)}
           />
           <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
-            <Text style={{color: APPCOLORS.WHITE, fontWeight: '700'}}>
+            <Text style={{ color: APPCOLORS.WHITE, fontWeight: '700' }}>
               Apply
             </Text>
           </TouchableOpacity>
@@ -283,14 +299,14 @@ export default function StockSheetScreen({navigation, route}) {
         <ActivityIndicator
           size="large"
           color={APPCOLORS.WHITE}
-          style={{marginTop: 30}}
+          style={{ marginTop: 30 }}
         />
       ) : (
         <FlatList
           data={data}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderCard}
-          contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 100}}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <Text
@@ -310,28 +326,36 @@ export default function StockSheetScreen({navigation, route}) {
 
 const styles = StyleSheet.create({
   header: {
-    height: 80,
+    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: responsiveWidth(4),
     backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingTop: Platform.OS === 'ios' ? 0 : 10,
   },
-  headerTitle: {color: APPCOLORS.WHITE, fontSize: 20, fontWeight: '700'},
+  headerTitle: {
+    color: APPCOLORS.WHITE,
+    fontSize: responsiveFontSize(2.2),
+    fontWeight: '700',
+  },
   glassInput: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 52,
+    paddingHorizontal: responsiveWidth(3),
+    height: responsiveHeight(6),
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
-  textInput: {color: APPCOLORS.WHITE, fontSize: 16},
+  textInput: {
+    color: APPCOLORS.WHITE,
+    fontSize: responsiveFontSize(1.8),
+  },
   dropdown: {
-    height: 52,
+    height: responsiveHeight(6),
     borderRadius: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: responsiveWidth(2),
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
@@ -339,27 +363,27 @@ const styles = StyleSheet.create({
   applyButton: {
     backgroundColor: APPCOLORS.DARKLIGHTBLUE,
     borderRadius: 10,
-    height: 52,
+    height: responsiveHeight(6),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: responsiveWidth(4),
     shadowColor: '#000',
     shadowOpacity: 0.2,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
   card: {
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 16,
-    padding: 16,
-    marginTop: 16,
+    padding: responsiveWidth(4),
+    marginTop: responsiveHeight(2),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
   cardTitle: {
     color: APPCOLORS.WHITE,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: responsiveFontSize(1.8),
     marginBottom: 8,
   },
   cardRow: {
@@ -367,6 +391,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  cardKey: {color: 'rgba(255,255,255,0.8)', fontWeight: '600'},
-  cardValue: {color: APPCOLORS.WHITE, textAlign: 'right', flexShrink: 1},
+  cardKey: {
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    fontSize: responsiveFontSize(1.6),
+  },
+  cardValue: {
+    color: APPCOLORS.WHITE,
+    textAlign: 'right',
+    flexShrink: 1,
+    fontSize: responsiveFontSize(1.6),
+  },
 });

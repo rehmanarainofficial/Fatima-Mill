@@ -1,14 +1,14 @@
-import {View, TouchableOpacity, Animated} from 'react-native';
-import React, {useRef, useEffect} from 'react';
+import { View, TouchableOpacity, Animated, Platform } from 'react-native';
+import React, { useRef, useEffect } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {responsiveFontSize, responsiveHeight} from '../utils/Responsive';
-import {APPCOLORS} from '../utils/APPCOLORS';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/Responsive';
+import { APPCOLORS } from '../utils/APPCOLORS';
 import AppText from './AppText';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {useDispatch} from 'react-redux';
-import {setLogout} from '../redux/AuthSlice';
+import { useDispatch } from 'react-redux';
+import { setLogout } from '../redux/AuthSlice';
 
-const AppHeader = ({title, onPress}) => {
+const AppHeader = ({ title, onPress }) => {
   const dispatch = useDispatch();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -21,17 +21,18 @@ const AppHeader = ({title, onPress}) => {
   }, []);
 
   return (
-    <Animated.View style={{opacity: fadeAnim}}>
+    <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 0}}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
         style={{
-          height: responsiveHeight(25),
+          height: responsiveHeight(Platform.OS === 'ios' ? 22 : 25),
           borderBottomRightRadius: 25,
           borderBottomLeftRadius: 25,
-          paddingHorizontal: 20,
-          paddingTop: 35,
+          paddingHorizontal: responsiveWidth(5),
+          paddingTop: Platform.OS === 'ios' ? 50 : 35,
+          width: '100%',
         }}>
         <View
           style={{
@@ -47,12 +48,12 @@ const AppHeader = ({title, onPress}) => {
           />
 
           {/* 🔹 Only Logout Icon Remaining - Other 4 icons removed */}
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity onPress={() => dispatch(setLogout())}>
               <MaterialIcons
                 name="logout"
                 color={APPCOLORS.WHITE}
-                size={responsiveFontSize(2.5)}
+                size={responsiveFontSize(3)}
               />
             </TouchableOpacity>
           </View>
@@ -63,20 +64,20 @@ const AppHeader = ({title, onPress}) => {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: 25,
+            marginTop: responsiveHeight(3),
             gap: 10,
           }}>
           <View
             style={{
-              height: responsiveHeight(5),
-              width: responsiveHeight(5),
+              height: responsiveHeight(6),
+              width: responsiveHeight(6),
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 2,
               borderRadius: 200,
               borderColor: APPCOLORS.WHITE,
             }}>
-            <AppText title="MA" titleColor={APPCOLORS.WHITE} />
+            <AppText title="MA" titleColor={APPCOLORS.WHITE} titleSize={2} />
           </View>
           <View>
             <AppText

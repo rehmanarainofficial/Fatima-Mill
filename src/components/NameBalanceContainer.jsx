@@ -1,9 +1,13 @@
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
 import AppText from './AppText';
-import {APPCOLORS} from '../utils/APPCOLORS';
-import {responsiveWidth} from '../utils/Responsive';
-import {useNavigation} from '@react-navigation/native';
+import { APPCOLORS } from '../utils/APPCOLORS';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../utils/Responsive';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const NameBalanceContainer = ({
@@ -81,7 +85,7 @@ const NameBalanceContainer = ({
         {showAgingAndLedger && (
           <>
             <TouchableOpacity
-              style={[styles.iconButton, {backgroundColor: '#E9F7EF'}]}
+              style={[styles.iconButton, { backgroundColor: '#E9F7EF' }]}
               onPress={() =>
                 navigation.navigate('Aging', {
                   name: type === 'Receivable' ? 'Customer' : 'Suppliers',
@@ -92,7 +96,7 @@ const NameBalanceContainer = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
+              style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
               onPress={() =>
                 navigation.navigate('Ledgers', {
                   item: item,
@@ -107,7 +111,7 @@ const NameBalanceContainer = ({
         {/* Inventory Valuation - Stock Movements Icon */}
         {showInventoryLedger && (
           <TouchableOpacity
-            style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
+            style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
             onPress={handleInventoryIconPress}>
             <Icon name="swap-horizontal" size={20} color="#1565C0" />
           </TouchableOpacity>
@@ -116,7 +120,7 @@ const NameBalanceContainer = ({
         {/* Bank & Cash - Ledger Icon */}
         {showBankLedger && (
           <TouchableOpacity
-            style={[styles.iconButton, {backgroundColor: '#E3F2FD'}]}
+            style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
             onPress={handleBankIconPress}>
             <Icon name="book-open-outline" size={20} color="#1565C0" />
           </TouchableOpacity>
@@ -140,34 +144,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginVertical: 6,
+    paddingVertical: responsiveHeight(1.2),
+    paddingHorizontal: responsiveWidth(4),
+    marginVertical: responsiveHeight(0.8),
   },
   nameContainer: {
-    width: responsiveWidth(30),
+    width: responsiveWidth(35),
   },
   balanceContainer: {
     width: responsiveWidth(25),
     alignItems: 'flex-end',
   },
   iconContainer: {
-    width: responsiveWidth(25),
+    width: responsiveWidth(28),
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 10,
-    minHeight: 36,
+    gap: responsiveWidth(2),
+    minHeight: responsiveHeight(4.5),
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: responsiveWidth(10),
+    height: responsiveWidth(10),
+    borderRadius: responsiveWidth(5),
     alignItems: 'center',
     justifyContent: 'center',
   },
   placeholder: {
-    width: 36,
-    height: 36,
+    width: responsiveWidth(10),
+    height: responsiveWidth(10),
   },
 });

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,19 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
+import { Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import BASEURL from '../../../../utils/BaseUrl';
 
-const StockMovements = ({navigation, route}) => {
+const StockMovements = ({ navigation, route }) => {
   const {
     item,
     fromAllMovements = false,
@@ -186,7 +192,7 @@ const StockMovements = ({navigation, route}) => {
   // ------------------------------
   // RENDER EACH TRANSACTION CARD
   // ------------------------------
-  const renderCard = ({item: transaction, index}) => {
+  const renderCard = ({ item: transaction, index }) => {
     const qty = parseFloat(transaction.qty || 0);
     const isPositive = qty > 0;
 
@@ -200,7 +206,7 @@ const StockMovements = ({navigation, route}) => {
         </Text>
 
         <View style={styles.row}>
-          <View style={{flex: 1}}>
+          <View style={{ flex: 1 }}>
             <Text style={styles.refText}>{transaction.reference}</Text>
             <Text style={styles.nameText}>{transaction.name}</Text>
             <Text style={styles.locationText}>{transaction.location}</Text>
@@ -208,7 +214,7 @@ const StockMovements = ({navigation, route}) => {
 
           <View style={styles.amountSection}>
             <Text
-              style={[styles.qtyText, {color: isPositive ? 'green' : 'red'}]}>
+              style={[styles.qtyText, { color: isPositive ? 'green' : 'red' }]}>
               {isPositive ? '+' : ''}
               {formatNumber(qty)}
             </Text>
@@ -222,20 +228,28 @@ const StockMovements = ({navigation, route}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#F5F6FA'}}>
+    <View style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
       <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
 
       {/* ---------------- HEADER ---------------- */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color="white" />
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color="white"
+          />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Stock Movement</Text>
 
         {/* Reset Button in Header Right */}
         <TouchableOpacity onPress={handleReset}>
-          <MaterialIcons name="refresh" size={22} color="white" />
+          <MaterialIcons
+            name="refresh"
+            size={responsiveFontSize(3)}
+            color="white"
+          />
         </TouchableOpacity>
       </View>
 
@@ -253,7 +267,7 @@ const StockMovements = ({navigation, route}) => {
                 }>
                 {selectedStock
                   ? stocks.find(x => x.stock_id === selectedStock)
-                      ?.description || 'Select Stock'
+                    ?.description || 'Select Stock'
                   : 'Select Stock'}
               </Text>
               <MaterialIcons name="arrow-drop-down" size={20} color="#666" />
@@ -272,7 +286,7 @@ const StockMovements = ({navigation, route}) => {
               }>
               {selectedLocation
                 ? locations.find(x => x.loc_code === selectedLocation)
-                    ?.location_name
+                  ?.location_name
                 : 'Select Location'}
             </Text>
             <MaterialIcons name="arrow-drop-down" size={20} color="#666" />
@@ -312,21 +326,21 @@ const StockMovements = ({navigation, route}) => {
         {(movementData.length > 0 ||
           openingBalance !== 0 ||
           closingBalance !== 0) && (
-          <View style={styles.balanceRow}>
-            <View style={styles.balanceItem}>
-              <Text style={styles.balanceLabel}>Opening Balance</Text>
-              <Text style={styles.balanceValue}>
-                {formatNumber(openingBalance)}
-              </Text>
+            <View style={styles.balanceRow}>
+              <View style={styles.balanceItem}>
+                <Text style={styles.balanceLabel}>Opening Balance</Text>
+                <Text style={styles.balanceValue}>
+                  {formatNumber(openingBalance)}
+                </Text>
+              </View>
+              <View style={styles.balanceItem}>
+                <Text style={styles.balanceLabel}>Closing Balance</Text>
+                <Text style={styles.balanceValue}>
+                  {formatNumber(closingBalance)}
+                </Text>
+              </View>
             </View>
-            <View style={styles.balanceItem}>
-              <Text style={styles.balanceLabel}>Closing Balance</Text>
-              <Text style={styles.balanceValue}>
-                {formatNumber(closingBalance)}
-              </Text>
-            </View>
-          </View>
-        )}
+          )}
 
         {/* STOCK MODAL WITH SEARCH */}
         <Modal
@@ -376,7 +390,7 @@ const StockMovements = ({navigation, route}) => {
               <FlatList
                 data={filteredStocks}
                 keyExtractor={(item, index) => `${item.stock_id}-${index}`}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[
                       styles.modalItem,
@@ -432,7 +446,7 @@ const StockMovements = ({navigation, route}) => {
               <FlatList
                 data={locations}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[
                       styles.modalItem,
@@ -489,14 +503,14 @@ const StockMovements = ({navigation, route}) => {
         <ActivityIndicator
           size="large"
           color={APPCOLORS.Primary}
-          style={{marginTop: 20}}
+          style={{ marginTop: 20 }}
         />
       ) : (
         <FlatList
           data={movementData}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderCard}
-          contentContainerStyle={{padding: 12}}
+          contentContainerStyle={{ padding: 12 }}
           ListEmptyComponent={
             <View style={styles.noDataContainer}>
               <MaterialIcons name="inventory-2" size={60} color="#ccc" />
@@ -517,40 +531,41 @@ export default StockMovements;
 
 const styles = StyleSheet.create({
   header: {
-    height: 70,
+    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     backgroundColor: APPCOLORS.Primary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
+    paddingHorizontal: responsiveWidth(4),
     justifyContent: 'space-between',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    paddingTop: Platform.OS === 'ios' ? 0 : 10,
   },
   headerTitle: {
     color: 'white',
-    fontSize: 18,
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
   },
 
   filterBox: {
     backgroundColor: '#fff',
-    margin: 12,
-    padding: 14,
+    margin: responsiveWidth(3),
+    padding: responsiveWidth(3.5),
     borderRadius: 14,
     elevation: 3,
   },
   filterRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: responsiveHeight(1.5),
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10,
+    gap: responsiveWidth(2),
   },
 
   dropdown: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 12,
+    padding: responsiveWidth(3),
     borderRadius: 10,
     elevation: 3,
     flexDirection: 'row',
@@ -558,32 +573,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dropdownText: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     color: '#000',
   },
   placeholderText: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     color: '#999',
   },
 
   dateBox: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 12,
+    padding: responsiveWidth(3),
     borderRadius: 10,
     elevation: 3,
   },
   dateTextFilter: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     color: '#000',
   },
 
   applyBtn: {
     backgroundColor: APPCOLORS.Primary,
-    padding: 12,
+    padding: responsiveWidth(3),
     borderRadius: 10,
-    width: 50,
-    height: 50,
+    width: responsiveWidth(12),
+    height: responsiveWidth(12),
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -593,9 +608,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: '#f8f9fa',
-    padding: 12,
+    padding: responsiveWidth(3),
     borderRadius: 10,
-    marginTop: 8,
+    marginTop: responsiveHeight(1),
     borderLeftWidth: 4,
     borderLeftColor: APPCOLORS.Primary,
   },
@@ -604,12 +619,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   balanceLabel: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     color: '#666',
     fontWeight: '600',
   },
   balanceValue: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     color: APPCOLORS.Primary,
     fontWeight: 'bold',
     marginTop: 4,
@@ -618,28 +633,28 @@ const styles = StyleSheet.create({
   noDataContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 50,
+    paddingVertical: responsiveHeight(6),
   },
   noData: {
     textAlign: 'center',
     marginTop: 10,
     color: '#555',
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
   },
 
   // ---------- CARD ----------
   card: {
     backgroundColor: '#fff',
-    padding: 16,
+    padding: responsiveWidth(4),
     borderRadius: 12,
     elevation: 3,
-    marginBottom: 12,
+    marginBottom: responsiveHeight(1.5),
     borderLeftWidth: 4,
     borderLeftColor: APPCOLORS.Primary,
   },
   dateText: {
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: responsiveFontSize(1.5),
     marginBottom: 8,
     color: '#000',
   },
@@ -648,29 +663,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   refText: {
-    fontSize: 15,
+    fontSize: responsiveFontSize(1.8),
     fontWeight: 'bold',
     color: '#000',
   },
   nameText: {
     color: '#444',
     marginVertical: 3,
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
   },
   locationText: {
-    fontSize: 13,
+    fontSize: responsiveFontSize(1.5),
     color: '#777',
   },
   amountSection: {
     alignItems: 'flex-end',
   },
   qtyText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     fontWeight: 'bold',
     marginBottom: 4,
   },
   balanceText: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     color: '#777',
   },
 
@@ -684,44 +699,44 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: 'white',
     borderRadius: 15,
-    width: '95%',
-    maxHeight: '80%',
+    width: responsiveWidth(95),
+    maxHeight: responsiveHeight(80),
     elevation: 5,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: responsiveWidth(4),
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     color: '#000',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: responsiveWidth(3),
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     backgroundColor: '#f5f5f5',
-    marginHorizontal: 16,
+    marginHorizontal: responsiveWidth(4),
     marginTop: 8,
     borderRadius: 8,
   },
   searchInput: {
     flex: 1,
     marginLeft: 8,
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     color: '#000',
   },
   resultCount: {
-    paddingHorizontal: 16,
+    paddingHorizontal: responsiveWidth(4),
     paddingVertical: 8,
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     color: '#666',
     backgroundColor: '#f9f9f9',
   },
@@ -729,7 +744,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: responsiveWidth(4),
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
@@ -737,7 +752,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f8ff',
   },
   modalItemText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     color: '#000',
     flex: 1,
   },
@@ -745,13 +760,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stockId: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     color: '#666',
     marginBottom: 2,
     fontWeight: 'bold',
   },
   unitText: {
-    fontSize: 11,
+    fontSize: responsiveFontSize(1.2),
     color: '#888',
     marginTop: 2,
   },

@@ -1,20 +1,21 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { responsiveFontSize, responsiveHeight } from '../utils/Responsive';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/Responsive';
+import { APPCOLORS } from '../utils/APPCOLORS';
 
 const Header = ({ title, onRightPress, rightIcon, onBack }) => {
   return (
     <LinearGradient
-      colors={['#1D4452', '#4199B8']}
+      colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
-        height: responsiveHeight(9),
+        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 9),
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
-        paddingHorizontal: 15,
+        paddingHorizontal: responsiveWidth(4),
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -23,17 +24,23 @@ const Header = ({ title, onRightPress, rightIcon, onBack }) => {
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 4 },
         shadowRadius: 6,
+        paddingTop: Platform.OS === 'ios' ? 0 : 5,
+        width: '100%',
       }}>
       {/* 🔙 Back Button */}
       <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
-        <Icon name="arrow-back-ios" size={22} color="#fff" />
+        <Icon
+          name="arrow-back-ios"
+          size={responsiveFontSize(2.5)}
+          color={APPCOLORS.WHITE}
+        />
       </TouchableOpacity>
 
       {/* 🧭 Title */}
       <Text
         style={{
           fontSize: responsiveFontSize(2.4),
-          color: '#fff',
+          color: APPCOLORS.WHITE,
           fontWeight: 'bold',
           letterSpacing: 0.5,
         }}>
@@ -43,10 +50,10 @@ const Header = ({ title, onRightPress, rightIcon, onBack }) => {
       {/* ⚙️ Right Icon */}
       {rightIcon ? (
         <TouchableOpacity onPress={onRightPress} style={{ padding: 4 }}>
-          <Icon name={rightIcon} size={25} color="#fff" />
+          <Icon name={rightIcon} size={responsiveFontSize(2.8)} color={APPCOLORS.WHITE} />
         </TouchableOpacity>
       ) : (
-        <View style={{ width: 25 }} /> // spacer jab right icon na ho
+        <View style={{ width: responsiveWidth(6) }} /> // spacer jab right icon na ho
       )}
     </LinearGradient>
   );

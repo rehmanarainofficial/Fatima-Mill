@@ -6,21 +6,26 @@ import {
   FlatList,
   StatusBar,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
-import {PermissionsAndroid, Platform} from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const Aging = ({navigation, route}) => {
-  const {name, item} = route.params;
+const Aging = ({ navigation, route }) => {
+  const { name, item } = route.params;
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -39,7 +44,7 @@ const Aging = ({navigation, route}) => {
     data.append('customer_id', item?.customer_id);
     axios
       .post(`${BASEURL}dash_cust_aging.php`, data, {
-        headers: {'Content-Type': 'multipart/form-data'},
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then(res => {
         setAgingData(res.data.data_cust_age || [])
@@ -56,7 +61,7 @@ const Aging = ({navigation, route}) => {
 
     axios
       .post(`${BASEURL}dash_supp_aging.php`, data, {
-        headers: {'Content-Type': 'multipart/form-data'},
+        headers: { 'Content-Type': 'multipart/form-data' },
         maxBodyLength: Infinity,
       })
       .then(response => {
@@ -139,8 +144,7 @@ const Aging = ({navigation, route}) => {
   const htmlContent = `
   <div style="text-align: center; font-family: Arial, sans-serif;">
     <h1>Aging Report</h1>
-    <p><strong>Name:</strong> ${
-      item?.name || item?.customer_name || item?.supplier_name || ''
+    <p><strong>Name:</strong> ${item?.name || item?.customer_name || item?.supplier_name || ''
     }</p>
     <p><strong>Date:</strong> ${currentDate}</p>
   </div>
@@ -156,8 +160,8 @@ const Aging = ({navigation, route}) => {
     </thead>
     <tbody>
       ${aging
-        .map(
-          row => `
+      .map(
+        row => `
           <tr>
             <td style="padding: 8px;">${formatDate(row.tran_date)}</td>
             <td style="padding: 8px;">${row.days}</td>
@@ -165,8 +169,8 @@ const Aging = ({navigation, route}) => {
             <td style="padding: 8px; text-align: right;">${formatAmount(row.invoce_balance)}</td>
           </tr>
         `,
-        )
-        .join('')}
+      )
+      .join('')}
     </tbody>
     <tfoot>
       <tr style="font-weight: bold; background-color: #e6e6e6;">
@@ -237,7 +241,7 @@ const Aging = ({navigation, route}) => {
           alignItems: 'center',
           backgroundColor: '#fff',
         }}>
-        <Text style={{fontSize: 16, marginBottom: 10}}>
+        <Text style={{ fontSize: 16, marginBottom: 10 }}>
           Loading Aging Data...
         </Text>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
@@ -246,7 +250,7 @@ const Aging = ({navigation, route}) => {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
       {/* Custom Header */}
@@ -254,7 +258,11 @@ const Aging = ({navigation, route}) => {
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>
@@ -270,7 +278,7 @@ const Aging = ({navigation, route}) => {
           ) : (
             <MaterialIcons
               name="file-download"
-              size={26}
+              size={responsiveFontSize(3.5)}
               color={
                 aging.length === 0 ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE
               }
@@ -282,7 +290,7 @@ const Aging = ({navigation, route}) => {
       <FlatList
         data={aging}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({item, index}) => (
+        renderItem={({ item, index }) => (
           <View
             style={{
               flexDirection: 'row',
@@ -302,7 +310,7 @@ const Aging = ({navigation, route}) => {
               }}>
               {formatDate(item.tran_date)}
             </Text>
-            
+
             {/* Days */}
             <Text
               style={{
@@ -314,7 +322,7 @@ const Aging = ({navigation, route}) => {
               }}>
               {item.days}
             </Text>
-            
+
             {/* Amount - formatted without .00 */}
             <Text
               style={{
@@ -326,9 +334,9 @@ const Aging = ({navigation, route}) => {
               }}>
               {formatAmount(item.Invoice_amount)}
             </Text>
-            
+
             {/* Balance - formatted without .00 */}
-            <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
+            <Text style={{ flex: 1, textAlign: 'center', fontSize: 12 }}>
               {formatAmount(item.invoce_balance)}
             </Text>
           </View>
@@ -342,11 +350,15 @@ const Aging = ({navigation, route}) => {
                 justifyContent: 'center',
                 marginTop: 50,
               }}>
-              <Icon name="alert-circle-outline" size={50} color="#999" />
+              <Icon
+                name="alert-circle-outline"
+                size={responsiveFontSize(6)}
+                color="#999"
+              />
               <Text
                 style={{
                   marginTop: 10,
-                  fontSize: 16,
+                  fontSize: responsiveFontSize(2),
                   color: '#999',
                   fontWeight: '500',
                 }}>
@@ -374,7 +386,11 @@ const Aging = ({navigation, route}) => {
                   alignItems: 'center',
                 }}>
                 <Text
-                  style={{color: 'white', fontWeight: 'bold', fontSize: 13}}>
+                  style={{
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: responsiveFontSize(1.6),
+                  }}>
                   {col}
                 </Text>
               </View>
@@ -439,20 +455,20 @@ const styles = {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 80,
+    paddingHorizontal: responsiveWidth(5),
+    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: 10,
+    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
   headerTitle: {
     color: APPCOLORS.WHITE,
-    fontSize: 18,
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,9 +21,14 @@ import {
   GetReceivable,
 } from '../../../../global/ChartApisCall';
 import Header from '../../../../components/Header';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
 
-const MoreDetail = ({navigation, route}) => {
-  const {selectedItem} = route.params;
+const MoreDetail = ({ navigation, route }) => {
+  const { selectedItem } = route.params;
   const cachedData = useRef({});
 
   const [activeData, setActiveData] = useState(null);
@@ -104,7 +109,7 @@ const MoreDetail = ({navigation, route}) => {
           console.log('Unknown item type:', itemType);
       }
 
-      cachedData.current[itemType] = {data, chart};
+      cachedData.current[itemType] = { data, chart };
 
       setActiveData(data);
       setActiveChartData(chart);
@@ -119,26 +124,38 @@ const MoreDetail = ({navigation, route}) => {
   const CustomHeader = () => (
     <View style={styles.customHeader}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={24} color="white" />
+        <Ionicons
+          name="arrow-back"
+          size={responsiveFontSize(3)}
+          color="white"
+        />
       </TouchableOpacity>
-      
+
       <Text style={styles.headerTitle}>{selectedItem || 'Details'}</Text>
-      
+
       <View style={styles.headerIcons}>
         {/* All Movements Icon */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => navigation.navigate('StockMovements', { fromAllMovements: true })}
-        >
-          <MaterialIcons name="swap-horiz" size={22} color="white" />
+          onPress={() =>
+            navigation.navigate('StockMovements', { fromAllMovements: true })
+          }>
+          <MaterialIcons
+            name="swap-horiz"
+            size={responsiveFontSize(3)}
+            color="white"
+          />
         </TouchableOpacity>
-        
+
         {/* Stock Sheet Icon */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => navigation.navigate('StockSheetScreen')}
-        >
-          <MaterialIcons name="inventory" size={22} color="white" />
+          onPress={() => navigation.navigate('StockSheetScreen')}>
+          <MaterialIcons
+            name="inventory"
+            size={responsiveFontSize(3)}
+            color="white"
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -147,22 +164,26 @@ const MoreDetail = ({navigation, route}) => {
   // Data ko render karne ke liye helper functions
   const renderChart = () => (
     <View
-      style={{alignItems: 'center', justifyContent: 'center', marginTop: 20}}>
-      <View style={{position: 'absolute', zIndex: 1}}>
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: responsiveHeight(2),
+      }}>
+      <View style={{ position: 'absolute', zIndex: 1 }}>
         <AppText title={selectedItem} titleSize={2} titleWeight />
       </View>
       {activeChartData && (
         <PieChart
-          widthAndHeight={250}
+          widthAndHeight={responsiveWidth(60)}
           series={activeChartData}
           cover={0.7}
-          style={{alignSelf: 'center'}}
+          style={{ alignSelf: 'center' }}
         />
       )}
     </View>
   );
 
-  const renderItem = ({item, index}) => {
+  const renderItem = ({ item, index }) => {
     let name = '';
     let balance = '';
 
@@ -280,14 +301,14 @@ const MoreDetail = ({navigation, route}) => {
   );
 
   const ListEmptyComponent = () => (
-    <View style={{alignItems: 'center', justifyContent: 'center'}}>
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
       <AppText title={`No ${selectedItem} data found`} titleSize={2} />
     </View>
   );
 
   if (loader) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#0000ff" />
         <Text>Loading {selectedItem} data...</Text>
       </View>
@@ -295,7 +316,7 @@ const MoreDetail = ({navigation, route}) => {
   }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       {/* Use Custom Header for Inventory Valuation */}
       {selectedItem === 'Inventory Valuation' ? (
         <CustomHeader />
@@ -304,6 +325,7 @@ const MoreDetail = ({navigation, route}) => {
           title={selectedItem || 'Details'}
           rightIcon="assignment"
           onRightPress={() => navigation.navigate('ViewLedger')}
+          onBack={() => navigation.goBack()}
         />
       )}
 
@@ -313,7 +335,11 @@ const MoreDetail = ({navigation, route}) => {
         keyExtractor={(item, index) => index.toString()}
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{flexGrow: 1, padding: 20}}
+        contentContainerStyle={{
+          flexGrow: 1,
+          padding: responsiveWidth(5),
+          paddingBottom: responsiveHeight(5),
+        }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -327,21 +353,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: responsiveHeight(2),
   },
   customHeader: {
-    height: 70,
+    height: responsiveHeight(10),
     backgroundColor: '#0784B5',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
+    paddingHorizontal: responsiveWidth(4),
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
   headerTitle: {
     color: 'white',
-    fontSize: 18,
+    fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
   },
   headerIcons: {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,20 @@ import {
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from '../../../../utils/Responsive';
+import { Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
 
-const LedgersScreen = ({route, navigation}) => {
-  const {item, type} = route.params || {};
+const LedgersScreen = ({ route, navigation }) => {
+  const { item, type } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState([]);
@@ -203,7 +209,7 @@ const LedgersScreen = ({route, navigation}) => {
     return (
       <Animated.View
         key={`${sectionIndex}-${transactionIndex}`}
-        style={[styles.card, {opacity: fadeAnim}]}>
+        style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.transactionContent}>
           <View style={styles.transactionDetails}>
             {transaction.reference && (
@@ -221,7 +227,7 @@ const LedgersScreen = ({route, navigation}) => {
             <Text
               style={[
                 styles.amountText,
-                {color: isCredit ? '#009900' : '#FF0000'},
+                { color: isCredit ? '#009900' : '#FF0000' },
               ]}>
               {isCredit ? '+' : '-'}
               {Math.abs(amount).toFixed(2)}
@@ -235,7 +241,7 @@ const LedgersScreen = ({route, navigation}) => {
     );
   };
 
-  const renderSection = ({item: section, index: sectionIndex}) => {
+  const renderSection = ({ item: section, index: sectionIndex }) => {
     if (!section.transactions || !Array.isArray(section.transactions)) {
       return null;
     }
@@ -275,7 +281,11 @@ const LedgersScreen = ({route, navigation}) => {
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={APPCOLORS.WHITE} />
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>
@@ -290,7 +300,7 @@ const LedgersScreen = ({route, navigation}) => {
           ) : (
             <MaterialIcons
               name="file-download"
-              size={26}
+              size={responsiveFontSize(3.5)}
               color={
                 ledgerData.length === 0
                   ? APPCOLORS.TEXTFIELDCOLOR
@@ -420,8 +430,8 @@ const LedgersScreen = ({route, navigation}) => {
               {loading
                 ? 'Loading transactions...'
                 : item
-                ? 'No transactions found for selected period'
-                : 'No data available'}
+                  ? 'No transactions found for selected period'
+                  : 'No data available'}
             </Text>
           </View>
         )}
@@ -441,20 +451,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 80,
+    paddingHorizontal: responsiveWidth(5),
+    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: 10,
+    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
   headerTitle: {
     color: APPCOLORS.WHITE,
-    fontSize: 18,
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,
@@ -462,11 +472,11 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     backgroundColor: '#F0F2F5',
-    padding: 16,
-    margin: 12,
+    padding: responsiveWidth(4),
+    margin: responsiveWidth(3),
     borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -474,31 +484,31 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: responsiveHeight(1.5),
+    gap: responsiveWidth(2.5),
   },
   dateContainer: {
     flex: 1,
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    width: 100,
-    gap: 8,
+    width: responsiveWidth(25),
+    gap: responsiveWidth(2),
   },
   dateInput: {
     justifyContent: 'center',
     borderRadius: 12,
-    padding: 14,
+    padding: responsiveWidth(3.5),
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-    height: 48,
+    height: responsiveHeight(6),
   },
   dateText: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     color: APPCOLORS.BLACK,
     fontWeight: '500',
   },
@@ -508,12 +518,12 @@ const styles = StyleSheet.create({
   resetButton: {
     backgroundColor: '#E8EAED',
     borderRadius: 12,
-    width: 46,
-    height: 48,
+    width: responsiveWidth(11),
+    height: responsiveHeight(6),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -521,24 +531,24 @@ const styles = StyleSheet.create({
   applyButton: {
     backgroundColor: APPCOLORS.Primary,
     borderRadius: 12,
-    width: 46,
-    height: 48,
+    width: responsiveWidth(11),
+    height: responsiveHeight(6),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: APPCOLORS.Primary,
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
   },
   balanceContainer: {
     backgroundColor: '#FFFFFF',
-    padding: 12,
+    padding: responsiveWidth(3),
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -547,33 +557,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   balanceLabel: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     fontWeight: '600',
     color: '#6B7280',
     marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     fontWeight: 'bold',
     color: APPCOLORS.Primary,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: responsiveWidth(3),
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: responsiveHeight(3),
   },
   dateHeader: {
-    fontSize: 15,
+    fontSize: responsiveFontSize(1.8),
     color: APPCOLORS.BLACK,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginVertical: responsiveHeight(1.5),
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: responsiveWidth(4),
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 2,
@@ -581,12 +591,12 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: APPCOLORS.WHITE,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    padding: responsiveWidth(4),
+    marginBottom: responsiveHeight(1),
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     elevation: 4,
     borderLeftWidth: 4,
     borderLeftColor: APPCOLORS.Primary,
@@ -605,27 +615,27 @@ const styles = StyleSheet.create({
   },
   refText: {
     color: APPCOLORS.BLACK,
-    fontSize: 14,
+    fontSize: responsiveFontSize(1.6),
     fontWeight: 'bold',
     marginBottom: 6,
   },
   personText: {
     color: '#4B5563',
-    fontSize: 13,
+    fontSize: responsiveFontSize(1.4),
     marginBottom: 6,
   },
   memoText: {
     color: '#6B7280',
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.3),
     marginTop: 4,
   },
   amountText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     fontWeight: 'bold',
     marginBottom: 4,
   },
   balanceText: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(1.4),
     color: '#6B7280',
   },
   loader: {
@@ -636,7 +646,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
+    fontSize: responsiveFontSize(2),
     color: APPCOLORS.Primary,
     fontWeight: '500',
   },
@@ -644,14 +654,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: responsiveHeight(8),
   },
   noDataText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(1.8),
     color: '#6B7280',
     textAlign: 'center',
     marginTop: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: responsiveWidth(5),
     lineHeight: 24,
   },
 });

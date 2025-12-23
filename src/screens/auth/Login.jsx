@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useState} from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,13 +14,13 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Toast from 'react-native-toast-message';
-import {useDispatch} from 'react-redux';
-import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
-import {responsiveFontSize, responsiveHeight} from '../../utils/Responsive';
+import { useDispatch } from 'react-redux';
+import { CurrentLogin, setLoader } from '../../redux/AuthSlice';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../utils/Responsive';
 import AppText from '../../components/AppText';
 import BaseUrl from '../../utils/BaseUrl';
 
-const Login = ({navigation}) => {
+const Login = ({ navigation }) => {
   const dispatch = useDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -45,11 +45,11 @@ const Login = ({navigation}) => {
 
   const loginUser = () => {
     if (!username.trim()) {
-      Toast.show({type: 'error', text1: 'Please enter your username'});
+      Toast.show({ type: 'error', text1: 'Please enter your username' });
       return;
     }
     if (!password.trim()) {
-      Toast.show({type: 'error', text1: 'Please enter your password'});
+      Toast.show({ type: 'error', text1: 'Please enter your password' });
       return;
     }
 
@@ -60,19 +60,19 @@ const Login = ({navigation}) => {
       url: `${BaseUrl}users.php`,
       headers: {},
     };
-    dispatch(CurrentLogin({config, username, password}));
+    dispatch(CurrentLogin({ config, username, password }));
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1, backgroundColor: '#fff'}}>
+        style={{ flex: 1, backgroundColor: '#fff' }}>
         {/* Gradient Header */}
         <LinearGradient
           colors={['#0784B5', '#9BD4E4']}
-          start={{x: 0, y: 0}}
-          end={{x: 1, y: 1}}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={{
             height: responsiveHeight(45),
             borderBottomLeftRadius: 50,
@@ -84,7 +84,7 @@ const Login = ({navigation}) => {
           <Animated.View
             style={{
               opacity: fadeAnim,
-              transform: [{translateY: slideAnim}],
+              transform: [{ translateY: slideAnim }],
             }}>
             <Text
               style={{
@@ -113,10 +113,10 @@ const Login = ({navigation}) => {
             marginTop: -responsiveHeight(10),
             borderTopLeftRadius: 30,
             borderTopRightRadius: 30,
-            paddingHorizontal: 30,
-            paddingTop: 40,
+            paddingHorizontal: responsiveWidth(8),
+            paddingTop: responsiveHeight(5),
             opacity: fadeAnim,
-            transform: [{translateY: slideAnim}],
+            transform: [{ translateY: slideAnim }],
           }}>
           {/* Username Input */}
           <Text
@@ -134,18 +134,23 @@ const Login = ({navigation}) => {
               alignItems: 'center',
               borderBottomWidth: 1,
               borderColor: '#CCC',
-              marginBottom: 25,
+              marginBottom: responsiveHeight(3),
             }}>
             <Ionicons
               name="person"
               size={responsiveFontSize(2.2)}
               color="#0784B5"
-              style={{marginRight: 10}}
+              style={{ marginRight: 10 }}
             />
             <TextInput
               placeholder="Enter your username"
               placeholderTextColor="#999"
-              style={{flex: 1, color: '#000', paddingVertical: 8}}
+              style={{
+                flex: 1,
+                color: '#000',
+                paddingVertical: responsiveHeight(1),
+                fontSize: responsiveFontSize(1.8),
+              }}
               value={username}
               onChangeText={setUsername}
             />
@@ -167,19 +172,24 @@ const Login = ({navigation}) => {
               alignItems: 'center',
               borderBottomWidth: 1,
               borderColor: '#CCC',
-              marginBottom: 10,
+              marginBottom: responsiveHeight(1.5),
             }}>
             <FontAwesome5
               name="key"
               size={responsiveFontSize(2.2)}
               color="#0784B5"
-              style={{marginRight: 10}}
+              style={{ marginRight: 10 }}
             />
             <TextInput
               placeholder="Enter your password"
               placeholderTextColor="#999"
               secureTextEntry
-              style={{flex: 1, color: '#000', paddingVertical: 8}}
+              style={{
+                flex: 1,
+                color: '#000',
+                paddingVertical: responsiveHeight(1),
+                fontSize: responsiveFontSize(1.8),
+              }}
               value={password}
               onChangeText={setPassword}
             />
@@ -187,11 +197,16 @@ const Login = ({navigation}) => {
 
           {/* Forgot Password */}
           <TouchableOpacity
-            style={{alignSelf: 'flex-end', marginBottom: 25}}
+            style={{ alignSelf: 'flex-end', marginBottom: responsiveHeight(3) }}
             onPress={() =>
-              Toast.show({type: 'info', text1: 'Forgot password coming soon'})
+              Toast.show({ type: 'info', text1: 'Forgot password coming soon' })
             }>
-            <Text style={{color: '#0784B5', fontWeight: '500'}}>
+            <Text
+              style={{
+                color: '#0784B5',
+                fontWeight: '500',
+                fontSize: responsiveFontSize(1.6),
+              }}>
               Forgot password?
             </Text>
           </TouchableOpacity>
@@ -199,8 +214,8 @@ const Login = ({navigation}) => {
           {/* Sign In Button */}
           <LinearGradient
             colors={['#0784B5', '#46BEE8']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
             style={{
               borderRadius: 30,
               overflow: 'hidden',
@@ -208,7 +223,7 @@ const Login = ({navigation}) => {
             <TouchableOpacity
               onPress={loginUser}
               style={{
-                paddingVertical: 14,
+                paddingVertical: responsiveHeight(1.8),
                 alignItems: 'center',
               }}>
               <Text
@@ -223,7 +238,7 @@ const Login = ({navigation}) => {
           </LinearGradient>
 
           {/* Footer */}
-          <View style={{alignItems: 'center', marginTop: 40}}>
+          <View style={{ alignItems: 'center', marginTop: responsiveHeight(5) }}>
             <AppText
               title="Powered by DeSolution"
               titleSize={1.5}

@@ -7,7 +7,7 @@ import {
   FlatList,
   Text,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   FadeInUp,
@@ -24,7 +24,7 @@ import axios from 'axios';
 import moment from 'moment';
 import AppText from '../../components/AppText';
 import AppHeader from '../../components/AppHeader';
-import {APPCOLORS} from '../../utils/APPCOLORS';
+import { APPCOLORS } from '../../utils/APPCOLORS';
 import BaseUrl from '../../utils/BaseUrl';
 import {
   responsiveFontSize,
@@ -38,17 +38,17 @@ const dashboardCache = {
   lastFetched: null,
 };
 
-const ScaleCard = ({children, onPress}) => {
+const ScaleCard = ({ children, onPress }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
+    transform: [{ scale: scale.value }],
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, {damping: 8, stiffness: 100});
+    scale.value = withSpring(0.95, { damping: 8, stiffness: 100 });
   };
   const handlePressOut = () => {
-    scale.value = withSpring(1, {damping: 8, stiffness: 100});
+    scale.value = withSpring(1, { damping: 8, stiffness: 100 });
   };
 
   return (
@@ -65,7 +65,7 @@ const ScaleCard = ({children, onPress}) => {
   );
 };
 
-const Dashboard = ({navigation}) => {
+const Dashboard = ({ navigation }) => {
   const [visible, setVisible] = useState(false);
   const [Type, setType] = useState();
   const [loader, setLoader] = useState(!dashboardCache.data);
@@ -81,7 +81,7 @@ const Dashboard = ({navigation}) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', {type: 'Sales'}),
+      onPress: () => navigation.navigate('Detail', { type: 'Sales' }),
     },
     {
       id: 2,
@@ -93,7 +93,7 @@ const Dashboard = ({navigation}) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', {type: 'Purchase'}),
+      onPress: () => navigation.navigate('Detail', { type: 'Purchase' }),
     },
     {
       id: 3,
@@ -105,7 +105,7 @@ const Dashboard = ({navigation}) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', {type: 'Accounts'}),
+      onPress: () => navigation.navigate('Detail', { type: 'Accounts' }),
     },
     {
       id: 4,
@@ -117,7 +117,7 @@ const Dashboard = ({navigation}) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', {type: 'Inventory'}),
+      onPress: () => navigation.navigate('Detail', { type: 'Inventory' }),
     },
   ];
 
@@ -131,9 +131,9 @@ const Dashboard = ({navigation}) => {
     setLoader(true);
     const todayDate = moment(new Date()).format('YYYY-MM-DD');
     try {
-      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`, {
-        headers: {'content-type': 'multipart/form-data'},
-        params: {current_date: todayDate, pre_month_date: '2025-04-19'},
+      const { data } = await axios.get(`${BaseUrl}dashboard_view.php`, {
+        headers: { 'content-type': 'multipart/form-data' },
+        params: { current_date: todayDate, pre_month_date: '2025-04-19' },
       });
       dashboardCache.data = data; // 🔹 Cache it
       dashboardCache.lastFetched = Date.now();
@@ -145,9 +145,9 @@ const Dashboard = ({navigation}) => {
   };
 
   return (
-    <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{flex: 1}}>
+    <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{ flex: 1 }}>
       {/* 🔹 Header */}
-      <Animated.View entering={FadeInDown.duration(600)}>
+      <Animated.View entering={FadeInDown.duration(600)} style={{ width: '100%' }}>
         <AppHeader
           title={'Dashboard'}
           onPress={res => {
@@ -180,10 +180,10 @@ const Dashboard = ({navigation}) => {
                 Type === 'bell'
                   ? 'Outstanding Receipt'
                   : Type === 'mail'
-                  ? 'Outstanding Payment'
-                  : Type === 'chat'
-                  ? 'Outstanding Cheque'
-                  : 'Dashboard'
+                    ? 'Outstanding Payment'
+                    : Type === 'chat'
+                      ? 'Outstanding Cheque'
+                      : 'Dashboard'
               }
               titleColor={APPCOLORS.WHITE}
               titleSize={2}
@@ -222,7 +222,7 @@ const Dashboard = ({navigation}) => {
           <ActivityIndicator
             size="large"
             color={APPCOLORS.Primary}
-            style={{marginTop: 30}}
+            style={{ marginTop: 30 }}
           />
         )}
 
@@ -270,7 +270,7 @@ const Dashboard = ({navigation}) => {
 
         <Animated.View entering={FadeInLeft.delay(800).duration(1000)}>
           <Text style={styles.updateHeading}>
-            <Text style={{fontWeight: 'bold'}}>Latest</Text> Updates
+            <Text style={{ fontWeight: 'bold' }}>Latest</Text> Updates
           </Text>
           <FlatList
             data={[1, 2, 3]}
@@ -280,8 +280,8 @@ const Dashboard = ({navigation}) => {
             renderItem={() => (
               <LinearGradient
                 colors={['#4199B8', APPCOLORS.Primary]}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.infoBannerGradient}>
                 <AppText
                   title="🎉 New Feature Release"
@@ -289,7 +289,7 @@ const Dashboard = ({navigation}) => {
                   titleSize={2}
                   titleWeight
                 />
-                <View style={{width: responsiveWidth(60), marginTop: 8}}>
+                <View style={{ width: responsiveWidth(60), marginTop: 8 }}>
                   <AppText
                     title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
                     titleColor={APPCOLORS.WHITE}
@@ -306,16 +306,20 @@ const Dashboard = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  scrollViewContent: {paddingBottom: 20},
-  cardGridContainer: {paddingHorizontal: 20, marginTop: 30, gap: 20},
-  gridRow: {flexDirection: 'row', justifyContent: 'space-between'},
+  scrollViewContent: { paddingBottom: responsiveHeight(3) },
+  cardGridContainer: {
+    paddingHorizontal: responsiveWidth(5),
+    marginTop: responsiveHeight(4),
+    gap: responsiveWidth(5),
+  },
+  gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
   cardWrapper: {
     width: responsiveWidth(42),
     height: responsiveHeight(18),
     borderRadius: 20,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
@@ -330,22 +334,26 @@ const styles = StyleSheet.create({
   cardInnerView: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
-    gap: 10,
+    padding: responsiveWidth(4),
+    gap: responsiveHeight(1),
   },
   updateHeading: {
     fontSize: responsiveFontSize(2.2),
     color: APPCOLORS.BLACK,
     marginTop: responsiveHeight(3),
-    marginBottom: 10,
-    paddingHorizontal: 20,
+    marginBottom: responsiveHeight(1),
+    paddingHorizontal: responsiveWidth(5),
   },
-  infoBannerContainer: {gap: 20, paddingLeft: 20, paddingBottom: 10},
+  infoBannerContainer: {
+    gap: responsiveWidth(5),
+    paddingLeft: responsiveWidth(5),
+    paddingBottom: responsiveHeight(2),
+  },
   infoBannerGradient: {
     height: responsiveHeight(18),
     width: responsiveWidth(80),
     borderRadius: 16,
-    padding: 20,
+    padding: responsiveWidth(5),
     justifyContent: 'center',
   },
   modalContent: {
@@ -356,14 +364,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   modalHeaderGradient: {
-    padding: 18,
+    padding: responsiveWidth(4.5),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   modalBody: {
     flex: 1,
-    padding: 15,
+    padding: responsiveWidth(4),
   },
   modalContentContainer: {
     flex: 1,
@@ -372,13 +380,13 @@ const styles = StyleSheet.create({
   },
   modalText: {
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: responsiveHeight(3),
   },
   sampleDataContainer: {
-    padding: 20,
+    padding: responsiveWidth(5),
     backgroundColor: APPCOLORS.LIGHT_GRAY,
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: responsiveHeight(1),
   },
   sampleText: {
     textAlign: 'center',
