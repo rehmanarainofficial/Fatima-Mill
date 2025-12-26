@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator, useWindowDimensions } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import React from 'react'
 import AppText from './AppText'
 import { APPCOLORS } from '../utils/APPCOLORS'
@@ -9,6 +10,8 @@ import { useNavigation } from '@react-navigation/native'
 
 const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading = false, downloadDisabled = false }) => {
   const nav = useNavigation()
+  const insets = useSafeAreaInsets()
+  const { width } = useWindowDimensions()
 
   return (
     <LinearGradient
@@ -18,20 +21,20 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: responsiveWidth(5),
-        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
+        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0), // Increased height for iOS
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
-        paddingTop: Platform.OS === 'ios' ? 0 : 10,
-        width: '100%',
+        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10, // Adjusted paddingTop for iOS
+        width: width, // Keep full width
       }}>
       {/* Left: Back Button */}
-      < TouchableOpacity onPress={() => nav.goBack()}>
+      <TouchableOpacity onPress={() => nav.goBack()} style={{ padding: 5 }}>
         <Ionicons
           name={"arrow-back"}
           size={responsiveFontSize(3)}
           color={APPCOLORS.WHITE}
         />
-      </TouchableOpacity >
+      </TouchableOpacity>
 
       {/* Center: Title */}
       < AppText
@@ -59,7 +62,7 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
             )}
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => nav.navigate("Dashboard")}>
+          <TouchableOpacity onPress={() => nav.navigate("Dashboard")} style={{ padding: 5 }}>
             <Ionicons
               name={"person"}
               size={responsiveFontSize(3)}

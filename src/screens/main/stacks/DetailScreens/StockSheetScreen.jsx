@@ -15,6 +15,7 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Dropdown } from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
@@ -22,6 +23,7 @@ import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 
 export default function StockSheetScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { category_id = '', item = {} } = route.params || {};
 
   const [search, setSearch] = useState('');
@@ -191,7 +193,10 @@ export default function StockSheetScreen({ navigation, route }) {
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.DARKLIGHTBLUE]}
       style={{ flex: 1 }}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {
+        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+      }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="chevron-back"
@@ -214,7 +219,7 @@ export default function StockSheetScreen({ navigation, route }) {
       </View>
 
       {/* Filters */}
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: responsiveWidth(2) }}>
         {/* First Row: Search + Location */}
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={[styles.glassInput, { flex: 1 }]}>
@@ -306,7 +311,7 @@ export default function StockSheetScreen({ navigation, route }) {
           data={data}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderCard}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: responsiveWidth(2), paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <Text
@@ -326,13 +331,11 @@ export default function StockSheetScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   header: {
-    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: responsiveWidth(4),
     backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
   },
   headerTitle: {
     color: APPCOLORS.WHITE,

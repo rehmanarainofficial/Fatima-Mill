@@ -1,15 +1,18 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import SimpleHeader from '../../../../components/SimpleHeader'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import AlertCards from '../../../../components/AlertCards'
 import moment from 'moment'
 import axios from 'axios'
 import BaseUrl from '../../../../utils/BaseUrl'
 import { APPCOLORS } from '../../../../utils/APPCOLORS'
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 
 const AlertScreen = ({ navigation }) => {
-
-  const [slider_data, setslider_data] = useState()
+  const insets = useSafeAreaInsets();
+  const [data, setData] = useState([])
   const [AllData, setAllData] = useState()
 
   const [loader, setLoader] = useState(false)
@@ -47,13 +50,37 @@ const AlertScreen = ({ navigation }) => {
   }
 
   return (
-    <View>
-      <SimpleHeader title='Alerts' />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Alerts</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+          <Ionicons
+            name="person"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
       <View style={{ gap: 30, marginTop: 20 }}>
 
         {
           loader && (
-            <ActivityIndicator size={'large'} color={APPCOLORS.BLACK}/>
+            <ActivityIndicator size={'large'} color={APPCOLORS.BLACK} />
           )
         }
 
@@ -61,21 +88,21 @@ const AlertScreen = ({ navigation }) => {
           AlertHeading={"Sales Alert"}
           HeadingOne={"Quotation approval"}
           ValueOne={AllData?.approval_data?.quotation_approval}
-          onValuePressOne={()=> navigation.navigate("ShowUnapprovedDetails",{dataDetail: AllData?.data_unapprove_quote})}
+          onValuePressOne={() => navigation.navigate("ShowUnapprovedDetails", { dataDetail: AllData?.data_unapprove_quote })}
 
 
           HeadingTwo={"So approval"}
           ValueTwo={AllData?.approval_data?.so_approval}
-          
+
 
           HeadingThree={"Po approval"}
           ValueThree={AllData?.approval_data?.po_approval}
-          onValuePressThree={()=> navigation.navigate("ShowUnapprovedDetails",{dataDetail: AllData?.data_unapprove_po_order})}
+          onValuePressThree={() => navigation.navigate("ShowUnapprovedDetails", { dataDetail: AllData?.data_unapprove_po_order })}
 
         />
         <AlertCards data={AllData}
-        AlertHeading={"Purchase Alert"}
-         HeadingOne={"Grn approval"}
+          AlertHeading={"Purchase Alert"}
+          HeadingOne={"Grn approval"}
           ValueOne={AllData?.approval_data?.grn_approval}
 
           HeadingTwo={"Invoice approval"}
@@ -85,15 +112,15 @@ const AlertScreen = ({ navigation }) => {
           ValueThree={AllData?.approval_data?.voucher_approval}
 
         />
-        <AlertCards data={AllData} 
-         AlertHeading={"Inventory Alert"}
+        <AlertCards data={AllData}
+          AlertHeading={"Inventory Alert"}
           HeadingOne={"Delivery approval"}
           ValueOne={AllData?.approval_data?.delivery_approval}
 
           HeadingTwo={"Invoice approval"}
           ValueTwo={AllData?.approval_data?.invoice_approval}
 
-    
+
         />
       </View>
     </View>

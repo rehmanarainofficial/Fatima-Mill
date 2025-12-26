@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -6,13 +7,15 @@ import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/
 import { APPCOLORS } from '../utils/APPCOLORS';
 
 const Header = ({ title, onRightPress, rightIcon, onBack }) => {
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   return (
     <LinearGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
-        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 9),
+        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
         paddingHorizontal: responsiveWidth(4),
@@ -24,8 +27,8 @@ const Header = ({ title, onRightPress, rightIcon, onBack }) => {
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 4 },
         shadowRadius: 6,
-        paddingTop: Platform.OS === 'ios' ? 0 : 5,
-        width: '100%',
+        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        width: width,
       }}>
       {/* 🔙 Back Button */}
       <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>

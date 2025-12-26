@@ -8,6 +8,7 @@ import {
   Animated,
   TouchableOpacity,
   StatusBar,
+  Modal,
 } from 'react-native';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,6 +19,7 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
@@ -25,6 +27,7 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
 
 const LedgersScreen = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { item, type } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -279,7 +282,10 @@ const LedgersScreen = ({ route, navigation }) => {
       {/* Custom Header */}
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={styles.header}>
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+        }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="arrow-back"
@@ -371,21 +377,81 @@ const LedgersScreen = ({ route, navigation }) => {
         </View>
 
         {/* Date Pickers */}
-        {showFromDatePicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            display="default"
-            onChange={onFromDateChange}
-          />
-        )}
-        {showToDatePicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            display="default"
-            onChange={onToDateChange}
-          />
+        {Platform.OS === 'ios' ? (
+          <>
+            <Modal
+              visible={showFromDatePicker}
+              transparent={true}
+              animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Select From Date</Text>
+                    <TouchableOpacity onPress={() => setShowFromDatePicker(false)}>
+                      <Ionicons name="close" size={24} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={new Date(fromDate)}
+                    mode="date"
+                    display="inline"
+                    onChange={onFromDateChange}
+                  />
+                  <TouchableOpacity
+                    style={styles.closeModalButton}
+                    onPress={() => setShowFromDatePicker(false)}>
+                    <Text style={styles.closeModalButtonText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal
+              visible={showToDatePicker}
+              transparent={true}
+              animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Select To Date</Text>
+                    <TouchableOpacity onPress={() => setShowToDatePicker(false)}>
+                      <Ionicons name="close" size={24} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={new Date(toDate)}
+                    mode="date"
+                    display="inline"
+                    onChange={onToDateChange}
+                  />
+                  <TouchableOpacity
+                    style={styles.closeModalButton}
+                    onPress={() => setShowToDatePicker(false)}>
+                    <Text style={styles.closeModalButtonText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </>
+        ) : (
+          <>
+            {showFromDatePicker && (
+              <DateTimePicker
+                value={new Date(fromDate)}
+                mode="date"
+                display="default"
+                onChange={onFromDateChange}
+              />
+            )}
+            {showToDatePicker && (
+              <DateTimePicker
+                value={new Date(toDate)}
+                mode="date"
+                display="default"
+                onChange={onToDateChange}
+              />
+            )}
+          </>
         )}
 
         {/* Balance Information */}
@@ -452,10 +518,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: responsiveWidth(5),
-    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -572,7 +636,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveWidth(3),
   },
   listContent: {
-    paddingBottom: responsiveHeight(3),
+    paddingHorizontal: responsiveWidth(2),
+    paddingBottom: 20,
   },
   dateHeader: {
     fontSize: responsiveFontSize(1.8),
@@ -663,5 +728,44 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: responsiveWidth(5),
     lineHeight: 24,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    width: responsiveWidth(90),
+    paddingBottom: 20,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: responsiveWidth(4),
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(2),
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  closeModalButton: {
+    backgroundColor: APPCOLORS.Primary,
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  closeModalButtonText: {
+    color: APPCOLORS.WHITE,
+    fontWeight: 'bold',
+    fontSize: responsiveFontSize(1.8),
   },
 });

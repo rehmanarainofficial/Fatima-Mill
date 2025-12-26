@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -13,7 +13,8 @@ const App = () => {
     <Provider store={Store}>
       <PersistGate loading={null} persistor={persistor}>
         <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+          <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+          <SafeAreaView style={{ flex: 1 }} edges={[]}>
             <NavigationContainer>
               <Routes />
             </NavigationContainer>

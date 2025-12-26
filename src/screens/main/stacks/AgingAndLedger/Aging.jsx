@@ -23,8 +23,10 @@ import {
 } from '../../../../utils/Responsive';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Aging = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const { name, item } = route.params;
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -256,7 +258,10 @@ const Aging = ({ navigation, route }) => {
       {/* Custom Header */}
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={styles.header}>
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+        }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="arrow-back"
@@ -456,10 +461,8 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: responsiveWidth(5),
-    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,

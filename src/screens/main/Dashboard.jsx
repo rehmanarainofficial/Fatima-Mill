@@ -308,13 +308,13 @@ const Dashboard = ({ navigation }) => {
 const styles = StyleSheet.create({
   scrollViewContent: { paddingBottom: responsiveHeight(3) },
   cardGridContainer: {
-    paddingHorizontal: responsiveWidth(5),
+    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
     marginTop: responsiveHeight(4),
-    gap: responsiveWidth(5),
+    gap: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
   },
   gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
   cardWrapper: {
-    width: responsiveWidth(42),
+    width: responsiveWidth(Platform.OS === 'ios' ? 45 : 42),
     height: responsiveHeight(18),
     borderRadius: 20,
     backgroundColor: '#fff',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     color: APPCOLORS.BLACK,
     marginTop: responsiveHeight(3),
     marginBottom: responsiveHeight(1),
-    paddingHorizontal: responsiveWidth(5),
+    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
   },
   infoBannerContainer: {
     gap: responsiveWidth(5),

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,25 +8,26 @@ import {
   Animated,
   TouchableOpacity,
   StatusBar,
-  ScrollView,
-  Dimensions,
+  Platform
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import {generateLedgerPDF} from '.././../../../components/LedgerPDFGenerator';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
 
-const ViewLedger = ({navigation}) => {
+const ViewLedger = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState([]);
@@ -98,7 +99,7 @@ const ViewLedger = ({navigation}) => {
 
       const response = await fetch(`${BASEURL}get_counter_party.php`, {
         method: 'POST',
-        headers: {'Content-Type': 'multipart/form-data'},
+        headers: { 'Content-Type': 'multipart/form-data' },
         body: formData,
       });
 
@@ -262,13 +263,13 @@ const ViewLedger = ({navigation}) => {
     setShowToDatePicker(true);
   };
 
-  const renderTransaction = ({item, index}) => {
+  const renderTransaction = ({ item, index }) => {
     const isCredit = parseFloat(item.amount) > 0;
     const amount = parseFloat(item.amount);
     const currentBalance = transactionBalances[index] || closingBalance;
 
     return (
-      <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.transactionContent}>
           <View style={styles.transactionDetails}>
             {item.reference && (
@@ -284,7 +285,7 @@ const ViewLedger = ({navigation}) => {
             <Text
               style={[
                 styles.amountText,
-                {color: isCredit ? '#009900' : '#FF0000'},
+                { color: isCredit ? '#009900' : '#FF0000' },
               ]}>
               {isCredit ? '+' : '-'}
               {Math.abs(amount).toFixed(2)}
@@ -298,7 +299,7 @@ const ViewLedger = ({navigation}) => {
     );
   };
 
-  const renderSection = ({item, index}) => {
+  const renderSection = ({ item, index }) => {
     return (
       <View key={index}>
         <Text style={styles.dateHeader}>
@@ -306,7 +307,7 @@ const ViewLedger = ({navigation}) => {
         </Text>
         {item.transactions.map((tx, txIndex) => (
           <View key={txIndex}>
-            {renderTransaction({item: tx, index: txIndex})}
+            {renderTransaction({ item: tx, index: txIndex })}
           </View>
         ))}
       </View>
@@ -329,7 +330,10 @@ const ViewLedger = ({navigation}) => {
       {/* Custom Header */}
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={styles.header}>
+        style={[styles.header, {
+          height: responsiveHeight(10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+        }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="arrow-back"
@@ -524,7 +528,7 @@ const ViewLedger = ({navigation}) => {
 
       {/* Transactions List */}
       <Animated.ScrollView
-        style={[styles.container, {opacity: fadeAnim}]}
+        style={[styles.container, { opacity: fadeAnim }]}
         showsVerticalScrollIndicator={false}>
         {ledgerData.length === 0 ? (
           <View style={styles.noDataContainer}>
@@ -537,8 +541,8 @@ const ViewLedger = ({navigation}) => {
               {selectedAccount && loading
                 ? 'Loading transactions...'
                 : selectedAccount
-                ? 'No transactions found for selected filters'
-                : 'Please select an account to view transactions'}
+                  ? 'No transactions found for selected filters'
+                  : 'Please select an account to view transactions'}
             </Text>
           </View>
         ) : (
@@ -566,12 +570,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: responsiveWidth(5),
-    height: responsiveHeight(10),
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
@@ -587,7 +589,7 @@ const styles = StyleSheet.create({
     margin: responsiveWidth(3),
     borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -615,7 +617,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -644,7 +646,7 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -666,7 +668,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -679,7 +681,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: APPCOLORS.Primary,
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
@@ -695,7 +697,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
@@ -727,7 +729,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 2,
@@ -739,7 +741,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     elevation: 4,
     borderLeftWidth: 4,
     borderLeftColor: APPCOLORS.Primary,

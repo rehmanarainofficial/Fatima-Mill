@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 import {
   GetBankBalance,
@@ -22,15 +22,22 @@ import NameBalanceContainer from '../../../../../components/NameBalanceContainer
 import {
   responsiveHeight,
   responsiveWidth,
+  responsiveFontSize,
 } from '../../../../../utils/Responsive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import { Dropdown } from 'react-native-element-dropdown';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // Assuming this import path
+import { APPCOLORS } from '../../../../../utils/APPCOLORS'; // Assuming this import path
 
-const TopTenScreen = ({route, navigation}) => {
-  const {name} = route.params;
+const TopTenScreen = ({ route, navigation }) => {
+  const { name } = route.params;
   console.log(name);
-  
+
   const [top, setTop] = useState([]);
   const [allData, setAllData] = useState([]);
   const [loader, setLoader] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
@@ -63,10 +70,34 @@ const TopTenScreen = ({route, navigation}) => {
   }, [navigation]);
 
   return (
-    <View style={{flex: 1}}>
-      <SimpleHeader title={`Top 10 ${name}`} />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={{flexGrow: 1, padding: 20}}>
+        <Text style={styles.headerTitle}>{`Top 10 ${name}`}</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+          <Ionicons
+            name="person"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
         {/* Header Row with View All */}
         <View
           style={{
@@ -130,16 +161,16 @@ const TopTenScreen = ({route, navigation}) => {
               borderColor: '#000',
               minWidth: responsiveWidth(100),
             }}>
-            <View style={{width: responsiveWidth(35)}}>
+            <View style={{ width: responsiveWidth(35) }}>
               <AppText title="Name" titleSize={2} titleWeight />
             </View>
-            <View style={{width: responsiveWidth(22)}}>
+            <View style={{ width: responsiveWidth(22) }}>
               <AppText title="Balance" titleSize={2} titleWeight />
             </View>
-            <View style={{width: responsiveWidth(13)}}>
+            <View style={{ width: responsiveWidth(13) }}>
               <AppText title="%" titleSize={2} titleWeight />
             </View>
-            <View style={{width: responsiveWidth(30)}}>
+            <View style={{ width: responsiveWidth(30) }}>
               <AppText title="Action" titleSize={2} titleWeight />
             </View>
           </View>
@@ -147,28 +178,28 @@ const TopTenScreen = ({route, navigation}) => {
 
         {/* Loader or List */}
         {loader ? (
-          <ActivityIndicator size={'large'} style={{alignSelf: 'center'}} />
+          <ActivityIndicator size={'large'} style={{ alignSelf: 'center' }} />
         ) : top?.length > 0 ? (
           <FlatList
             data={top}
-            contentContainerStyle={{gap: 10}}
-            renderItem={({item}) => (
+            contentContainerStyle={{ gap: 10 }}
+            renderItem={({ item }) => (
               <NameBalanceContainer
                 Name={
                   name == 'Suppliers'
                     ? item?.supp_name
                     : name == 'Items'
-                    ? item.description
-                    : name == 'Banks'
-                    ? item?.bank_name
-                    : item?.name
+                      ? item.description
+                      : name == 'Banks'
+                        ? item?.bank_name
+                        : item?.name
                 }
                 balance={
                   name == 'Items'
                     ? item.total
                     : name == 'Banks'
-                    ? item?.bank_balance
-                    : item?.Balance
+                      ? item?.bank_balance
+                      : item?.Balance
                 }
                 type={name}
                 item={item}

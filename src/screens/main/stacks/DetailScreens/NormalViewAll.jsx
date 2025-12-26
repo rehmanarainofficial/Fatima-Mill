@@ -1,13 +1,16 @@
 import { View, Text, FlatList, TextInput } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
-import { responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppButton from '../../../../components/AppButton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import { Platform, TouchableOpacity } from 'react-native';
 
 const NormalViewAll = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const { AllData, dataname } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,16 +26,16 @@ const NormalViewAll = ({ navigation, route }) => {
           dataname === 'Supplier'
             ? item.supp_name
             : dataname === 'Bank'
-            ? item?.bank_name
-            : dataname === 'item'
-            ? item?.description
-            : dataname === 'salesman'
-            ? item?.salesman_name
-            : dataname === 'Customer'
-            ? item?.name
-            : dataname === 'Payable'
-            ? item.supp_name
-            : item?.name;
+              ? item?.bank_name
+              : dataname === 'item'
+                ? item?.description
+                : dataname === 'salesman'
+                  ? item?.salesman_name
+                  : dataname === 'Customer'
+                    ? item?.name
+                    : dataname === 'Payable'
+                      ? item.supp_name
+                      : item?.name;
 
         return name?.toLowerCase().includes(lowerSearch);
       });
@@ -65,7 +68,31 @@ const NormalViewAll = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
-      <SimpleHeader title="View All" />
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>View All</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+          <Ionicons
+            name="person"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Action Buttons */}
       {(dataname === 'Customer' || dataname === 'Supplier' || dataname === 'item') && (
@@ -76,7 +103,7 @@ const NormalViewAll = ({ navigation, route }) => {
             gap: 15,
             marginVertical: 15,
           }}>
-          
+
           {/* Aging Button - Only for Customer/Supplier */}
           {(dataname === 'Customer' || dataname === 'Supplier') && (
             <AppButton
@@ -86,7 +113,7 @@ const NormalViewAll = ({ navigation, route }) => {
               bgColor={APPCOLORS.BLUE || '#007AFF'}
             />
           )}
-          
+
           {/* Ledger/All Movements Button */}
           <AppButton
             title={getButtonTitle()}
@@ -104,7 +131,7 @@ const NormalViewAll = ({ navigation, route }) => {
           alignItems: 'center',
           backgroundColor: '#fff',
           borderRadius: 12,
-          width: responsiveWidth(90),
+          width: responsiveWidth(96),
           alignSelf: 'center',
           shadowColor: '#000',
           shadowOpacity: 0.1,
@@ -134,7 +161,7 @@ const NormalViewAll = ({ navigation, route }) => {
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{
           paddingBottom: 20,
-          paddingHorizontal: 15,
+          paddingHorizontal: responsiveWidth(2),
           paddingTop: 10,
         }}
         renderItem={({ item }) => (
@@ -143,23 +170,23 @@ const NormalViewAll = ({ navigation, route }) => {
               dataname === 'Supplier'
                 ? item.supp_name
                 : dataname === 'Bank'
-                ? item?.bank_name
-                : dataname === 'item'
-                ? item?.description
-                : dataname === 'salesman'
-                ? item?.salesman_name
-                : dataname === 'Customer'
-                ? item?.name
-                : dataname === 'Payable'
-                ? item.supp_name
-                : item?.name
+                  ? item?.bank_name
+                  : dataname === 'item'
+                    ? item?.description
+                    : dataname === 'salesman'
+                      ? item?.salesman_name
+                      : dataname === 'Customer'
+                        ? item?.name
+                        : dataname === 'Payable'
+                          ? item.supp_name
+                          : item?.name
             }
             balance={
               dataname === 'Bank'
                 ? item?.bank_balance
                 : dataname === 'item'
-                ? item?.total
-                : item?.Balance
+                  ? item?.total
+                  : item?.Balance
             }
             type={dataname === 'item' ? 'Inventory Valuation' : dataname}
             item={item}
@@ -176,6 +203,27 @@ const NormalViewAll = ({ navigation, route }) => {
       />
     </View>
   );
+};
+
+const styles = {
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: responsiveWidth(5),
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  headerTitle: {
+    color: APPCOLORS.WHITE,
+    fontSize: responsiveFontSize(3),
+    fontWeight: 'bold',
+  },
 };
 
 export default NormalViewAll;

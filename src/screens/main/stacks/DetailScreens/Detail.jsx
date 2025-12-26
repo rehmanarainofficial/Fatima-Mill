@@ -4,9 +4,12 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
-import SimpleHeader from '../../../../components/SimpleHeader';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import {
   responsiveFontSize,
@@ -70,7 +73,7 @@ const Detail = ({ navigation }) => {
     <Animated.View
       entering={FadeInUp.delay(index * 120).duration(600)}
       style={{
-        width: responsiveWidth(92),
+        width: responsiveWidth(96),
         alignSelf: 'center',
         backgroundColor: '#fff',
         borderRadius: 14,
@@ -148,14 +151,40 @@ const Detail = ({ navigation }) => {
     );
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE }}>
-      <SimpleHeader title="Detail" />
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Detail</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+          <Ionicons
+            name="person"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
       <FlatList
         data={revData}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={{
-          paddingHorizontal: responsiveWidth(4),
+          paddingHorizontal: responsiveWidth(2),
           paddingVertical: responsiveHeight(2),
         }}
         renderItem={renderItem}
@@ -163,6 +192,27 @@ const Detail = ({ navigation }) => {
       />
     </View>
   );
+};
+
+const styles = {
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: responsiveWidth(5),
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  headerTitle: {
+    color: APPCOLORS.WHITE,
+    fontSize: responsiveFontSize(3),
+    fontWeight: 'bold',
+  },
 };
 
 export default Detail;

@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useWindowDimensions } from 'react-native';
 import {
   View,
   Text,
@@ -20,7 +22,6 @@ import {
   GetPayable,
   GetReceivable,
 } from '../../../../global/ChartApisCall';
-import Header from '../../../../components/Header';
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -29,6 +30,8 @@ import {
 
 const MoreDetail = ({ navigation, route }) => {
   const { selectedItem } = route.params;
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const cachedData = useRef({});
 
   const [activeData, setActiveData] = useState(null);
@@ -120,10 +123,14 @@ const MoreDetail = ({ navigation, route }) => {
     }
   };
 
-  // Custom Header Component for Inventory Valuation
+  // Custom Header Component
   const CustomHeader = () => (
-    <View style={styles.customHeader}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+    <View style={[styles.customHeader, {
+      height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+      paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+      width: width,
+    }]}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
         <Ionicons
           name="arrow-back"
           size={responsiveFontSize(3)}
@@ -134,29 +141,44 @@ const MoreDetail = ({ navigation, route }) => {
       <Text style={styles.headerTitle}>{selectedItem || 'Details'}</Text>
 
       <View style={styles.headerIcons}>
-        {/* All Movements Icon */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() =>
-            navigation.navigate('StockMovements', { fromAllMovements: true })
-          }>
-          <MaterialIcons
-            name="swap-horiz"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
+        {selectedItem === 'Inventory Valuation' ? (
+          <>
+            {/* All Movements Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() =>
+                navigation.navigate('StockMovements', { fromAllMovements: true })
+              }>
+              <MaterialIcons
+                name="swap-horiz"
+                size={responsiveFontSize(3)}
+                color="white"
+              />
+            </TouchableOpacity>
 
-        {/* Stock Sheet Icon */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('StockSheetScreen')}>
-          <MaterialIcons
-            name="inventory"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
+            {/* Stock Sheet Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('StockSheetScreen')}>
+              <MaterialIcons
+                name="inventory"
+                size={responsiveFontSize(3)}
+                color="white"
+              />
+            </TouchableOpacity>
+          </>
+        ) : (
+          /* Default Ledger Icon */
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('ViewLedger')}>
+            <MaterialIcons
+              name="assignment"
+              size={responsiveFontSize(3)}
+              color="white"
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -317,17 +339,7 @@ const MoreDetail = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Use Custom Header for Inventory Valuation */}
-      {selectedItem === 'Inventory Valuation' ? (
-        <CustomHeader />
-      ) : (
-        <Header
-          title={selectedItem || 'Details'}
-          rightIcon="assignment"
-          onRightPress={() => navigation.navigate('ViewLedger')}
-          onBack={() => navigation.goBack()}
-        />
-      )}
+      <CustomHeader />
 
       <FlatList
         data={getData()}
@@ -337,7 +349,7 @@ const MoreDetail = ({ navigation, route }) => {
         ListEmptyComponent={ListEmptyComponent}
         contentContainerStyle={{
           flexGrow: 1,
-          padding: responsiveWidth(5),
+          padding: responsiveWidth(2),
           paddingBottom: responsiveHeight(5),
         }}
         showsVerticalScrollIndicator={false}
@@ -356,7 +368,6 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(2),
   },
   customHeader: {
-    height: responsiveHeight(10),
     backgroundColor: '#0784B5',
     flexDirection: 'row',
     alignItems: 'center',

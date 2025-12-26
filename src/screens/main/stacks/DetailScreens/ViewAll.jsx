@@ -1,20 +1,44 @@
-import {View, Text, FlatList, StyleSheet, TextInput} from 'react-native';
-import React, {useState} from 'react';
-import SimpleHeader from '../../../../components/SimpleHeader';
-import DropButtons from '../../../../components/DropButtons';
-import DatePicker from 'react-native-date-picker';
+import { View, Text, FlatList, StyleSheet, TextInput } from 'react-native';
+import React, { useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppText from '../../../../components/AppText';
-import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const ViewAll = ({navigation, route}) => {
+const ViewAll = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const [fromDate, setFromDate] = useState(new Date());
   const [openFrom, setOpenFrom] = useState(false);
 
   return (
-    <View>
-      <SimpleHeader title="Detailed" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+        style={[styles.header, {
+          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+        }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+          <Ionicons
+            name="arrow-back"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Detailed</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+          <Ionicons
+            name="person"
+            size={responsiveFontSize(3)}
+            color={APPCOLORS.WHITE}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
 
       <View
         style={{
@@ -27,7 +51,7 @@ const ViewAll = ({navigation, route}) => {
         <DropButtons title="From Date" onPress={() => setOpenFrom(true)} />
         <DropButtons title="To Date" onPress={() => setOpenFrom(true)} />
       </View>
-      <DatePicker
+      {/* <DatePicker
         modal
         open={openFrom}
         date={fromDate}
@@ -39,11 +63,11 @@ const ViewAll = ({navigation, route}) => {
         onCancel={() => {
           setOpenFrom(false);
         }}
-      />
+      /> */}
 
       <FlatList
         data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-        contentContainerStyle={{paddingBottom: 200}}
+        contentContainerStyle={{ paddingBottom: 200 }}
         renderItem={() => {
           return (
             <LinearGradient
@@ -122,7 +146,7 @@ const ViewAll = ({navigation, route}) => {
               />
 
               <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <View>
                   <View style={styles.container}>
                     <AppText
@@ -153,7 +177,7 @@ const ViewAll = ({navigation, route}) => {
                   </View>
                 </View>
 
-                <View style={{alignItems: 'center'}}>
+                <View style={{ alignItems: 'center' }}>
                   <AppText
                     title="Currency"
                     titleSize={1.8}
@@ -221,6 +245,24 @@ const ViewAll = ({navigation, route}) => {
 export default ViewAll;
 
 const styles = StyleSheet.create({
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: responsiveWidth(5),
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  headerTitle: {
+    color: APPCOLORS.WHITE,
+    fontSize: responsiveFontSize(3),
+    fontWeight: 'bold',
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',

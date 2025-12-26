@@ -18,6 +18,7 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 
@@ -25,6 +26,7 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import BASEURL from '../../../../utils/BaseUrl';
 
 const StockMovements = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const {
     item,
     fromAllMovements = false,
@@ -232,7 +234,10 @@ const StockMovements = ({ navigation, route }) => {
       <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
 
       {/* ---------------- HEADER ---------------- */}
-      <View style={styles.header}>
+      <View style={[styles.header, {
+        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+      }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="arrow-back"
@@ -474,27 +479,89 @@ const StockMovements = ({ navigation, route }) => {
         </Modal>
 
         {/* FROM DATE PICKER */}
-        {showFromPicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            onChange={(e, d) => {
-              setShowFromPicker(false);
-              if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
-            }}
-          />
+        {Platform.OS === 'ios' ? (
+          <Modal
+            visible={showFromPicker}
+            transparent={true}
+            animationType="slide">
+            <View style={styles.datePickerModalOverlay}>
+              <View style={styles.datePickerModalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select From Date</Text>
+                  <TouchableOpacity onPress={() => setShowFromPicker(false)}>
+                    <Ionicons name="close" size={24} color="#000" />
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={new Date(fromDate)}
+                  mode="date"
+                  display="inline"
+                  onChange={(e, d) => {
+                    if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.closeModalBtn}
+                  onPress={() => setShowFromPicker(false)}>
+                  <Text style={styles.closeModalBtnText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        ) : (
+          showFromPicker && (
+            <DateTimePicker
+              value={new Date(fromDate)}
+              mode="date"
+              onChange={(e, d) => {
+                setShowFromPicker(false);
+                if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
+              }}
+            />
+          )
         )}
 
         {/* TO DATE PICKER */}
-        {showToPicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            onChange={(e, d) => {
-              setShowToPicker(false);
-              if (d) setToDate(moment(d).format('YYYY-MM-DD'));
-            }}
-          />
+        {Platform.OS === 'ios' ? (
+          <Modal
+            visible={showToPicker}
+            transparent={true}
+            animationType="slide">
+            <View style={styles.datePickerModalOverlay}>
+              <View style={styles.datePickerModalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select To Date</Text>
+                  <TouchableOpacity onPress={() => setShowToPicker(false)}>
+                    <Ionicons name="close" size={24} color="#000" />
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={new Date(toDate)}
+                  mode="date"
+                  display="inline"
+                  onChange={(e, d) => {
+                    if (d) setToDate(moment(d).format('YYYY-MM-DD'));
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.closeModalBtn}
+                  onPress={() => setShowToPicker(false)}>
+                  <Text style={styles.closeModalBtnText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        ) : (
+          showToPicker && (
+            <DateTimePicker
+              value={new Date(toDate)}
+              mode="date"
+              onChange={(e, d) => {
+                setShowToPicker(false);
+                if (d) setToDate(moment(d).format('YYYY-MM-DD'));
+              }}
+            />
+          )
         )}
       </View>
 
@@ -510,7 +577,10 @@ const StockMovements = ({ navigation, route }) => {
           data={movementData}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderCard}
-          contentContainerStyle={{ padding: 12 }}
+          contentContainerStyle={{
+            paddingBottom: 40,
+            paddingHorizontal: responsiveWidth(2),
+          }}
           ListEmptyComponent={
             <View style={styles.noDataContainer}>
               <MaterialIcons name="inventory-2" size={60} color="#ccc" />
@@ -531,7 +601,6 @@ export default StockMovements;
 
 const styles = StyleSheet.create({
   header: {
-    height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10),
     backgroundColor: APPCOLORS.Primary,
     flexDirection: 'row',
     alignItems: 'center',
@@ -539,7 +608,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
   },
   headerTitle: {
     color: 'white',
@@ -769,5 +837,31 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.2),
     color: '#888',
     marginTop: 2,
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  datePickerModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    width: responsiveWidth(90),
+    paddingBottom: 20,
+    elevation: 5,
+  },
+  closeModalBtn: {
+    backgroundColor: APPCOLORS.Primary,
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  closeModalBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: responsiveFontSize(1.8),
   },
 });

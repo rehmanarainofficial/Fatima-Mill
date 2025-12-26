@@ -1,4 +1,5 @@
-import { View, TouchableOpacity, Animated, Platform } from 'react-native';
+import { View, TouchableOpacity, Animated, Platform, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useRef, useEffect } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/Responsive';
@@ -10,6 +11,8 @@ import { setLogout } from '../redux/AuthSlice';
 
 const AppHeader = ({ title, onPress }) => {
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -27,12 +30,12 @@ const AppHeader = ({ title, onPress }) => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{
-          height: responsiveHeight(Platform.OS === 'ios' ? 22 : 25),
+          height: responsiveHeight(Platform.OS === 'ios' ? 18 : 25) + (Platform.OS === 'ios' ? insets.top : 0),
           borderBottomRightRadius: 25,
           borderBottomLeftRadius: 25,
-          paddingHorizontal: responsiveWidth(5),
-          paddingTop: Platform.OS === 'ios' ? 50 : 35,
-          width: '100%',
+          paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
+          paddingTop: Platform.OS === 'ios' ? insets.top + 5 : 35,
+          width: width,
         }}>
         <View
           style={{
