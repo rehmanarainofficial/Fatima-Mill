@@ -126,7 +126,7 @@ const MoreDetail = ({ navigation, route }) => {
   // Custom Header Component
   const CustomHeader = () => (
     <View style={[styles.customHeader, {
-      height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+      height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
       paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
       width: width,
     }]}>

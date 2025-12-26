@@ -25,11 +25,9 @@ const AppHeader = ({ title, onPress }) => {
 
   return (
     <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+      <View
         style={{
+          backgroundColor: '#0784B5',
           height: responsiveHeight(Platform.OS === 'ios' ? 18 : 25) + (Platform.OS === 'ios' ? insets.top : 0),
           borderBottomRightRadius: 25,
           borderBottomLeftRadius: 25,
@@ -96,7 +94,7 @@ const AppHeader = ({ title, onPress }) => {
             />
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 };

@@ -325,20 +325,18 @@ const ViewLedger = ({ navigation }) => {
 
   return (
     <View style={styles.mainContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
-
       {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+      <View
         style={[styles.header, {
-          height: responsiveHeight(10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+          width: '100%',
         }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
           <Ionicons
             name="arrow-back"
-            size={responsiveFontSize(2.5)}
-            color={APPCOLORS.WHITE}
+            size={responsiveFontSize(3)}
+            color="white"
           />
         </TouchableOpacity>
 
@@ -346,22 +344,19 @@ const ViewLedger = ({ navigation }) => {
 
         <TouchableOpacity
           onPress={handleDownload}
+          style={{ padding: 5 }}
           disabled={downloadLoading || ledgerData.length === 0}>
           {downloadLoading ? (
-            <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+            <ActivityIndicator size="small" color="white" />
           ) : (
             <MaterialIcons
               name="file-download"
               size={responsiveFontSize(3)}
-              color={
-                ledgerData.length === 0
-                  ? APPCOLORS.TEXTFIELDCOLOR
-                  : APPCOLORS.WHITE
-              }
+              color="white"
             />
           )}
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
 
       {/* Improved Filter Section - Compact Design */}
       <View style={styles.filterContainer}>
@@ -566,20 +561,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F2F5',
   },
   header: {
-    alignItems: 'center',
+    backgroundColor: '#0784B5',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(5),
-    borderBottomRightRadius: 20,
+    paddingHorizontal: responsiveWidth(4),
     borderBottomLeftRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    borderBottomRightRadius: 20,
   },
   headerTitle: {
-    color: APPCOLORS.WHITE,
+    color: 'white',
     fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
   },

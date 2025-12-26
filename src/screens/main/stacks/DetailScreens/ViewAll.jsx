@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, TextInput } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, Platform, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
@@ -15,17 +15,17 @@ const ViewAll = ({ navigation, route }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+      <View
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
           paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+          width: '100%',
         }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
           <Ionicons
             name="arrow-back"
             size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
+            color="white"
           />
         </TouchableOpacity>
 
@@ -35,10 +35,10 @@ const ViewAll = ({ navigation, route }) => {
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
+            color="white"
           />
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
 
       <View
         style={{
@@ -246,21 +246,17 @@ export default ViewAll;
 
 const styles = StyleSheet.create({
   header: {
+    backgroundColor: '#0784B5',
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(5),
-    borderBottomRightRadius: 20,
+    paddingHorizontal: responsiveWidth(4),
     borderBottomLeftRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    borderBottomRightRadius: 20,
   },
   headerTitle: {
-    color: APPCOLORS.WHITE,
-    fontSize: responsiveFontSize(3),
+    color: 'white',
+    fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
   },
   container: {

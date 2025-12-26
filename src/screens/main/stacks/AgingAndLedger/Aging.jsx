@@ -256,17 +256,17 @@ const Aging = ({ navigation, route }) => {
       <StatusBar barStyle="dark-content" backgroundColor={APPCOLORS.WHITE} />
 
       {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
+      <View
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+          width: '100%',
         }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
           <Ionicons
             name="arrow-back"
             size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
+            color="white"
           />
         </TouchableOpacity>
 
@@ -277,20 +277,19 @@ const Aging = ({ navigation, route }) => {
 
         <TouchableOpacity
           onPress={generatePDF}
+          style={{ padding: 5 }}
           disabled={loading || aging.length === 0}>
           {loading ? (
-            <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+            <ActivityIndicator size="small" color="white" />
           ) : (
             <MaterialIcons
               name="file-download"
-              size={responsiveFontSize(3.5)}
-              color={
-                aging.length === 0 ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE
-              }
+              size={responsiveFontSize(3)}
+              color="white"
             />
           )}
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
 
       <FlatList
         data={aging}
@@ -457,21 +456,17 @@ const Aging = ({ navigation, route }) => {
 
 const styles = {
   header: {
-    alignItems: 'center',
+    backgroundColor: '#0784B5',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(5),
-    borderBottomRightRadius: 20,
+    paddingHorizontal: responsiveWidth(4),
     borderBottomLeftRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    borderBottomRightRadius: 20,
   },
   headerTitle: {
-    color: APPCOLORS.WHITE,
-    fontSize: responsiveFontSize(2),
+    color: 'white',
+    fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,

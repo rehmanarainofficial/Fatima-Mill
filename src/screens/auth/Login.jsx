@@ -68,12 +68,10 @@ const Login = ({ navigation }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: '#fff' }}>
-        {/* Gradient Header */}
-        <LinearGradient
-          colors={['#0784B5', '#9BD4E4']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        {/* Header Background */}
+        <View
           style={{
+            backgroundColor: '#0784B5',
             height: responsiveHeight(45),
             borderBottomLeftRadius: 50,
             borderBottomRightRadius: 50,
@@ -103,7 +101,7 @@ const Login = ({ navigation }) => {
               Sign in!
             </Text>
           </Animated.View>
-        </LinearGradient>
+        </View>
 
         {/* White Body Card */}
         <Animated.View
@@ -212,16 +210,15 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Sign In Button */}
-          <LinearGradient
-            colors={['#0784B5', '#46BEE8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             style={{
+              backgroundColor: '#0784B5',
               borderRadius: 30,
               overflow: 'hidden',
             }}>
             <TouchableOpacity
               onPress={loginUser}
+              activeOpacity={0.8}
               style={{
                 paddingVertical: responsiveHeight(1.8),
                 alignItems: 'center',
@@ -235,7 +232,7 @@ const Login = ({ navigation }) => {
                 SIGN IN
               </Text>
             </TouchableOpacity>
-          </LinearGradient>
+          </View>
 
           {/* Footer */}
           <View style={{ alignItems: 'center', marginTop: responsiveHeight(5) }}>

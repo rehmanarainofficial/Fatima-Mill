@@ -15,7 +15,7 @@ const PdfScreen = ({ navigation }) => {
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
           paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
         }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
