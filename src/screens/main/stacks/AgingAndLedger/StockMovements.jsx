@@ -231,12 +231,11 @@ const StockMovements = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
-      <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
 
       {/* ---------------- HEADER ---------------- */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 14) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top : 14,
       }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons

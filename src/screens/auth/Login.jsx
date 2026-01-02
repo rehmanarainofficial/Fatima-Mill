@@ -90,7 +90,7 @@ const Login = ({ navigation }) => {
                 fontSize: responsiveFontSize(4),
                 fontWeight: 'bold',
               }}>
-              Fatima Board And Paper Mill PVT
+              Fatima Board & Paper Mill Pvt
             </Text>
             <Text
               style={{

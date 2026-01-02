@@ -156,7 +156,7 @@ const Detail = ({ navigation }) => {
     <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE }}>
       {/* Custom Header */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 12) + (Platform.OS === 'ios' ? insets.top : 0),
+        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 14) + (Platform.OS === 'ios' ? insets.top : 0),
         paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 14,
         width: '100%',
       }]}>

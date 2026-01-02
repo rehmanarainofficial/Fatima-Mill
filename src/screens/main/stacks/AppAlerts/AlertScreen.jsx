@@ -55,8 +55,8 @@ const AlertScreen = ({ navigation }) => {
       <LinearGradient
         colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
+          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 14) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 14,
         }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
           <Ionicons
