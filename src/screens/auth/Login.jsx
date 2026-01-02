@@ -83,6 +83,7 @@ const Login = ({ navigation }) => {
             style={{
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
+              paddingBottom: 64,
             }}>
             <Text
               style={{
@@ -91,14 +92,6 @@ const Login = ({ navigation }) => {
                 fontWeight: 'bold',
               }}>
               Fatima Board & Paper Mill Pvt
-            </Text>
-            <Text
-              style={{
-                color: 'white',
-                fontSize: responsiveFontSize(3),
-                marginTop: 5,
-              }}>
-              Sign in!
             </Text>
           </Animated.View>
         </View>

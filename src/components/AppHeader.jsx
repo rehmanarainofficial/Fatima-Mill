@@ -28,11 +28,11 @@ const AppHeader = ({ title, onPress }) => {
       <View
         style={{
           backgroundColor: '#0784B5',
-          height: responsiveHeight(Platform.OS === 'ios' ? 18 : 25) + (Platform.OS === 'ios' ? insets.top : 0),
+          height: responsiveHeight(Platform.OS === 'ios' ? 20 : 25) + (Platform.OS === 'ios' ? insets.top : 0),
           borderBottomRightRadius: 25,
           borderBottomLeftRadius: 25,
           paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
-          paddingTop: Platform.OS === 'ios' ? insets.top + 5 : 35,
+          paddingTop: Platform.OS === 'ios' ? insets.top + 25 : 20,
           width: width,
         }}>
         <View

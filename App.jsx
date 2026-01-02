@@ -6,12 +6,13 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Store, persistor } from './src/redux/Store';
 import Routes from './src/routes/Routes';
 import Toast from 'react-native-toast-message';
-
+import { APPCOLORS } from './src/utils/APPCOLORS';
 const App = () => {
 
   return (
     <Provider store={Store}>
       <PersistGate loading={null} persistor={persistor}>
+        <StatusBar backgroundColor={APPCOLORS.Primary} barStyle="light-content" />
         <SafeAreaProvider>
           <SafeAreaView style={{ flex: 1 }} edges={[]}>
             <NavigationContainer>

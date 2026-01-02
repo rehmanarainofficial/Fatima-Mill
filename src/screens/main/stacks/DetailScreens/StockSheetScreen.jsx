@@ -194,8 +194,8 @@ export default function StockSheetScreen({ navigation, route }) {
       style={{ flex: 1 }}>
       {/* Header */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 14) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top : 14,
+        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top : 0,
       }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons

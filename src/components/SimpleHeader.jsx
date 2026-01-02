@@ -21,10 +21,10 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: responsiveWidth(5),
-        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0), // Increased height for iOS
+        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 14) + (Platform.OS === 'ios' ? insets.top : 0), // Increased height for iOS
         borderBottomRightRadius: 20,
         borderBottomLeftRadius: 20,
-        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10, // Adjusted paddingTop for iOS
+        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 14, // Adjusted paddingTop for iOS
         width: width, // Keep full width
       }}>
       {/* Left: Back Button */}

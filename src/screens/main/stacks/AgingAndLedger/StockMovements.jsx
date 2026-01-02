@@ -234,8 +234,8 @@ const StockMovements = ({ navigation, route }) => {
 
       {/* ---------------- HEADER ---------------- */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 14) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top : 14,
+        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top : 0,
       }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
