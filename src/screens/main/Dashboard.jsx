@@ -6,6 +6,7 @@ import {
   StyleSheet,
   FlatList,
   Text,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';

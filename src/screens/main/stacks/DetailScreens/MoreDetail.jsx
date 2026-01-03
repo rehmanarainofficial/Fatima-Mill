@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PieChart from 'react-native-pie-chart';
 import Ionicons from 'react-native-vector-icons/Ionicons';

@@ -4,7 +4,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
-  StatusBar,
+  PermissionsAndroid, Platform
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -13,9 +13,7 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
-import { PermissionsAndroid, Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
-import LinearGradient from 'react-native-linear-gradient';
 import {
   responsiveFontSize,
   responsiveHeight,

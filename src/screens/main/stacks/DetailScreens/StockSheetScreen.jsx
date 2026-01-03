@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
@@ -14,7 +15,6 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Dropdown } from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';

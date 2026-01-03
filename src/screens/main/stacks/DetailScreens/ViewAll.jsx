@@ -9,7 +9,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ViewAll = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const [fromDate, setFromDate] = useState(new Date());
   const [openFrom, setOpenFrom] = useState(false);
 
   return (

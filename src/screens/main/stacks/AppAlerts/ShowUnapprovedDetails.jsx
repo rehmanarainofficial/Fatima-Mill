@@ -1,7 +1,6 @@
-import { View, Text, FlatList, TextInput, TouchableOpacity, Platform, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, FlatList, TextInput, TouchableOpacity, Platform } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APPCOLORS } from '../../../../utils/APPCOLORS'
 import AppText from '../../../../components/AppText'

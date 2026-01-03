@@ -1,10 +1,8 @@
-import { View, Text, TouchableOpacity, Platform, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AlertCards from '../../../../components/AlertCards'
-import moment from 'moment'
 import axios from 'axios'
 import BaseUrl from '../../../../utils/BaseUrl'
 import { APPCOLORS } from '../../../../utils/APPCOLORS'
@@ -40,7 +38,6 @@ const AlertScreen = ({ navigation }) => {
     try {
       const { data } = await axios.request(options);
       // console.log(data);
-      // setslider_data(data)
       setAllData(data)
       setLoader(false)
     } catch (error) {

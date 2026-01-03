@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import {

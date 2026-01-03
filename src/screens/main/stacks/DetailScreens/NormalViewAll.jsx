@@ -6,7 +6,6 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppButton from '../../../../components/AppButton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import { Platform, TouchableOpacity } from 'react-native';
 
 const NormalViewAll = ({ navigation, route }) => {

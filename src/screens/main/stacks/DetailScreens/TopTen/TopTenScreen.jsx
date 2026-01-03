@@ -4,12 +4,11 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import SimpleHeader from '../../../../../components/SimpleHeader';
 import {
   GetBankBalance,
   GetItemBalance,
@@ -26,9 +25,8 @@ import {
 } from '../../../../../utils/Responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { Dropdown } from 'react-native-element-dropdown';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // Assuming this import path
-import { APPCOLORS } from '../../../../../utils/APPCOLORS'; // Assuming this import path
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { APPCOLORS } from '../../../../../utils/APPCOLORS';
 
 const TopTenScreen = ({ route, navigation }) => {
   const { name } = route.params;

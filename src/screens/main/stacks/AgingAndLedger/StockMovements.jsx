@@ -6,9 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  StatusBar,
   Modal,
   TextInput,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -17,7 +17,6 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';

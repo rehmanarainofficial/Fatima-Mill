@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Animated,
   TouchableOpacity,
-  StatusBar,
+  Platform,
   Modal,
 } from 'react-native';
 import moment from 'moment';
@@ -18,9 +18,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
