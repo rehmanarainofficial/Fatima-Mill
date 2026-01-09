@@ -10,27 +10,6 @@ import BaseUrl from '../utils/BaseUrl'
 import moment from 'moment'
 import axios from 'axios'
 
-type props = {
-    HeadingOne?: any,
-    ValueOne?: any,
-
-    HeadingTwo?: any,
-    ValueTwo?: any,
-
-
-    HeadingThree?: any,
-    ValueThree?: any,
-
-    AlertHeading?: any
-
-    onValuePressOne?: () => void
-    onValuePressTwo?: () => void
-    onValuePressThree?: () => void
-
-
-
-}
-
 const AlertCards = ({ HeadingOne, HeadingThree, HeadingTwo, ValueOne, ValueThree, ValueTwo, AlertHeading, onValuePressOne,onValuePressTwo, onValuePressThree,}: props) => {
     const nav = useNavigation()
 
