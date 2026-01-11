@@ -278,8 +278,8 @@ const LedgersScreen = ({ route, navigation }) => {
       {/* Custom Header */}
       <View
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 0,
+          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
           width: '100%',
         }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
@@ -381,7 +381,7 @@ const LedgersScreen = ({ route, navigation }) => {
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>Select From Date</Text>
                     <TouchableOpacity onPress={() => setShowFromDatePicker(false)}>
-                      <Ionicons name="close" size={24} color="#000" />
+                      <Ionicons name="close" size={24} color="#FFF" />
                     </TouchableOpacity>
                   </View>
                   <DateTimePicker
@@ -389,6 +389,7 @@ const LedgersScreen = ({ route, navigation }) => {
                     mode="date"
                     display="inline"
                     onChange={onFromDateChange}
+                    themeVariant="dark"
                   />
                   <TouchableOpacity
                     style={styles.closeModalButton}
@@ -408,7 +409,7 @@ const LedgersScreen = ({ route, navigation }) => {
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>Select To Date</Text>
                     <TouchableOpacity onPress={() => setShowToDatePicker(false)}>
-                      <Ionicons name="close" size={24} color="#000" />
+                      <Ionicons name="close" size={24} color="#FFF" />
                     </TouchableOpacity>
                   </View>
                   <DateTimePicker
@@ -416,6 +417,7 @@ const LedgersScreen = ({ route, navigation }) => {
                     mode="date"
                     display="inline"
                     onChange={onToDateChange}
+                    themeVariant="dark"
                   />
                   <TouchableOpacity
                     style={styles.closeModalButton}
@@ -725,7 +727,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#000000', // Black background for Dark Theme
     borderRadius: 15,
     width: responsiveWidth(90),
     paddingBottom: 20,
@@ -737,12 +739,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: responsiveWidth(4),
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#333',
   },
   modalTitle: {
     fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
-    color: '#000',
+    color: '#FFFFFF', // White text
   },
   closeModalButton: {
     backgroundColor: APPCOLORS.Primary,

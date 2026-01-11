@@ -1,6 +1,7 @@
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
-import {ToastAndroid, PermissionsAndroid, Platform} from 'react-native';
+import {PermissionsAndroid, Platform, Share, Alert} from 'react-native';
+import Toast from 'react-native-toast-message';
 
 export const generateLedgerPDF = async (
   ledgerData,
@@ -11,7 +12,6 @@ export const generateLedgerPDF = async (
   try {
     setLoading(true);
 
-    //  Handle Android storage rules
     if (Platform.OS === 'android') {
       const sdk = parseInt(Platform.Version, 10);
       if (sdk < 33) {
@@ -24,12 +24,13 @@ export const generateLedgerPDF = async (
           },
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          ToastAndroid.show('Storage permission denied!', ToastAndroid.SHORT);
+          Toast.show({
+            type: 'error',
+            text1: 'Storage permission denied!',
+          });
           setLoading(false);
           return;
         }
-      } else {
-        console.log('No storage permission needed for Android 13+');
       }
     }
 
@@ -133,22 +134,44 @@ export const generateLedgerPDF = async (
 
     const file = await RNHTMLtoPDF.convert(options);
 
-    // ✅ Move to visible Downloads/MyAppReports folder
-    const downloadDir =
-      Platform.Version >= 29
-        ? RNFS.DownloadDirectoryPath
-        : RNFS.ExternalStorageDirectoryPath + '/Download';
+    console.log('PDF Generated at:', file.filePath);
 
-    const appFolder = `${downloadDir}/MyAppReports`;
-    await RNFS.mkdir(appFolder).catch(() => {});
-    const destPath = `${appFolder}/${fileName}.pdf`;
+    if (Platform.OS === 'ios') {
+      // 🍎 iOS: Share the file
+      try {
+        await Share.share({
+          url: file.filePath,
+          title: 'Share Ledger PDF',
+        });
+      } catch (shareError) {
+        console.error('Share error:', shareError);
+      }
+    } else {
+      // 🤖 Android: Move to Downloads
+      const downloadDir =
+        Platform.Version >= 29
+          ? RNFS.DownloadDirectoryPath
+          : RNFS.ExternalStorageDirectoryPath + '/Download';
 
-    await RNFS.copyFile(file.filePath, destPath);
+      const appFolder = `${downloadDir}/MyAppReports`;
+      await RNFS.mkdir(appFolder).catch(() => {});
+      const destPath = `${appFolder}/${fileName}.pdf`;
 
-    ToastAndroid.show('PDF saved to Downloads', ToastAndroid.LONG);
+      await RNFS.copyFile(file.filePath, destPath);
+
+      Toast.show({
+        type: 'success',
+        text1: 'PDF Saved',
+        text2: `Saved to Downloads/MyAppReports/${fileName}.pdf`,
+      });
+    }
   } catch (error) {
     console.error('PDF generation error:', error);
-    ToastAndroid.show('PDF generation failed!', ToastAndroid.SHORT);
+    Toast.show({
+      type: 'error',
+      text1: 'PDF Generation Failed',
+      text2: error.message,
+    });
   } finally {
     setLoading(false);
   }

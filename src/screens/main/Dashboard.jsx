@@ -8,7 +8,7 @@ import {
   Text,
   Platform,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   FadeInUp,
@@ -25,7 +25,7 @@ import axios from 'axios';
 import moment from 'moment';
 import AppText from '../../components/AppText';
 import AppHeader from '../../components/AppHeader';
-import { APPCOLORS } from '../../utils/APPCOLORS';
+import {APPCOLORS} from '../../utils/APPCOLORS';
 import BaseUrl from '../../utils/BaseUrl';
 import {
   responsiveFontSize,
@@ -39,17 +39,17 @@ const dashboardCache = {
   lastFetched: null,
 };
 
-const ScaleCard = ({ children, onPress }) => {
+const ScaleCard = ({children, onPress}) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{scale: scale.value}],
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 8, stiffness: 100 });
+    scale.value = withSpring(0.95, {damping: 8, stiffness: 100});
   };
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 8, stiffness: 100 });
+    scale.value = withSpring(1, {damping: 8, stiffness: 100});
   };
 
   return (
@@ -66,7 +66,7 @@ const ScaleCard = ({ children, onPress }) => {
   );
 };
 
-const Dashboard = ({ navigation }) => {
+const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const [Type, setType] = useState();
   const [loader, setLoader] = useState(!dashboardCache.data);
@@ -82,7 +82,7 @@ const Dashboard = ({ navigation }) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', { type: 'Sales' }),
+      onPress: () => navigation.navigate('Detail', {type: 'Sales'}),
     },
     {
       id: 2,
@@ -94,7 +94,7 @@ const Dashboard = ({ navigation }) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', { type: 'Purchase' }),
+      onPress: () => navigation.navigate('Detail', {type: 'Purchase'}),
     },
     {
       id: 3,
@@ -106,7 +106,7 @@ const Dashboard = ({ navigation }) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', { type: 'Accounts' }),
+      onPress: () => navigation.navigate('Detail', {type: 'Accounts'}),
     },
     {
       id: 4,
@@ -118,7 +118,7 @@ const Dashboard = ({ navigation }) => {
           color={APPCOLORS.Primary}
         />
       ),
-      onPress: () => navigation.navigate('Detail', { type: 'Inventory' }),
+      onPress: () => navigation.navigate('Detail', {type: 'Inventory'}),
     },
   ];
 
@@ -132,9 +132,9 @@ const Dashboard = ({ navigation }) => {
     setLoader(true);
     const todayDate = moment(new Date()).format('YYYY-MM-DD');
     try {
-      const { data } = await axios.get(`${BaseUrl}dashboard_view.php`, {
-        headers: { 'content-type': 'multipart/form-data' },
-        params: { current_date: todayDate, pre_month_date: '2025-04-19' },
+      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`, {
+        headers: {'content-type': 'multipart/form-data'},
+        params: {current_date: todayDate, pre_month_date: '2025-04-19'},
       });
       dashboardCache.data = data; // 🔹 Cache it
       dashboardCache.lastFetched = Date.now();
@@ -146,9 +146,11 @@ const Dashboard = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{flex: 1}}>
       {/* 🔹 Header */}
-      <Animated.View entering={FadeInDown.duration(600)} style={{ width: '100%' }}>
+      <Animated.View
+        entering={FadeInDown.duration(600)}
+        style={{width: '100%'}}>
         <AppHeader
           title={'Dashboard'}
           onPress={res => {
@@ -181,10 +183,10 @@ const Dashboard = ({ navigation }) => {
                 Type === 'bell'
                   ? 'Outstanding Receipt'
                   : Type === 'mail'
-                    ? 'Outstanding Payment'
-                    : Type === 'chat'
-                      ? 'Outstanding Cheque'
-                      : 'Dashboard'
+                  ? 'Outstanding Payment'
+                  : Type === 'chat'
+                  ? 'Outstanding Cheque'
+                  : 'Dashboard'
               }
               titleColor={APPCOLORS.WHITE}
               titleSize={2}
@@ -223,7 +225,7 @@ const Dashboard = ({ navigation }) => {
           <ActivityIndicator
             size="large"
             color={APPCOLORS.Primary}
-            style={{ marginTop: 30 }}
+            style={{marginTop: 30}}
           />
         )}
 
@@ -271,7 +273,7 @@ const Dashboard = ({ navigation }) => {
 
         <Animated.View entering={FadeInLeft.delay(800).duration(1000)}>
           <Text style={styles.updateHeading}>
-            <Text style={{ fontWeight: 'bold' }}>Latest</Text> Updates
+            <Text style={{fontWeight: 'bold'}}>Latest</Text> Updates
           </Text>
           <FlatList
             data={[1, 2, 3]}
@@ -281,8 +283,8 @@ const Dashboard = ({ navigation }) => {
             renderItem={() => (
               <LinearGradient
                 colors={['#4199B8', APPCOLORS.Primary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
                 style={styles.infoBannerGradient}>
                 <AppText
                   title="🎉 New Feature Release"
@@ -290,7 +292,7 @@ const Dashboard = ({ navigation }) => {
                   titleSize={2}
                   titleWeight
                 />
-                <View style={{ width: responsiveWidth(60), marginTop: 8 }}>
+                <View style={{width: responsiveWidth(60), marginTop: 8}}>
                   <AppText
                     title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
                     titleColor={APPCOLORS.WHITE}
@@ -307,24 +309,25 @@ const Dashboard = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  scrollViewContent: { paddingBottom: responsiveHeight(3) },
+  scrollViewContent: {paddingBottom: responsiveHeight(3)},
   cardGridContainer: {
     paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
     marginTop: responsiveHeight(4),
-    gap: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
+    gap: responsiveWidth(Platform.OS === 'ios' ? 0 : 5), // Reduced gap for iOS
   },
-  gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  gridRow: {flexDirection: 'row', justifyContent: 'space-between'},
   cardWrapper: {
     width: responsiveWidth(Platform.OS === 'ios' ? 45 : 42),
     height: responsiveHeight(18),
     borderRadius: 20,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
     overflow: 'hidden',
+    marginBottom: Platform.OS === 'ios' ? 10 : 0,
   },
   cardTouchArea: {
     flex: 1,
@@ -351,7 +354,7 @@ const styles = StyleSheet.create({
     paddingBottom: responsiveHeight(2),
   },
   infoBannerGradient: {
-    height: responsiveHeight(18),
+    height: responsiveHeight(Platform.OS === 'ios' ? 16 : 18), // Adjusted height for iOS
     width: responsiveWidth(80),
     borderRadius: 16,
     padding: responsiveWidth(5),

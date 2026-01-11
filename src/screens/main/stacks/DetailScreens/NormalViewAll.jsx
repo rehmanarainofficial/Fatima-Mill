@@ -70,8 +70,8 @@ const NormalViewAll = ({ navigation, route }) => {
       {/* Custom Header */}
       <View
         style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 0,
+          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
           width: '100%',
         }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>

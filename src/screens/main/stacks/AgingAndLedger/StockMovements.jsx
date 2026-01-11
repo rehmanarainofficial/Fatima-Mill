@@ -487,7 +487,7 @@ const StockMovements = ({ navigation, route }) => {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Select From Date</Text>
                   <TouchableOpacity onPress={() => setShowFromPicker(false)}>
-                    <Ionicons name="close" size={24} color="#000" />
+                    <Ionicons name="close" size={24} color="#FFF" />
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
@@ -497,6 +497,7 @@ const StockMovements = ({ navigation, route }) => {
                   onChange={(e, d) => {
                     if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
                   }}
+                  themeVariant="dark"
                 />
                 <TouchableOpacity
                   style={styles.closeModalBtn}
@@ -530,7 +531,7 @@ const StockMovements = ({ navigation, route }) => {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Select To Date</Text>
                   <TouchableOpacity onPress={() => setShowToPicker(false)}>
-                    <Ionicons name="close" size={24} color="#000" />
+                    <Ionicons name="close" size={24} color="#FFF" />
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
@@ -540,6 +541,7 @@ const StockMovements = ({ navigation, route }) => {
                   onChange={(e, d) => {
                     if (d) setToDate(moment(d).format('YYYY-MM-DD'));
                   }}
+                  themeVariant="dark"
                 />
                 <TouchableOpacity
                   style={styles.closeModalBtn}
@@ -780,7 +782,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
-    color: '#000',
+    color: '#FFF',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -843,7 +845,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   datePickerModalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#000000',
     borderRadius: 15,
     width: responsiveWidth(90),
     paddingBottom: 20,

@@ -9,12 +9,12 @@ import {
   Keyboard,
   Animated,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Toast from 'react-native-toast-message';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { CurrentLogin, setLoader } from '../../redux/AuthSlice';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../utils/Responsive';
 import AppText from '../../components/AppText';
@@ -22,6 +22,7 @@ import BaseUrl from '../../utils/BaseUrl';
 
 const Login = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { Loading: loading } = useSelector(state => state.Data);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -212,18 +213,23 @@ const Login = ({ navigation }) => {
             <TouchableOpacity
               onPress={loginUser}
               activeOpacity={0.8}
+              disabled={loading}
               style={{
                 paddingVertical: responsiveHeight(1.8),
                 alignItems: 'center',
               }}>
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: responsiveFontSize(2.2),
-                  fontWeight: 'bold',
-                }}>
-                SIGN IN
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: responsiveFontSize(2.2),
+                    fontWeight: 'bold',
+                  }}>
+                  SIGN IN
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
 

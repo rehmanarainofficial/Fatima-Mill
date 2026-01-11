@@ -20,7 +20,7 @@ import axios from 'axios';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const cachedData = { slider_data: null, all_data: null }; // 🔹 Global cache (module-level)
+const cachedData = { slider_data: null, all_data: null };
 
 const Detail = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -155,8 +155,8 @@ const Detail = ({ navigation }) => {
     <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE }}>
       {/* Custom Header */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 0,
+        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
         width: '100%',
       }]}>
         {/* Left */}

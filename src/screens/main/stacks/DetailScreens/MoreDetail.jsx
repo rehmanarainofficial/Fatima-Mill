@@ -127,8 +127,8 @@ const MoreDetail = ({ navigation, route }) => {
   // Custom Header Component
   const CustomHeader = () => (
     <View style={[styles.customHeader, {
-      height: responsiveHeight(Platform.OS === 'ios' ? 10 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-      paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 0,
+      height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
+      paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
       width: width,
     }]}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
