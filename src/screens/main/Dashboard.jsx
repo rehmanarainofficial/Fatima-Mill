@@ -292,7 +292,7 @@ const Dashboard = ({navigation}) => {
                   titleSize={2}
                   titleWeight
                 />
-                <View style={{width: responsiveWidth(60), marginTop: 8}}>
+                <View style={{width: responsiveWidth(60), marginTop: 10}}>
                   <AppText
                     title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
                     titleColor={APPCOLORS.WHITE}
@@ -346,18 +346,16 @@ const styles = StyleSheet.create({
     color: APPCOLORS.BLACK,
     marginTop: responsiveHeight(3),
     marginBottom: responsiveHeight(1),
-    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
+    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 5 : 5),
   },
   infoBannerContainer: {
-    gap: responsiveWidth(5),
-    paddingLeft: responsiveWidth(5),
-    paddingBottom: responsiveHeight(2),
+    gap: responsiveWidth(0),
   },
   infoBannerGradient: {
-    height: responsiveHeight(Platform.OS === 'ios' ? 16 : 18), // Adjusted height for iOS
-    width: responsiveWidth(80),
+    height: responsiveHeight(Platform.OS === 'ios' ? 20 : 18),
+    width: responsiveWidth(85),
     borderRadius: 16,
-    padding: responsiveWidth(5),
+    paddingHorizontal: responsiveWidth(5),
     justifyContent: 'center',
   },
   modalContent: {
