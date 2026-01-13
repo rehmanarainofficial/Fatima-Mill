@@ -4,14 +4,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
-  PermissionsAndroid, Platform
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
-import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import Toast from 'react-native-toast-message';
 import {
@@ -21,11 +23,11 @@ import {
 } from '../../../../utils/Responsive';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-const Aging = ({ navigation, route }) => {
+const Aging = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
-  const { name, item } = route.params;
+  const {name, item} = route.params;
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -44,10 +46,10 @@ const Aging = ({ navigation, route }) => {
     data.append('customer_id', item?.customer_id);
     axios
       .post(`${BASEURL}dash_cust_aging.php`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {'Content-Type': 'multipart/form-data'},
       })
       .then(res => {
-        setAgingData(res.data.data_cust_age || [])
+        setAgingData(res.data.data_cust_age || []);
         console.log('Customer Aging:', res.data);
       })
       .catch(err => console.warn('API error', err.message))
@@ -61,7 +63,7 @@ const Aging = ({ navigation, route }) => {
 
     axios
       .post(`${BASEURL}dash_supp_aging.php`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {'Content-Type': 'multipart/form-data'},
         maxBodyLength: Infinity,
       })
       .then(response => {
@@ -104,7 +106,7 @@ const Aging = ({ navigation, route }) => {
   };
 
   // Format date from "2024-05-18" to "18/05/2024"
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -114,7 +116,7 @@ const Aging = ({ navigation, route }) => {
   };
 
   // Format amount - remove .00 if whole number
-  const formatAmount = (amount) => {
+  const formatAmount = amount => {
     if (!amount) return '0';
     // Remove commas and convert to number
     const num = parseFloat(String(amount).replace(/,/g, ''));
@@ -122,7 +124,10 @@ const Aging = ({ navigation, route }) => {
     if (num % 1 === 0) {
       return num.toLocaleString();
     } else {
-      return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return num.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     }
   };
 
@@ -134,7 +139,8 @@ const Aging = ({ navigation, route }) => {
   );
 
   const totalBalance = aging.reduce(
-    (sum, row) => sum + parseFloat(String(row.invoce_balance || '0').replace(/,/g, '')),
+    (sum, row) =>
+      sum + parseFloat(String(row.invoce_balance || '0').replace(/,/g, '')),
     0,
   );
 
@@ -144,7 +150,8 @@ const Aging = ({ navigation, route }) => {
   const htmlContent = `
   <div style="text-align: center; font-family: Arial, sans-serif;">
     <h1>Aging Report</h1>
-    <p><strong>Name:</strong> ${item?.name || item?.customer_name || item?.supplier_name || ''
+    <p><strong>Name:</strong> ${
+      item?.name || item?.customer_name || item?.supplier_name || ''
     }</p>
     <p><strong>Date:</strong> ${currentDate}</p>
   </div>
@@ -160,23 +167,31 @@ const Aging = ({ navigation, route }) => {
     </thead>
     <tbody>
       ${aging
-      .map(
-        row => `
+        .map(
+          row => `
           <tr>
             <td style="padding: 8px;">${formatDate(row.tran_date)}</td>
             <td style="padding: 8px;">${row.days}</td>
-            <td style="padding: 8px; text-align: right;">${formatAmount(row.Invoice_amount)}</td>
-            <td style="padding: 8px; text-align: right;">${formatAmount(row.invoce_balance)}</td>
+            <td style="padding: 8px; text-align: right;">${formatAmount(
+              row.Invoice_amount,
+            )}</td>
+            <td style="padding: 8px; text-align: right;">${formatAmount(
+              row.invoce_balance,
+            )}</td>
           </tr>
         `,
-      )
-      .join('')}
+        )
+        .join('')}
     </tbody>
     <tfoot>
       <tr style="font-weight: bold; background-color: #e6e6e6;">
         <td colspan="2" style="padding: 8px; text-align: right;">TOTAL</td>
-        <td style="padding: 8px; text-align: right;">${formatAmount(totalInvoice)}</td>
-        <td style="padding: 8px; text-align: right;">${formatAmount(totalBalance)}</td>
+        <td style="padding: 8px; text-align: right;">${formatAmount(
+          totalInvoice,
+        )}</td>
+        <td style="padding: 8px; text-align: right;">${formatAmount(
+          totalBalance,
+        )}</td>
       </tr>
     </tfoot>
   </table>
@@ -204,6 +219,17 @@ const Aging = ({ navigation, route }) => {
 
       const file = await RNHTMLtoPDF.convert(options);
       console.log('📄 Internal PDF created at:', file.filePath);
+
+      if (Platform.OS === 'ios') {
+        await Share.open({
+          url: file.filePath,
+          type: 'application/pdf',
+          saveToFiles: true,
+          title: 'Save Aging Report',
+        });
+        setLoading(false);
+        return;
+      }
 
       const publicDir =
         Platform.Version >= 29
@@ -241,7 +267,7 @@ const Aging = ({ navigation, route }) => {
           alignItems: 'center',
           backgroundColor: '#fff',
         }}>
-        <Text style={{ fontSize: 16, marginBottom: 10 }}>
+        <Text style={{fontSize: 16, marginBottom: 10}}>
           Loading Aging Data...
         </Text>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
@@ -250,15 +276,23 @@ const Aging = ({ navigation, route }) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       {/* Custom Header */}
       <View
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-          width: '100%',
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
+        style={[
+          styles.header,
+          {
+            height:
+              responsiveHeight(Platform.OS === 'ios' ? 8 : 10) +
+              (Platform.OS === 'ios' ? insets.top : 0),
+            paddingTop:
+              Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
+            width: '100%',
+          },
+        ]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{padding: 5}}>
           <Ionicons
             name="arrow-back"
             size={responsiveFontSize(3)}
@@ -273,7 +307,7 @@ const Aging = ({ navigation, route }) => {
 
         <TouchableOpacity
           onPress={generatePDF}
-          style={{ padding: 5 }}
+          style={{padding: 5}}
           disabled={loading || aging.length === 0}>
           {loading ? (
             <ActivityIndicator size="small" color="white" />
@@ -290,7 +324,7 @@ const Aging = ({ navigation, route }) => {
       <FlatList
         data={aging}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
+        renderItem={({item, index}) => (
           <View
             style={{
               flexDirection: 'row',
@@ -336,7 +370,7 @@ const Aging = ({ navigation, route }) => {
             </Text>
 
             {/* Balance - formatted without .00 */}
-            <Text style={{ flex: 1, textAlign: 'center', fontSize: 12 }}>
+            <Text style={{flex: 1, textAlign: 'center', fontSize: 12}}>
               {formatAmount(item.invoce_balance)}
             </Text>
           </View>

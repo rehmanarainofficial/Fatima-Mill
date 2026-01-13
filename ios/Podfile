@@ -14,13 +14,16 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'AwesomeProject' do
+target 'FatimaMill' do
+  use_frameworks! :linkage => :static
   config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :fabric_enabled => false,
+    :hermes_enabled => false
   )
 
   post_install do |installer|
