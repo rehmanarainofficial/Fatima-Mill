@@ -69,5 +69,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to let you upload and save documents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app requires permission to save generated PDFs and documents to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take photos of documents or profiles.</string>
 </dict>
 </plist>
