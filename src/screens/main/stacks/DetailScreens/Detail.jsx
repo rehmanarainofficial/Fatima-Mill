@@ -29,7 +29,7 @@ const Detail = ({ navigation }) => {
   const [loader, setLoader] = useState(!cachedData.slider_data);
 
   const formatNumber = num => {
-    if (num === undefined || num === null) return '-';
+    if (num === undefined || num === null) {return '-';}
     return Number(num).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,

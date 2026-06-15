@@ -3,8 +3,6 @@ import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import CryptoJS from 'crypto-js';
 
-import moment from 'moment';
-
 export const CurrentLogin = createAsyncThunk(
   'user',
   async ({config, username, password}) => {
@@ -16,17 +14,16 @@ export const CurrentLogin = createAsyncThunk(
         if (user) {
           const hashedPassword = CryptoJS.MD5(password).toString();
 
-
           if (hashedPassword === user.password) {
             console.log('Login successful');
             return user;
           } else {
             console.log('Invalid password');
-            Toast.show({
-              type: 'error',
-              text1: 'Invalid password',
-              text2: 'Your password is incorrect',
-            });
+            // Toast.show({
+            //   type: 'error',
+            //   text1: 'Invalid password',
+            //   text2: 'Your password is incorrect',
+            // });
           }
         } else {
           console.log('Not Found User');
@@ -86,15 +83,12 @@ export const AuthSlice = createSlice({
           state.currentData = action.payload;
           state.token = action.payload.password;
         } else {
-          // Toast.show({
-          //   type: 'error',
-          //   text1: 'Your username or password is incorrect',
-          // });
+          Toast.show({
+            type: 'error',
+            text1: 'Your username or password is incorrect',
+          });
         }
         console.log('first', action.payload);
-
-        // state.currentData = action.payload.data
-        // state.token = action.payload.data.token
       })
       .addCase(CurrentLogin.rejected, (state, action) => {
         state.Loading = false;
@@ -102,7 +96,6 @@ export const AuthSlice = createSlice({
   },
 });
 
-// Action creators are generated for each case reducer function
 export const {
   setMyData,
   setToken,
@@ -114,6 +107,3 @@ export const {
 } = AuthSlice.actions;
 
 export default AuthSlice.reducer;
-
-// export const getCurrentUser = state => state.UsersData.currentData
-// export const getToken = state => state.UsersData.currentData

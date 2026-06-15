@@ -16,11 +16,11 @@ const DashboardTabs = ({ logo, name, isNew,onPress, img }: Props) => {
   return (
     <TouchableOpacity onPress={onPress} style={{height:responsiveHeight(12), width:responsiveHeight(12), backgroundColor:APPCOLORS.BarColor, borderRadius:20, alignItems:'center', justifyContent:'center', gap:10, paddingHorizontal:15}}>
       <Image source={img} style={{height:responsiveHeight(4), width:responsiveHeight(4)}}/>
-      <AppText title={name} titleAlignment={"center"} titleColor={APPCOLORS.WHITE} titleSize={1.7} titleWeight/>
+      <AppText title={name} titleAlignment={'center'} titleColor={APPCOLORS.WHITE} titleSize={1.7} titleWeight/>
     </TouchableOpacity>
   );
 };
 
-                  
+
 
 export default DashboardTabs;

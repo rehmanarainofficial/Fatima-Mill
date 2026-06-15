@@ -63,7 +63,7 @@ const LedgersScreen = ({ route, navigation }) => {
   // Fetch ledger data with filters - FORM DATA with POST
   const fetchData = async () => {
     try {
-      if (!item) return;
+      if (!item) {return;}
 
       setLoading(true);
 
@@ -133,7 +133,7 @@ const LedgersScreen = ({ route, navigation }) => {
     const groupedData = {};
     data.forEach(item => {
       const date = item.doc_date;
-      if (!groupedData[date]) groupedData[date] = [];
+      if (!groupedData[date]) {groupedData[date] = [];}
       groupedData[date].push(item);
     });
 

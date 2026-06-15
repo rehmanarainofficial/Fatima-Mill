@@ -182,9 +182,9 @@ const StockMovements = ({ navigation, route }) => {
   // FORMAT NUMBER WITH COMMAS
   // ------------------------------
   const formatNumber = num => {
-    if (num === null || num === undefined) return '0';
+    if (num === null || num === undefined) {return '0';}
     const number = typeof num === 'string' ? parseFloat(num) : num;
-    if (isNaN(number)) return '0';
+    if (isNaN(number)) {return '0';}
 
     // Round to 2 decimal places and format with commas
     return Math.round(number).toLocaleString('en-US');
@@ -495,7 +495,7 @@ const StockMovements = ({ navigation, route }) => {
                   mode="date"
                   display="inline"
                   onChange={(e, d) => {
-                    if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
+                    if (d) {setFromDate(moment(d).format('YYYY-MM-DD'));}
                   }}
                   themeVariant="dark"
                 />
@@ -514,7 +514,7 @@ const StockMovements = ({ navigation, route }) => {
               mode="date"
               onChange={(e, d) => {
                 setShowFromPicker(false);
-                if (d) setFromDate(moment(d).format('YYYY-MM-DD'));
+                if (d) {setFromDate(moment(d).format('YYYY-MM-DD'));}
               }}
             />
           )
@@ -539,7 +539,7 @@ const StockMovements = ({ navigation, route }) => {
                   mode="date"
                   display="inline"
                   onChange={(e, d) => {
-                    if (d) setToDate(moment(d).format('YYYY-MM-DD'));
+                    if (d) {setToDate(moment(d).format('YYYY-MM-DD'));}
                   }}
                   themeVariant="dark"
                 />
@@ -558,7 +558,7 @@ const StockMovements = ({ navigation, route }) => {
               mode="date"
               onChange={(e, d) => {
                 setShowToPicker(false);
-                if (d) setToDate(moment(d).format('YYYY-MM-DD'));
+                if (d) {setToDate(moment(d).format('YYYY-MM-DD'));}
               }}
             />
           )

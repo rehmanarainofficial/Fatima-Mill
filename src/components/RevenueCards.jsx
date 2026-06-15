@@ -1,10 +1,10 @@
-import { View, Text, TouchableOpacity } from 'react-native'
-import React from 'react'
-import AppText from './AppText'
-import LinearGradient from 'react-native-linear-gradient'
-import { responsiveFontSize, responsiveWidth } from '../utils/Responsive'
-import { APPCOLORS } from '../utils/APPCOLORS'
-import AntDesign from 'react-native-vector-icons/AntDesign'
+import { View, Text, TouchableOpacity } from 'react-native';
+import React from 'react';
+import AppText from './AppText';
+import LinearGradient from 'react-native-linear-gradient';
+import { responsiveFontSize, responsiveWidth } from '../utils/Responsive';
+import { APPCOLORS } from '../utils/APPCOLORS';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const RevenueCards = ({ amount, gradientBottomColor, gradientTopColor, title, type, IsUp, onPress, prev_amount, prev_title, prev_type }) => {
   return (
@@ -20,14 +20,14 @@ const RevenueCards = ({ amount, gradientBottomColor, gradientTopColor, title, ty
               IsUp ?
 
                 <AntDesign
-                  name={"arrowup"}
+                  name={'arrowup'}
                   size={responsiveFontSize(3)}
                   color={APPCOLORS.WHITE}
                 />
                 :
 
                 <AntDesign
-                  name={"arrowdown"}
+                  name={'arrowdown'}
                   size={responsiveFontSize(3)}
                   color={APPCOLORS.WHITE}
                 />
@@ -42,7 +42,7 @@ const RevenueCards = ({ amount, gradientBottomColor, gradientTopColor, title, ty
 
       </LinearGradient>
     </TouchableOpacity>
-  )
-}
+  );
+};
 
-export default RevenueCards
+export default RevenueCards;

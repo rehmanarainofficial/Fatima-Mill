@@ -16,6 +16,9 @@ import ViewLedger from '../screens/main/stacks/DetailScreens/ViewLedger';
 import StockSheetScreen from '../screens/main/stacks/DetailScreens/StockSheetScreen';
 import LedgersScreen from '../screens/main/stacks/AgingAndLedger/LedgersScreen';
 import StockMovements from '../screens/main/stacks/AgingAndLedger/StockMovements';
+import VoidTransactions from '../screens/main/stacks/VoidTransactions/VoidTransactions';
+import VoidTransactionDetail from '../screens/main/stacks/VoidTransactions/VoidTransactionDetail';
+import DeliveryScreen from '../screens/main/stacks/Delivery/DeliveryScreen';
 
 const Stack = createStackNavigator();
 
@@ -43,6 +46,9 @@ const Main = () => {
         component={ShowUnapprovedDetails}
       />
       <Stack.Screen name="Ledgers" component={LedgersScreen} />
+      <Stack.Screen name="VoidTransactions" component={VoidTransactions} />
+      <Stack.Screen name="VoidTransactionDetail" component={VoidTransactionDetail} />
+      <Stack.Screen name="DeliveryScreen" component={DeliveryScreen} />
     </Stack.Navigator>
   );
 };

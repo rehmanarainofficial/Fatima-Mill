@@ -1,31 +1,31 @@
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AlertCards from '../../../../components/AlertCards'
-import axios from 'axios'
-import BaseUrl from '../../../../utils/BaseUrl'
-import { APPCOLORS } from '../../../../utils/APPCOLORS'
+import AlertCards from '../../../../components/AlertCards';
+import axios from 'axios';
+import BaseUrl from '../../../../utils/BaseUrl';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 
 const AlertScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const [data, setData] = useState([])
-  const [AllData, setAllData] = useState()
+  const [data, setData] = useState([]);
+  const [AllData, setAllData] = useState();
 
-  const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      getMoneyData()
-    })
-    return unsubscribe
-  }, [navigation])
+      getMoneyData();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
 
 
   const getMoneyData = async () => {
-    setLoader(true)
+    setLoader(true);
 
 
     const options = {
@@ -38,13 +38,13 @@ const AlertScreen = ({ navigation }) => {
     try {
       const { data } = await axios.request(options);
       // console.log(data);
-      setAllData(data)
-      setLoader(false)
+      setAllData(data);
+      setLoader(false);
     } catch (error) {
       console.error(error);
-      setLoader(false)
+      setLoader(false);
     }
-  }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -65,7 +65,7 @@ const AlertScreen = ({ navigation }) => {
 
         <Text style={styles.headerTitle}>Alerts</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}
@@ -82,46 +82,46 @@ const AlertScreen = ({ navigation }) => {
         }
 
         <AlertCards
-          AlertHeading={"Sales Alert"}
-          HeadingOne={"Quotation approval"}
+          AlertHeading={'Sales Alert'}
+          HeadingOne={'Quotation approval'}
           ValueOne={AllData?.approval_data?.quotation_approval}
-          onValuePressOne={() => navigation.navigate("ShowUnapprovedDetails", { dataDetail: AllData?.data_unapprove_quote })}
+          onValuePressOne={() => navigation.navigate('ShowUnapprovedDetails', { dataDetail: AllData?.data_unapprove_quote })}
 
 
-          HeadingTwo={"So approval"}
+          HeadingTwo={'So approval'}
           ValueTwo={AllData?.approval_data?.so_approval}
 
 
-          HeadingThree={"Po approval"}
+          HeadingThree={'Po approval'}
           ValueThree={AllData?.approval_data?.po_approval}
-          onValuePressThree={() => navigation.navigate("ShowUnapprovedDetails", { dataDetail: AllData?.data_unapprove_po_order })}
+          onValuePressThree={() => navigation.navigate('ShowUnapprovedDetails', { dataDetail: AllData?.data_unapprove_po_order })}
 
         />
         <AlertCards data={AllData}
-          AlertHeading={"Purchase Alert"}
-          HeadingOne={"Grn approval"}
+          AlertHeading={'Purchase Alert'}
+          HeadingOne={'Grn approval'}
           ValueOne={AllData?.approval_data?.grn_approval}
 
-          HeadingTwo={"Invoice approval"}
+          HeadingTwo={'Invoice approval'}
           ValueTwo={AllData?.approval_data?.po_invoice_approval}
 
-          HeadingThree={"Voucher approval"}
+          HeadingThree={'Voucher approval'}
           ValueThree={AllData?.approval_data?.voucher_approval}
 
         />
         <AlertCards data={AllData}
-          AlertHeading={"Inventory Alert"}
-          HeadingOne={"Delivery approval"}
+          AlertHeading={'Inventory Alert'}
+          HeadingOne={'Delivery approval'}
           ValueOne={AllData?.approval_data?.delivery_approval}
 
-          HeadingTwo={"Invoice approval"}
+          HeadingTwo={'Invoice approval'}
           ValueTwo={AllData?.approval_data?.invoice_approval}
 
 
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default AlertScreen
+export default AlertScreen;

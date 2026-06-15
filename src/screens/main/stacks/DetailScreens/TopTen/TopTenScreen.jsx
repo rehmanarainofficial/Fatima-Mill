@@ -86,7 +86,7 @@ const TopTenScreen = ({ route, navigation }) => {
 
         <Text style={styles.headerTitle}>{`Top 10 ${name}`}</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}
@@ -112,7 +112,7 @@ const TopTenScreen = ({ route, navigation }) => {
                 allData: allData,
               })
             }>
-            <AppText title={`View All`} titleSize={2} titleWeight />
+            <AppText title={'View All'} titleSize={2} titleWeight />
           </TouchableOpacity>
         </View>
 

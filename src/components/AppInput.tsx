@@ -1,7 +1,7 @@
-import { View, Text, TextInput } from 'react-native'
-import React from 'react'
-import { APPCOLORS } from '../utils/APPCOLORS'
-import { responsiveHeight, responsiveWidth } from '../utils/Responsive'
+import { View, Text, TextInput } from 'react-native';
+import React from 'react';
+import { APPCOLORS } from '../utils/APPCOLORS';
+import { responsiveHeight, responsiveWidth } from '../utils/Responsive';
 
 type props = {
     moreStyle?: any,
@@ -29,7 +29,7 @@ const AppInput = ({isPassword, logo, moreStyle, placeHolder,onChangeText,value, 
         secureTextEntry={secureTextEntry}
       />
     </View>
-  )
-}
+  );
+};
 
-export default AppInput
+export default AppInput;

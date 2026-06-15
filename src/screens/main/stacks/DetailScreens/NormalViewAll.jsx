@@ -55,13 +55,13 @@ const NormalViewAll = ({ navigation, route }) => {
     } else if (dataname === 'item') {
       // For Inventory items, navigate to All Stock Movements
       navigation.navigate('StockMovements', {
-        fromAllMovements: true
+        fromAllMovements: true,
       });
     }
   };
 
   const getButtonTitle = () => {
-    if (dataname === 'item') return 'All Movements';
+    if (dataname === 'item') {return 'All Movements';}
     return 'Ledger';
   };
 
@@ -84,7 +84,7 @@ const NormalViewAll = ({ navigation, route }) => {
 
         <Text style={styles.headerTitle}>View All</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}

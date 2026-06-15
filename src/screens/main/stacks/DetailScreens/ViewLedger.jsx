@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Animated,
   TouchableOpacity,
-  Platform
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import moment from 'moment';
@@ -198,7 +198,7 @@ const ViewLedger = ({ navigation }) => {
     const groupedData = {};
     data.forEach(item => {
       const date = item.doc_date;
-      if (!groupedData[date]) groupedData[date] = [];
+      if (!groupedData[date]) {groupedData[date] = [];}
       groupedData[date].push(item);
     });
     return Object.keys(groupedData).map(date => ({

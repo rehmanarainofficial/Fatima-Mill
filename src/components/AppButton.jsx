@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native'
-import React from 'react'
-import LinearGradient from 'react-native-linear-gradient'
-import { responsiveHeight, responsiveWidth } from '../utils/Responsive'
-import AppText from './AppText'
-import { APPCOLORS } from '../utils/APPCOLORS'
+import { View, Text, TouchableOpacity } from 'react-native';
+import React from 'react';
+import LinearGradient from 'react-native-linear-gradient';
+import { responsiveHeight, responsiveWidth } from '../utils/Responsive';
+import AppText from './AppText';
+import { APPCOLORS } from '../utils/APPCOLORS';
 
 const AppButton = ({ title,onPress, btnWidth }) => {
     return (
@@ -13,7 +13,7 @@ const AppButton = ({ title,onPress, btnWidth }) => {
             <AppText title={title} titleColor={APPCOLORS.WHITE} titleSize={2} titleWeight/>
             </TouchableOpacity>
         </LinearGradient>
-    )
-}
+    );
+};
 
-export default AppButton
+export default AppButton;

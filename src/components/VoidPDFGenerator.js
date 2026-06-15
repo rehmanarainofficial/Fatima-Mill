@@ -272,11 +272,13 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
 
   if (Platform.OS === 'android') {
     const base64Data = await RNFS.readFile(file.filePath, 'base64');
+    const cleanBase64 = base64Data.replace(/(\r\n|\n|\r)/gm, '');
     await Share.open({
-      url: `data:application/pdf;base64,${base64Data}`,
+      url: `data:application/pdf;base64,${cleanBase64}`,
       type: 'application/pdf',
       filename: fileName,
       title: `Share ${selectedVoucherTitle || 'Voucher'}`,
+      useInternalStorage: true,
     });
   } else {
     await Share.open({

@@ -7,4 +7,4 @@ export const AppImages = {
     bird: require('./bird.png'),
     delivery: require('./delivery.png'),
     warning: require('./warning.png'),
-}
+};

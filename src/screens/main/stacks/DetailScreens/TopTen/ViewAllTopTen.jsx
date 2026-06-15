@@ -1,10 +1,10 @@
-import { View, Text, TouchableOpacity, FlatList, TextInput, Platform, StyleSheet } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import { View, Text, TouchableOpacity, FlatList, TextInput, Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import NameBalanceContainer from '../../../../../components/NameBalanceContainer'
-import AppText from '../../../../../components/AppText'
+import NameBalanceContainer from '../../../../../components/NameBalanceContainer';
+import AppText from '../../../../../components/AppText';
 import { APPCOLORS } from '../../../../../utils/APPCOLORS';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../../utils/Responsive';
 
@@ -62,7 +62,7 @@ const ViewAllTopTen = ({ navigation, route }) => {
 
         <Text style={styles.headerTitle}>{`All ${name}`}</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}

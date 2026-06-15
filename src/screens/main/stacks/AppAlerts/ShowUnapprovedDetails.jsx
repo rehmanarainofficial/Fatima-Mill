@@ -1,10 +1,10 @@
-import { View, Text, FlatList, TextInput, TouchableOpacity, Platform } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, FlatList, TextInput, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { APPCOLORS } from '../../../../utils/APPCOLORS'
-import AppText from '../../../../components/AppText'
-import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive'
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import AppText from '../../../../components/AppText';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 
 const ShowUnapprovedDetails = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -51,7 +51,7 @@ const ShowUnapprovedDetails = ({ navigation, route }) => {
 
         <Text style={styles.headerTitle}>Alerts Details</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}

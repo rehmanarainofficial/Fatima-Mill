@@ -1,5 +1,5 @@
-import { combineReducers, configureStore , Tuple,  } from '@reduxjs/toolkit'
-import counterReducer from './AuthSlice'
+import { combineReducers, configureStore , Tuple  } from '@reduxjs/toolkit';
+import counterReducer from './AuthSlice';
 import {
     persistStore,
     persistReducer,
@@ -9,8 +9,8 @@ import {
     PERSIST,
     PURGE,
     REGISTER,
-  } from 'redux-persist'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+  } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const persistConfig = {
@@ -27,7 +27,7 @@ export const Store = configureStore({
         Data: persistedReducer,
     },
     devTools: process.env.NODE_ENV !== 'production',
-    
+
     middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -35,7 +35,7 @@ export const Store = configureStore({
       },
     }),
 
-})
+});
 
 
-export const persistor = persistStore(Store)
+export const persistor = persistStore(Store);

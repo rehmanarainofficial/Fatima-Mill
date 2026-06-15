@@ -4,23 +4,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  FlatList,
   Text,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeInLeft,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, {FadeInUp, FadeInDown} from 'react-native-reanimated';
 import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import axios from 'axios';
 import moment from 'moment';
 import AppText from '../../components/AppText';
@@ -39,93 +34,29 @@ const dashboardCache = {
   lastFetched: null,
 };
 
-const ScaleCard = ({children, onPress}) => {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, {damping: 8, stiffness: 100});
-  };
-  const handlePressOut = () => {
-    scale.value = withSpring(1, {damping: 8, stiffness: 100});
-  };
-
-  return (
-    <Animated.View style={[styles.cardWrapper, animatedStyle]}>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={styles.cardTouchArea}>
-        {children}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const [Type, setType] = useState();
   const [loader, setLoader] = useState(!dashboardCache.data);
-
-  const companyData = [
-    {
-      id: 1,
-      name: 'IBR-ENT',
-      icon: (
-        <MaterialIcons
-          name="account-balance"
-          size={responsiveFontSize(4)}
-          color={APPCOLORS.Primary}
-        />
-      ),
-      onPress: () => navigation.navigate('Detail', {type: 'Sales'}),
-    },
-    {
-      id: 2,
-      name: 'FBPM',
-      icon: (
-        <MaterialIcons
-          name="account-balance"
-          size={responsiveFontSize(4)}
-          color={APPCOLORS.Primary}
-        />
-      ),
-      onPress: () => navigation.navigate('Detail', {type: 'Purchase'}),
-    },
-    {
-      id: 3,
-      name: 'Company3',
-      icon: (
-        <MaterialIcons
-          name="account-balance"
-          size={responsiveFontSize(4)}
-          color={APPCOLORS.Primary}
-        />
-      ),
-      onPress: () => navigation.navigate('Detail', {type: 'Accounts'}),
-    },
-    {
-      id: 4,
-      name: 'Company4',
-      icon: (
-        <MaterialIcons
-          name="account-balance"
-          size={responsiveFontSize(4)}
-          color={APPCOLORS.Primary}
-        />
-      ),
-      onPress: () => navigation.navigate('Detail', {type: 'Inventory'}),
-    },
-  ];
+  const [slider_data, setslider_data] = useState(
+    dashboardCache.data?.slider_data || null,
+  );
+  const [today_data, settoday_data] = useState(
+    dashboardCache.data?.today_data || null,
+  );
+  const [AllData, setAllData] = useState(dashboardCache.data || null);
 
   useEffect(() => {
     if (!dashboardCache.data) {
       getMoneyData();
+    } else {
+      if (!slider_data) {
+        setslider_data(dashboardCache.data?.slider_data);
+        settoday_data(dashboardCache.data?.today_data);
+        setAllData(dashboardCache.data);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getMoneyData = async () => {
@@ -138,11 +69,235 @@ const Dashboard = ({navigation}) => {
       });
       dashboardCache.data = data; // 🔹 Cache it
       dashboardCache.lastFetched = Date.now();
+      setslider_data(data?.slider_data);
+      settoday_data(data?.today_data);
+      setAllData(data);
     } catch (error) {
       console.error('Dashboard API Error:', error);
     } finally {
       setLoader(false);
     }
+  };
+
+  const formatValue = (val, isInteger = false) => {
+    if (val === undefined || val === null) {return '-';}
+    const parsed = Number(val);
+    if (isNaN(parsed)) {return val;}
+    if (isInteger || (parsed % 1 === 0 && parsed < 1000)) {
+      return parsed.toString();
+    }
+    return parsed.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const revData = [
+    {
+      id: 7,
+      title: 'Bank & Cash',
+      icon: 'bank',
+      color: '#4CAF50',
+      Amount: slider_data?.cur_m_bank,
+      Prev_Amount: slider_data?.pre_m_bank,
+    },
+    {
+      id: 8,
+      title: 'Receivable',
+      icon: 'cash-multiple',
+      color: '#03A9F4',
+      Amount: slider_data?.cur_m_receivable,
+      Prev_Amount: slider_data?.pre_m_receivable,
+    },
+    {
+      id: 14,
+      title: 'Inventory Valuation',
+      icon: 'warehouse',
+      color: '#FF9800',
+      Amount: slider_data?.cur_m_inventory_val,
+      Prev_Amount: slider_data?.pre_m_inventory_val,
+    },
+    {
+      id: 9,
+      title: 'Payable',
+      icon: 'credit-card-outline',
+      color: '#E91E63',
+      Amount: slider_data?.cur_m_payable,
+      Prev_Amount: slider_data?.pre_m_payable,
+    },
+    {
+      id: 4,
+      title: 'Equity',
+      icon: 'account-cash-outline',
+      color: '#673AB7',
+      Amount: slider_data?.cur_m_equity,
+      Prev_Amount: slider_data?.pre_m_equity,
+    },
+    {
+      id: 1,
+      title: 'Income',
+      icon: 'chart-line',
+      color: '#009688',
+      Amount: slider_data?.cur_m_income,
+      Prev_Amount: slider_data?.pre_m_income,
+    },
+    {
+      id: 2,
+      title: 'Expense',
+      icon: 'cash-minus',
+      color: '#F44336',
+      Amount: slider_data?.cur_m_expense,
+      Prev_Amount: slider_data?.pre_m_expense,
+    },
+    {
+      id: 3,
+      title: 'Revenue',
+      icon: 'trending-up',
+      color: '#2196F3',
+      Amount: slider_data?.cur_m_revenue,
+      Prev_Amount: slider_data?.pre_m_revenue,
+    },
+    {
+      id: 102,
+      title: 'Delivery',
+      icon: 'truck-delivery-outline',
+      color: '#795548',
+      Amount: today_data?.today_return,
+      Prev_Amount: today_data?.today_recovery,
+      leftLabel: "Today's Return",
+      rightLabel: "Today's Recovery",
+      onPress: () => navigation.navigate('DeliveryScreen'),
+    },
+    {
+      id: 103,
+      title: 'Daily Activities',
+      icon: 'calendar',
+      color: '#D32F2F',
+      description: 'Today Sales and Orders',
+      onPress: () => navigation.navigate('VoidTransactions'),
+    },
+  ];
+
+  const renderCard = (item, index) => {
+    const leftLabel = item.leftLabel || 'Current Month';
+    const rightLabel = item.rightLabel || 'Previous Month';
+
+    return (
+      <Animated.View
+        key={item.id}
+        entering={FadeInUp.delay(index * 80).duration(500)}
+        style={{
+          width: responsiveWidth(94),
+          alignSelf: 'center',
+          backgroundColor: '#fff',
+          borderRadius: 14,
+          elevation: 5,
+          shadowColor: '#000',
+          shadowOpacity: 0.08,
+          shadowOffset: {width: 0, height: 3},
+          shadowRadius: 5,
+          paddingVertical: responsiveHeight(1.5),
+          paddingHorizontal: responsiveWidth(4),
+          marginBottom: responsiveHeight(1.5),
+          borderLeftWidth: 5,
+          borderLeftColor: item.color,
+        }}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => {
+            if (item.onPress) {
+              item.onPress();
+            } else {
+              navigation.navigate('MoreDetail', {
+                slider_data: AllData,
+                selectedItem: item.title,
+              });
+            }
+          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 6,
+            }}>
+            <Icon
+              name={item.icon}
+              size={responsiveFontSize(2.5)}
+              color={item.color}
+              style={{marginRight: 8}}
+            />
+            <Text
+              style={{
+                fontWeight: '700',
+                fontSize: responsiveFontSize(1.8),
+                color: APPCOLORS.BLACK,
+              }}>
+              {item.title}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              height: 1,
+              backgroundColor: '#E0E0E0',
+              width: '65%',
+              alignSelf: 'flex-start',
+              marginBottom: responsiveHeight(1),
+            }}
+          />
+
+          {item.description ? (
+            <Text
+              style={{
+                fontSize: responsiveFontSize(1.6),
+                color: '#666',
+                marginTop: 4,
+              }}>
+              {item.description}
+            </Text>
+          ) : (
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingHorizontal: 4,
+              }}>
+              <View style={{alignItems: 'flex-start'}}>
+                <Text
+                  style={{fontSize: responsiveFontSize(1.5), color: '#888'}}>
+                  {leftLabel}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.8),
+                    fontWeight: '600',
+                    color: APPCOLORS.BLACK,
+                    marginTop: 2,
+                  }}>
+                  {formatValue(item.Amount)}
+                </Text>
+              </View>
+
+              <View style={{alignItems: 'flex-end'}}>
+                <Text
+                  style={{fontSize: responsiveFontSize(1.5), color: '#888'}}>
+                  {rightLabel}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.8),
+                    fontWeight: '600',
+                    color: APPCOLORS.BLACK,
+                    marginTop: 2,
+                  }}>
+                  {formatValue(item.Prev_Amount, item.isIntegerRight)}
+                </Text>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+    );
   };
 
   return (
@@ -220,89 +375,16 @@ const Dashboard = ({navigation}) => {
       {/* 🔹 Scroll Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollViewContent}>
+        contentContainerStyle={[styles.scrollViewContent, {paddingTop: 20}]}>
         {loader && (
           <ActivityIndicator
             size="large"
             color={APPCOLORS.Primary}
-            style={{marginTop: 30}}
+            style={{marginBottom: 20}}
           />
         )}
 
-        <View style={styles.cardGridContainer}>
-          <View style={styles.gridRow}>
-            {companyData.slice(0, 2).map((item, index) => (
-              <Animated.View
-                key={item.id}
-                entering={FadeInUp.delay(index * 120).duration(700)}>
-                <ScaleCard onPress={item.onPress}>
-                  <View style={styles.cardInnerView}>
-                    {item.icon}
-                    <AppText
-                      title={item.name}
-                      titleColor={APPCOLORS.BLACK}
-                      titleWeight
-                      titleSize={2}
-                    />
-                  </View>
-                </ScaleCard>
-              </Animated.View>
-            ))}
-          </View>
-
-          <View style={styles.gridRow}>
-            {companyData.slice(2, 4).map((item, index) => (
-              <Animated.View
-                key={item.id}
-                entering={FadeInUp.delay((index + 2) * 120).duration(700)}>
-                <ScaleCard onPress={item.onPress}>
-                  <View style={styles.cardInnerView}>
-                    {item.icon}
-                    <AppText
-                      title={item.name}
-                      titleColor={APPCOLORS.BLACK}
-                      titleWeight
-                      titleSize={2}
-                    />
-                  </View>
-                </ScaleCard>
-              </Animated.View>
-            ))}
-          </View>
-        </View>
-
-        <Animated.View entering={FadeInLeft.delay(800).duration(1000)}>
-          <Text style={styles.updateHeading}>
-            <Text style={{fontWeight: 'bold'}}>Latest</Text> Updates
-          </Text>
-          <FlatList
-            data={[1, 2, 3]}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.infoBannerContainer}
-            renderItem={() => (
-              <LinearGradient
-                colors={['#4199B8', APPCOLORS.Primary]}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={styles.infoBannerGradient}>
-                <AppText
-                  title="🎉 New Feature Release"
-                  titleColor={APPCOLORS.WHITE}
-                  titleSize={2}
-                  titleWeight
-                />
-                <View style={{width: responsiveWidth(60), marginTop: 10}}>
-                  <AppText
-                    title='Inventory tracking has been enhanced! Check it out under the "Warehouse" module.'
-                    titleColor={APPCOLORS.WHITE}
-                    titleSize={1.7}
-                  />
-                </View>
-              </LinearGradient>
-            )}
-          />
-        </Animated.View>
+        {revData.map((item, index) => renderCard(item, index))}
       </ScrollView>
     </LinearGradient>
   );
@@ -310,55 +392,6 @@ const Dashboard = ({navigation}) => {
 
 const styles = StyleSheet.create({
   scrollViewContent: {paddingBottom: responsiveHeight(3)},
-  cardGridContainer: {
-    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 3 : 5),
-    marginTop: responsiveHeight(4),
-    gap: responsiveWidth(Platform.OS === 'ios' ? 0 : 5), // Reduced gap for iOS
-  },
-  gridRow: {flexDirection: 'row', justifyContent: 'space-between'},
-  cardWrapper: {
-    width: responsiveWidth(Platform.OS === 'ios' ? 45 : 42),
-    height: responsiveHeight(18),
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-    marginBottom: Platform.OS === 'ios' ? 10 : 0,
-  },
-  cardTouchArea: {
-    flex: 1,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardInnerView: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: responsiveWidth(4),
-    gap: responsiveHeight(1),
-  },
-  updateHeading: {
-    fontSize: responsiveFontSize(2.2),
-    color: APPCOLORS.BLACK,
-    marginTop: responsiveHeight(3),
-    marginBottom: responsiveHeight(1),
-    paddingHorizontal: responsiveWidth(Platform.OS === 'ios' ? 5 : 6),
-  },
-  infoBannerContainer: {
-    gap: responsiveWidth(Platform.OS === 'ios' ? 0 : 3),
-    marginLeft: responsiveWidth(Platform.OS === 'ios' ? 0 : 6),
-  },
-  infoBannerGradient: {
-    height: responsiveHeight(Platform.OS === 'ios' ? 20 : 20),
-    width: responsiveWidth(Platform.OS === 'ios' ? 85 : 68),
-    borderRadius: 16,
-    paddingHorizontal: responsiveWidth(5),
-    justifyContent: 'center',
-  },
   modalContent: {
     height: responsiveHeight(65),
     width: responsiveWidth(90),

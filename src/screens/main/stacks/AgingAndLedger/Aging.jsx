@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
-  PermissionsAndroid,
   Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -12,9 +11,6 @@ import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import Share from 'react-native-share';
-import RNFS from 'react-native-fs';
 import Toast from 'react-native-toast-message';
 import {
   responsiveFontSize,
@@ -24,6 +20,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {generateAgingPDF} from '../../../../components/AgingPDFGenerator';
 
 const Aging = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
@@ -38,6 +35,7 @@ const Aging = ({navigation, route}) => {
     } else if (name === 'Suppliers') {
       getSupplierAging();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getCustomerAging = () => {
@@ -78,36 +76,9 @@ const Aging = ({navigation, route}) => {
       });
   };
 
-  const requestStoragePermission = async () => {
-    if (Platform.OS !== 'android') return true;
-
-    try {
-      if (Platform.Version >= 33) {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-        ]);
-
-        return (
-          granted['android.permission.READ_MEDIA_IMAGES'] ===
-          PermissionsAndroid.RESULTS.GRANTED
-        );
-      } else {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      }
-    } catch (err) {
-      console.warn('Permission error:', err);
-      return false;
-    }
-  };
-
   // Format date from "2024-05-18" to "18/05/2024"
   const formatDate = dateString => {
-    if (!dateString) return '-';
+    if (!dateString) {return '-';}
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -117,7 +88,7 @@ const Aging = ({navigation, route}) => {
 
   // Format amount - remove .00 if whole number
   const formatAmount = amount => {
-    if (!amount) return '0';
+    if (!amount) {return '0';}
     // Remove commas and convert to number
     const num = parseFloat(String(amount).replace(/,/g, ''));
     // Format with commas but without .00 for whole numbers
@@ -144,118 +115,8 @@ const Aging = ({navigation, route}) => {
     0,
   );
 
-  // Current date in readable format
-  const currentDate = new Date().toLocaleDateString();
-
-  const htmlContent = `
-  <div style="text-align: center; font-family: Arial, sans-serif;">
-    <h1>Aging Report</h1>
-    <p><strong>Name:</strong> ${
-      item?.name || item?.customer_name || item?.supplier_name || ''
-    }</p>
-    <p><strong>Date:</strong> ${currentDate}</p>
-  </div>
-
-  <table border="1" style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
-    <thead>
-      <tr style="background-color: #f0f0f0;">
-        <th style="padding: 8px;">Tran Date</th>
-        <th style="padding: 8px;">Days</th>
-        <th style="padding: 8px;">Amount</th>
-        <th style="padding: 8px;">Balance</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${aging
-        .map(
-          row => `
-          <tr>
-            <td style="padding: 8px;">${formatDate(row.tran_date)}</td>
-            <td style="padding: 8px;">${row.days}</td>
-            <td style="padding: 8px; text-align: right;">${formatAmount(
-              row.Invoice_amount,
-            )}</td>
-            <td style="padding: 8px; text-align: right;">${formatAmount(
-              row.invoce_balance,
-            )}</td>
-          </tr>
-        `,
-        )
-        .join('')}
-    </tbody>
-    <tfoot>
-      <tr style="font-weight: bold; background-color: #e6e6e6;">
-        <td colspan="2" style="padding: 8px; text-align: right;">TOTAL</td>
-        <td style="padding: 8px; text-align: right;">${formatAmount(
-          totalInvoice,
-        )}</td>
-        <td style="padding: 8px; text-align: right;">${formatAmount(
-          totalBalance,
-        )}</td>
-      </tr>
-    </tfoot>
-  </table>
-`;
-
-  const generatePDF = async () => {
-    setLoading(true);
-    try {
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) return;
-
-      const customerName =
-        item?.name ||
-        item?.customer_name ||
-        item?.supplier_name ||
-        'Aging_Report';
-      const safeName = customerName.replace(/[^a-zA-Z0-9_]/g, '_');
-      const fileName = `${safeName}_${Date.now()}`;
-
-      const options = {
-        html: htmlContent,
-        fileName,
-        directory: 'Documents',
-      };
-
-      const file = await RNHTMLtoPDF.convert(options);
-      console.log('📄 Internal PDF created at:', file.filePath);
-
-      if (Platform.OS === 'ios') {
-        await Share.open({
-          url: file.filePath,
-          type: 'application/pdf',
-          saveToFiles: true,
-          title: 'Save Aging Report',
-        });
-        setLoading(false);
-        return;
-      }
-
-      const publicDir =
-        Platform.Version >= 29
-          ? RNFS.DownloadDirectoryPath
-          : RNFS.ExternalStorageDirectoryPath + '/Download';
-
-      const destPath = `${publicDir}/${fileName}.pdf`;
-      await RNFS.copyFile(file.filePath, destPath);
-      console.log('✅ PDF moved to visible folder:', destPath);
-
-      Toast.show({
-        type: 'success',
-        text1: 'PDF Saved',
-        text2: `Saved to Downloads as ${fileName}.pdf`,
-        visibilityTime: 3000,
-      });
-    } catch (error) {
-      console.error('❌ PDF generation error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to generate PDF.',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const generatePDF = () => {
+    generateAgingPDF(item, aging, setLoading);
   };
 
   if (dataLoading) {

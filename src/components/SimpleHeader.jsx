@@ -1,17 +1,17 @@
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator, useWindowDimensions } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import React from 'react'
-import AppText from './AppText'
-import { APPCOLORS } from '../utils/APPCOLORS'
-import Ionicons from 'react-native-vector-icons/Ionicons'
-import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/Responsive'
-import LinearGradient from 'react-native-linear-gradient'
-import { useNavigation } from '@react-navigation/native'
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from 'react';
+import AppText from './AppText';
+import { APPCOLORS } from '../utils/APPCOLORS';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../utils/Responsive';
+import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading = false, downloadDisabled = false }) => {
-  const nav = useNavigation()
-  const insets = useSafeAreaInsets()
-  const { width } = useWindowDimensions()
+  const nav = useNavigation();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
   return (
     <LinearGradient
@@ -30,7 +30,7 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
       {/* Left: Back Button */}
       <TouchableOpacity onPress={() => nav.goBack()} style={{ padding: 5 }}>
         <Ionicons
-          name={"arrow-back"}
+          name={'arrow-back'}
           size={responsiveFontSize(3)}
           color={APPCOLORS.WHITE}
         />
@@ -55,16 +55,16 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
               <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
             ) : (
               <Ionicons
-                name={"download-outline"}
+                name={'download-outline'}
                 size={responsiveFontSize(3)}
                 color={downloadDisabled ? APPCOLORS.TEXTFIELDCOLOR : APPCOLORS.WHITE}
               />
             )}
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => nav.navigate("Dashboard")} style={{ padding: 5 }}>
+          <TouchableOpacity onPress={() => nav.navigate('Dashboard')} style={{ padding: 5 }}>
             <Ionicons
-              name={"person"}
+              name={'person'}
               size={responsiveFontSize(3)}
               color={APPCOLORS.WHITE}
             />
@@ -72,7 +72,7 @@ const SimpleHeader = ({ title, showDownload = false, onDownload, downloadLoading
         )
       }
     </LinearGradient >
-  )
-}
+  );
+};
 
-export default SimpleHeader
+export default SimpleHeader;

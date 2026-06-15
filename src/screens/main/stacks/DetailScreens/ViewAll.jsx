@@ -30,7 +30,7 @@ const ViewAll = ({ navigation, route }) => {
 
         <Text style={styles.headerTitle}>Detailed</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")} style={{ padding: 5 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
           <Ionicons
             name="person"
             size={responsiveFontSize(3)}
