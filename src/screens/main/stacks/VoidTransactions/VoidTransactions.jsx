@@ -73,7 +73,9 @@ const VoidTransactions = ({navigation}) => {
   const [isSharing, setIsSharing] = useState(false);
 
   const requestStoragePermission = async () => {
-    if (Platform.OS !== 'android') {return true;}
+    if (Platform.OS !== 'android') {
+      return true;
+    }
     try {
       if (Platform.Version >= 33) {
         const granted = await PermissionsAndroid.requestMultiple([
@@ -133,8 +135,13 @@ const VoidTransactions = ({navigation}) => {
       const details = res.data.data_detail || [];
 
       // Call external PDF generator & sharing helper
-      await shareVoidTransactionPDF(item, header, details, selectedVoucher?.title);
-
+      await shareVoidTransactionPDF(
+        item,
+        header,
+        details,
+        selectedVoucher?.title,
+        selectedVoucher?.id,
+      );
     } catch (err) {
       console.log('Share Error:', err);
       Toast.show({
@@ -148,15 +155,21 @@ const VoidTransactions = ({navigation}) => {
   };
 
   const formatDateForAPI = date => {
-    if (!date) {return '';}
+    if (!date) {
+      return '';
+    }
     return moment(date).format('YYYY-MM-DD');
   };
 
   const formatDateDisplay = dateStr => {
-    if (!dateStr) {return '';}
+    if (!dateStr) {
+      return '';
+    }
     const parts = dateStr.split('-');
-    if (parts.length !== 3) {return dateStr;}
-    return `${parts[2]}/${parts[1]}/${parts[0]}`; // dd/mm/yyyy
+    if (parts.length !== 3) {
+      return dateStr;
+    }
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   const resetSearchState = () => {
@@ -173,7 +186,9 @@ const VoidTransactions = ({navigation}) => {
 
   const handleSearch = async (typeOverride = null) => {
     const type = typeOverride !== null ? typeOverride : selectedVoucher?.id;
-    if (type === undefined) {return;}
+    if (type === undefined) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -189,12 +204,8 @@ const VoidTransactions = ({navigation}) => {
       });
       console.log(res.data);
 
-      if (
-        res.data?.status_unapprove_vouchers_order === 'true' ||
-        res.data?.status_unapprove_vouchers_order === true
-      ) {
-        console.log(res.data);
-        setTableData(res.data.data_unapprove_voucher || []);
+      if (res.data?.status === 'true' || res.data?.status === true) {
+        setTableData(res.data.data || []);
       } else {
         setTableData([]);
         Toast.show({
@@ -321,7 +332,11 @@ const VoidTransactions = ({navigation}) => {
                     })
                   }
                   style={{padding: 4}}>
-                  <Icon name="eye-outline" size={20} color={APPCOLORS.Primary} />
+                  <Icon
+                    name="eye-outline"
+                    size={20}
+                    color={APPCOLORS.Primary}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleSharePDF(item)}
@@ -394,7 +409,9 @@ const VoidTransactions = ({navigation}) => {
           display="default"
           onChange={(event, selectedDate) => {
             setShowFromPicker(false);
-            if (selectedDate) {setFromDate(selectedDate);}
+            if (selectedDate) {
+              setFromDate(selectedDate);
+            }
           }}
         />
       )}
@@ -405,7 +422,9 @@ const VoidTransactions = ({navigation}) => {
           display="default"
           onChange={(event, selectedDate) => {
             setShowToPicker(false);
-            if (selectedDate) {setToDate(selectedDate);}
+            if (selectedDate) {
+              setToDate(selectedDate);
+            }
           }}
         />
       )}

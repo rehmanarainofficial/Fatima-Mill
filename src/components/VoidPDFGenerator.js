@@ -3,9 +3,17 @@ import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import {Platform} from 'react-native';
 
-export const shareVoidTransactionPDF = async (item, header, details, selectedVoucherTitle) => {
+export const shareVoidTransactionPDF = async (
+  item,
+  header,
+  details,
+  selectedVoucherTitle,
+  voucherTypeId,
+) => {
   const decodeHtml = html => {
-    if (!html) {return '';}
+    if (!html) {
+      return '';
+    }
     return html
       .replace(/&quot;/g, '"')
       .replace(/&amp;/g, '&')
@@ -16,13 +24,62 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
   };
 
   const formatDateDisplay = dateStr => {
-    if (!dateStr) {return '';}
+    if (!dateStr) {
+      return '';
+    }
     const parts = dateStr.split('-');
-    if (parts.length !== 3) {return dateStr;}
+    if (parts.length !== 3) {
+      return dateStr;
+    }
     return `${parts[2]}/${parts[1]}/${parts[0]}`; // dd/mm/yyyy
   };
 
-  const docTitle = selectedVoucherTitle ? selectedVoucherTitle.toUpperCase() : 'TRANSACTION VOUCHER';
+  const voucherTypesMap = {
+    0: 'Journal Entry',
+    1: 'Bank Payment',
+    2: 'Bank Deposit',
+    41: 'Cash Payment',
+    42: 'Cash Receipt',
+    4: 'Funds Transfer',
+    10: 'Sales Invoice',
+    11: 'Customer Credit Note',
+    12: 'Customer Payment',
+    13: 'Delivery Note',
+    16: 'Location Transfer',
+    17: 'Inventory Adjustment',
+    20: 'Supplier Invoice',
+    21: 'Supplier Credit Note',
+    43: 'Import Invoice',
+    22: 'Supplier Payment',
+    25: 'GRN',
+    26: 'Work Order',
+    28: 'Work Order Issue',
+    29: 'Work Order Production',
+    35: 'Cost Update',
+  };
+
+  const resolvedTitle =
+    selectedVoucherTitle ||
+    voucherTypesMap[voucherTypeId] ||
+    'TRANSACTION VOUCHER';
+  const docTitle = resolvedTitle.toUpperCase();
+  const isDeliveryOrGRN = voucherTypeId === 13 || voucherTypeId === 25;
+
+  const refLabel =
+    voucherTypeId === 10 || voucherTypeId === 11 || voucherTypeId === 13
+      ? 'Sales Order No.:'
+      : voucherTypeId === 20 || voucherTypeId === 21 || voucherTypeId === 25
+      ? 'Purchase Order No.:'
+      : 'Reference:';
+
+  const partyLabel =
+    voucherTypeId === 20 ||
+    voucherTypeId === 21 ||
+    voucherTypeId === 22 ||
+    voucherTypeId === 25
+      ? 'Received From:'
+      : 'Delivered To:';
+
   const docDate = header.trans_date || formatDateDisplay(item.ord_date) || '';
   const docNo = item.trans_no || '';
   const docRef = header.reference || item.reference || '-';
@@ -40,27 +97,67 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
       const rowTotal = qty * price;
       totalQty += qty;
 
-      return `
-      <tr>
-        <td style="text-align: center; padding: 6px; border: 1px solid #000;">${index + 1}</td>
-        <td style="padding: 6px; border: 1px solid #000;">
-          ${decodeHtml(row.description)}
-          ${
-            row.long_description
-              ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(row.long_description)}</div>`
-              : ''
-          }
-        </td>
-        <td style="text-align: center; padding: 6px; border: 1px solid #000;">KG</td>
-        <td style="text-align: right; padding: 6px; border: 1px solid #000;">${qty.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-        <td style="text-align: right; padding: 6px; border: 1px solid #000;">${price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-        <td style="text-align: right; padding: 6px; border: 1px solid #000; font-weight: bold;">${rowTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-      </tr>
-    `;
+      if (isDeliveryOrGRN) {
+        return `
+        <tr>
+          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 10%;">${
+            index + 1
+          }</td>
+          <td style="padding: 6px; border: 1px solid #000; width: 60%;">
+            ${decodeHtml(row.description)}
+            ${
+              row.long_description
+                ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                    row.long_description,
+                  )}</div>`
+                : ''
+            }
+          </td>
+          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 15%;">${qty.toLocaleString(
+            undefined,
+            {minimumFractionDigits: 2},
+          )}</td>
+        </tr>
+      `;
+      } else {
+        return `
+        <tr>
+          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 8%;">${
+            index + 1
+          }</td>
+          <td style="padding: 6px; border: 1px solid #000; width: 45%;">
+            ${decodeHtml(row.description)}
+            ${
+              row.long_description
+                ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                    row.long_description,
+                  )}</div>`
+                : ''
+            }
+          </td>
+          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${qty.toLocaleString(
+            undefined,
+            {minimumFractionDigits: 2},
+          )}</td>
+          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${price.toLocaleString(
+            undefined,
+            {minimumFractionDigits: 2},
+          )}</td>
+          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 12%; font-weight: bold;">${rowTotal.toLocaleString(
+            undefined,
+            {minimumFractionDigits: 2},
+          )}</td>
+        </tr>
+      `;
+      }
     })
     .join('');
 
-  const totalAmount = parseFloat(header.total || item.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+  const totalAmount = parseFloat(
+    header.total || item.total || 0,
+  ).toLocaleString(undefined, {minimumFractionDigits: 2});
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -177,7 +274,7 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
                 <td>${docNo}</td>
               </tr>
               <tr>
-                <td style="font-weight: bold; padding-right: 10px;">Sales Order No.:</td>
+                <td style="font-weight: bold; padding-right: 10px;">${refLabel}</td>
                 <td>${docRef}</td>
               </tr>
             </table>
@@ -190,7 +287,7 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
       <table class="info-table" style="width: 100%;">
         <tr>
           <td style="width: 50%;">
-            <span class="info-label">Delivered To:</span><br/>
+            <span class="info-label">${partyLabel}</span><br/>
             <span style="font-size: 13px; font-weight: bold;">${customerName}</span>
           </td>
           <td style="width: 50%; padding-left: 20px;">
@@ -218,25 +315,51 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
 
       <table class="item-table">
         <thead>
-          <tr>
-            <th style="width: 8%;" class="text-center">S.No</th>
-            <th style="width: 45%;">Description</th>
-            <th style="width: 15%;" class="text-center">Register Packing</th>
-            <th style="width: 10%;" class="text-right">Qty</th>
-            <th style="width: 10%;" class="text-right">Price</th>
-            <th style="width: 12%;" class="text-right">Total</th>
-          </tr>
+          ${
+            isDeliveryOrGRN
+              ? `
+              <tr>
+                <th style="width: 10%;" class="text-center">S.No</th>
+                <th style="width: 60%;">Description</th>
+                <th style="width: 15%;" class="text-center">Unit</th>
+                <th style="width: 15%;" class="text-right">Qty</th>
+              </tr>
+              `
+              : `
+              <tr>
+                <th style="width: 8%;" class="text-center">S.No</th>
+                <th style="width: 45%;">Description</th>
+                <th style="width: 15%;" class="text-center">Unit</th>
+                <th style="width: 10%;" class="text-right">Qty</th>
+                <th style="width: 10%;" class="text-right">Price</th>
+                <th style="width: 12%;" class="text-right">Total</th>
+              </tr>
+              `
+          }
         </thead>
         <tbody>
           ${itemRows}
-          <tr style="font-weight: bold; background-color: #f5f5f5;">
-            <td colspan="3" class="text-right">TOTAL</td>
-            <td class="text-right">${totalQty.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            })}</td>
-            <td></td>
-            <td class="text-right">${totalAmount}</td>
-          </tr>
+          ${
+            isDeliveryOrGRN
+              ? `
+              <tr style="font-weight: bold; background-color: #f5f5f5;">
+                <td colspan="3" class="text-center">TOTAL</td>
+                <td class="text-right">${totalQty.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}</td>
+              </tr>
+              `
+              : `
+              <tr style="font-weight: bold; background-color: #f5f5f5;">
+                <td colspan="3" class="text-center">TOTAL</td>
+                <td class="text-right">${totalQty.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}</td>
+                <td></td>
+                <td class="text-right">${totalAmount}</td>
+              </tr>
+              `
+          }
         </tbody>
       </table>
 
@@ -260,7 +383,10 @@ export const shareVoidTransactionPDF = async (item, header, details, selectedVou
     </html>
   `;
 
-  const fileName = `${docTitle.replace(/[^a-zA-Z0-9_]/g, '_')}_${docNo}_${Date.now()}`;
+  const fileName = `${docTitle.replace(
+    /[^a-zA-Z0-9_]/g,
+    '_',
+  )}_${docNo}_${Date.now()}`;
   const options = {
     html: htmlContent,
     fileName,

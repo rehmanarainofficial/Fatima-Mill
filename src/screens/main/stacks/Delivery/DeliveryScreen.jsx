@@ -10,7 +10,6 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {responsiveHeight} from '../../../../utils/Responsive';
 
 const DeliveryScreen = ({navigation}) => {
