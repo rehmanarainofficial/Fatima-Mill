@@ -7,12 +7,10 @@ import {
   ActivityIndicator,
   Animated,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import moment from 'moment';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Header from '../../../../components/Header';
 import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
@@ -25,7 +23,6 @@ import {
 } from '../../../../utils/Responsive';
 
 const ViewLedger = ({ navigation }) => {
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState([]);
@@ -323,38 +320,26 @@ const ViewLedger = ({ navigation }) => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* Custom Header */}
-      <View
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-          width: '100%',
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>View Transactions</Text>
-
-        <TouchableOpacity
-          onPress={handleDownload}
-          style={{ padding: 5 }}
-          disabled={downloadLoading || ledgerData.length === 0}>
-          {downloadLoading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <MaterialIcons
-              name="file-download"
-              size={responsiveFontSize(3)}
-              color="white"
-            />
-          )}
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="View Transactions"
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity
+            onPress={handleDownload}
+            style={{ padding: 5 }}
+            disabled={downloadLoading || ledgerData.length === 0}>
+            {downloadLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialIcons
+                name="file-download"
+                size={responsiveFontSize(3)}
+                color="white"
+              />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       {/* Improved Filter Section - Compact Design */}
       <View style={styles.filterContainer}>
@@ -559,20 +544,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: '#F0F2F5',
-  },
-  header: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
   },
   filterContainer: {
     backgroundColor: '#F0F2F5',

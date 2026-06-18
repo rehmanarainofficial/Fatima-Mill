@@ -5,17 +5,13 @@ import {
   ActivityIndicator,
   StyleSheet,
   Text,
-  Platform,
-  useWindowDimensions,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {FadeInUp, FadeInDown} from 'react-native-reanimated';
 import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import axios from 'axios';
 import moment from 'moment';
 import AppText from '../../components/AppText';
@@ -28,10 +24,14 @@ import {
   responsiveWidth,
 } from '../../utils/Responsive';
 
-// 🔹 Simple cache object to store Dashboard data globally
 const dashboardCache = {
   data: null,
   lastFetched: null,
+};
+
+export const clearDashboardCache = () => {
+  dashboardCache.data = null;
+  dashboardCache.lastFetched = null;
 };
 
 const Dashboard = ({navigation}) => {
@@ -56,18 +56,13 @@ const Dashboard = ({navigation}) => {
         setAllData(dashboardCache.data);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getMoneyData = async () => {
     setLoader(true);
-    const todayDate = moment(new Date()).format('YYYY-MM-DD');
     try {
-      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`, {
-        headers: {'content-type': 'multipart/form-data'},
-        params: {current_date: todayDate, pre_month_date: '2025-04-19'},
-      });
-      dashboardCache.data = data; // 🔹 Cache it
+      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`);
+      dashboardCache.data = data;
       dashboardCache.lastFetched = Date.now();
       setslider_data(data?.slider_data);
       settoday_data(data?.today_data);
@@ -80,9 +75,13 @@ const Dashboard = ({navigation}) => {
   };
 
   const formatValue = (val, isInteger = false) => {
-    if (val === undefined || val === null) {return '-';}
+    if (val === undefined || val === null) {
+      return '-';
+    }
     const parsed = Number(val);
-    if (isNaN(parsed)) {return val;}
+    if (isNaN(parsed)) {
+      return val;
+    }
     if (isInteger || (parsed % 1 === 0 && parsed < 1000)) {
       return parsed.toString();
     }

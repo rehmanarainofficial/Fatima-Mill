@@ -18,14 +18,13 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
+import Header from '../../../../components/Header';
 
 const LedgersScreen = ({ route, navigation }) => {
-  const insets = useSafeAreaInsets();
   const { item, type } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -275,40 +274,26 @@ const LedgersScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* Custom Header */}
-      <View
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-          width: '100%',
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>
-          {item?.name || 'Ledger Transactions'}
-        </Text>
-
-        <TouchableOpacity
-          onPress={handleDownload}
-          style={{ padding: 5 }}
-          disabled={downloadLoading || ledgerData.length === 0}>
-          {downloadLoading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <MaterialIcons
-              name="file-download"
-              size={responsiveFontSize(3)}
-              color="white"
-            />
-          )}
-        </TouchableOpacity>
-      </View>
+      <Header
+        title={item?.name || 'Ledger Transactions'}
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity
+            onPress={handleDownload}
+            style={{ padding: 5 }}
+            disabled={downloadLoading || ledgerData.length === 0}>
+            {downloadLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialIcons
+                name="file-download"
+                size={responsiveFontSize(3)}
+                color="white"
+              />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       {/* Compact Filter Section - Sirf dates aur buttons */}
       <View style={styles.filterContainer}>
@@ -507,23 +492,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: '#F0F2F5',
-  },
-  header: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-    marginHorizontal: 10,
   },
   filterContainer: {
     backgroundColor: '#F0F2F5',

@@ -6,19 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
-  useWindowDimensions,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import {responsiveHeight} from '../../../../utils/Responsive';
+import Header from '../../../../components/Header';
 
 const VoidTransactionDetail = ({route, navigation}) => {
-  const insets = useSafeAreaInsets();
-  const {width} = useWindowDimensions();
   const {trans_no, type} = route.params;
 
   const [showGL, setShowGL] = useState(false);
@@ -338,29 +333,10 @@ const VoidTransactionDetail = ({route, navigation}) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View
-        style={[
-          styles.headerTop,
-          {
-            height:
-              Platform.OS === 'ios'
-                ? responsiveHeight(8) + insets.top
-                : responsiveHeight(8) + insets.top,
-            paddingTop: insets.top,
-            width: width,
-          },
-        ]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{padding: 5}}>
-          <Icon name="arrow-back" size={26} color="#FFF" />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Transaction Detail</Text>
-
-        <View style={{width: 36}} />
-      </View>
+      <Header
+        title="Transaction Detail"
+        onBack={() => navigation.goBack()}
+      />
 
       <View style={styles.headerWrapper}>{renderTabs()}</View>
 
@@ -385,25 +361,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
-  },
-  headerTop: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: {width: 0, height: 3},
-  },
-  headerTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   headerWrapper: {
     paddingHorizontal: 16,

@@ -4,11 +4,8 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import {
   responsiveFontSize,
@@ -19,11 +16,16 @@ import BaseUrl from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Header from '../../../../components/Header';
 
 const cachedData = { slider_data: null, all_data: null };
 
+export const clearDetailCache = () => {
+  cachedData.slider_data = null;
+  cachedData.all_data = null;
+};
+
 const Detail = ({ navigation }) => {
-  const insets = useSafeAreaInsets();
   const [slider_data, setslider_data] = useState(cachedData.slider_data);
   const [AllData, setAllData] = useState(cachedData.all_data);
   const [loader, setLoader] = useState(!cachedData.slider_data);
@@ -153,39 +155,12 @@ const Detail = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: APPCOLORS.WHITE }}>
-      {/* Custom Header */}
-      <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-        width: '100%',
-      }]}>
-        {/* Left */}
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ padding: 5 }}
-        >
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        {/* Center Title */}
-        <Text style={styles.headerTitle}>Detail</Text>
-
-        {/* Right */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Dashboard')}
-          style={{ padding: 5 }}
-        >
-          <Ionicons
-            name="person-outline"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="Detail"
+        onBack={() => navigation.goBack()}
+        rightIcon="person-outline"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
 
       <FlatList
         data={revData}
@@ -200,23 +175,5 @@ const Detail = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = {
-  header: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-  },
-};
-
 
 export default Detail;

@@ -1,15 +1,13 @@
 import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import AlertCards from '../../../../components/AlertCards';
 import axios from 'axios';
 import BaseUrl from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
+import Header from '../../../../components/Header';
 
 const AlertScreen = ({ navigation }) => {
-  const insets = useSafeAreaInsets();
   const [data, setData] = useState([]);
   const [AllData, setAllData] = useState();
 
@@ -48,31 +46,12 @@ const AlertScreen = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Alerts</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
-          <Ionicons
-            name="person"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-      </LinearGradient>
+      <Header
+        title="Alerts"
+        onBack={() => navigation.goBack()}
+        rightIcon="person"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
       <View style={{ gap: 30, marginTop: 20 }}>
 
         {

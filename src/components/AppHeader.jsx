@@ -15,10 +15,15 @@ import {
 import {APPCOLORS} from '../utils/APPCOLORS';
 import AppText from './AppText';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {setLogout} from '../redux/AuthSlice';
+import {clearDashboardCache} from '../screens/main/Dashboard';
+import {clearDetailCache} from '../screens/main/stacks/DetailScreens/Detail';
 
 const AppHeader = ({title, onPress}) => {
+  const {currentData} = useSelector(state => state.Data);
+  console.log('auth', currentData);
+
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const {width} = useWindowDimensions();
@@ -30,7 +35,6 @@ const AppHeader = ({title, onPress}) => {
       duration: 800,
       useNativeDriver: true,
     }).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -63,7 +67,12 @@ const AppHeader = ({title, onPress}) => {
 
           {/* 🔹 Only Logout Icon Remaining - Other 4 icons removed */}
           <View style={{flexDirection: 'row'}}>
-            <TouchableOpacity onPress={() => dispatch(setLogout())}>
+            <TouchableOpacity
+              onPress={() => {
+                clearDashboardCache();
+                clearDetailCache();
+                dispatch(setLogout());
+              }}>
               <MaterialIcons
                 name="logout"
                 color={APPCOLORS.WHITE}
@@ -98,7 +107,7 @@ const AppHeader = ({title, onPress}) => {
           </View>
           <View>
             <AppText
-              title="Muhammad Anas"
+              title={currentData?.real_name}
               titleColor={APPCOLORS.WHITE}
               titleSize={Platform.OS === 'ios' ? 2.2 : 2.0}
               titleWeight

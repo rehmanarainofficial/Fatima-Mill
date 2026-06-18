@@ -9,21 +9,19 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Dropdown } from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
+import Header from '../../../../components/Header';
 
 export default function StockSheetScreen({ navigation, route }) {
-  const insets = useSafeAreaInsets();
   const { category_id = '', item = {} } = route.params || {};
 
   const [search, setSearch] = useState('');
@@ -192,31 +190,21 @@ export default function StockSheetScreen({ navigation, route }) {
     <LinearGradient
       colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.DARKLIGHTBLUE]}
       style={{ flex: 1 }}>
-      {/* Header */}
-      <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top : 0,
-      }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons
-            name="chevron-back"
-            color={APPCOLORS.WHITE}
-            size={responsiveFontSize(4)}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          Stock Sheet {category_id ? '(Filtered)' : ''}
-        </Text>
-        <TouchableOpacity onPress={clearFilters}>
-          <Text
-            style={{
-              color: APPCOLORS.WHITE,
-              fontSize: responsiveFontSize(1.6),
-            }}>
-            Clear
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <Header
+        title={`Stock Sheet ${category_id ? '(Filtered)' : ''}`}
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity onPress={clearFilters}>
+            <Text
+              style={{
+                color: APPCOLORS.WHITE,
+                fontSize: responsiveFontSize(1.6),
+              }}>
+              Clear
+            </Text>
+          </TouchableOpacity>
+        }
+      />
 
       {/* Filters */}
       <View style={{ padding: responsiveWidth(2) }}>
@@ -330,18 +318,6 @@ export default function StockSheetScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  headerTitle: {
-    color: APPCOLORS.WHITE,
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: '700',
-  },
   glassInput: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 12,

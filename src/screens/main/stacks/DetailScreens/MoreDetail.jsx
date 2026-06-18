@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,14 +6,13 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import PieChart from 'react-native-pie-chart';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
+import Header from '../../../../components/Header';
 import {
   GetBankBalance,
   GetSalesman,
@@ -29,10 +26,8 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 
-const MoreDetail = ({ navigation, route }) => {
-  const { selectedItem } = route.params;
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+const MoreDetail = ({navigation, route}) => {
+  const {selectedItem} = route.params;
   const cachedData = useRef({});
 
   const [activeData, setActiveData] = useState(null);
@@ -113,7 +108,7 @@ const MoreDetail = ({ navigation, route }) => {
           console.log('Unknown item type:', itemType);
       }
 
-      cachedData.current[itemType] = { data, chart };
+      cachedData.current[itemType] = {data, chart};
 
       setActiveData(data);
       setActiveChartData(chart);
@@ -124,63 +119,46 @@ const MoreDetail = ({ navigation, route }) => {
     }
   };
 
-  // Custom Header Component
-  const CustomHeader = () => (
-    <View style={[styles.customHeader, {
-      height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-      paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-      width: width,
-    }]}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-        <Ionicons
-          name="arrow-back"
-          size={responsiveFontSize(3)}
-          color="white"
-        />
-      </TouchableOpacity>
-
-      <Text style={styles.headerTitle}>{selectedItem || 'Details'}</Text>
-
-      <View style={styles.headerIcons}>
-        {selectedItem === 'Inventory Valuation' ? (
-          <>
-            {/* All Movements Icon */}
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() =>
-                navigation.navigate('StockMovements', { fromAllMovements: true })
-              }>
-              <MaterialIcons
-                name="swap-horiz"
-                size={responsiveFontSize(3)}
-                color="white"
-              />
-            </TouchableOpacity>
-
-            {/* Stock Sheet Icon */}
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('StockSheetScreen')}>
-              <MaterialIcons
-                name="inventory"
-                size={responsiveFontSize(3)}
-                color="white"
-              />
-            </TouchableOpacity>
-          </>
-        ) : (
-          /* Default Ledger Icon */
+  const renderRightElement = () => (
+    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+      {selectedItem === 'Inventory Valuation' ? (
+        <>
+          {/* All Movements Icon */}
           <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('ViewLedger')}>
+            style={{padding: 8, marginLeft: 10}}
+            onPress={() =>
+              navigation.navigate('StockMovements', {fromAllMovements: true})
+            }>
             <MaterialIcons
-              name="assignment"
+              name="swap-horiz"
               size={responsiveFontSize(3)}
               color="white"
             />
           </TouchableOpacity>
-        )}
-      </View>
+
+          {/* Stock Sheet Icon */}
+          <TouchableOpacity
+            style={{padding: 8, marginLeft: 10}}
+            onPress={() => navigation.navigate('StockSheetScreen')}>
+            <MaterialIcons
+              name="inventory"
+              size={responsiveFontSize(3)}
+              color="white"
+            />
+          </TouchableOpacity>
+        </>
+      ) : (
+        /* Default Ledger Icon */
+        <TouchableOpacity
+          style={{padding: 8, marginLeft: 10}}
+          onPress={() => navigation.navigate('ViewLedger')}>
+          <MaterialIcons
+            name="assignment"
+            size={responsiveFontSize(3)}
+            color="white"
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -192,7 +170,7 @@ const MoreDetail = ({ navigation, route }) => {
         justifyContent: 'center',
         marginTop: responsiveHeight(2),
       }}>
-      <View style={{ position: 'absolute', zIndex: 1 }}>
+      <View style={{position: 'absolute', zIndex: 1}}>
         <AppText title={selectedItem} titleSize={2} titleWeight />
       </View>
       {activeChartData && (
@@ -200,13 +178,13 @@ const MoreDetail = ({ navigation, route }) => {
           widthAndHeight={responsiveWidth(60)}
           series={activeChartData}
           cover={0.7}
-          style={{ alignSelf: 'center' }}
+          style={{alignSelf: 'center'}}
         />
       )}
     </View>
   );
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     let name = '';
     let balance = '';
 
@@ -324,14 +302,14 @@ const MoreDetail = ({ navigation, route }) => {
   );
 
   const ListEmptyComponent = () => (
-    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{alignItems: 'center', justifyContent: 'center'}}>
       <AppText title={`No ${selectedItem} data found`} titleSize={2} />
     </View>
   );
 
   if (loader) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color="#0000ff" />
         <Text>Loading {selectedItem} data...</Text>
       </View>
@@ -339,8 +317,12 @@ const MoreDetail = ({ navigation, route }) => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <CustomHeader />
+    <View style={{flex: 1}}>
+      <Header
+        title={selectedItem || 'Details'}
+        onBack={() => navigation.goBack()}
+        rightElement={renderRightElement()}
+      />
 
       <FlatList
         data={getData()}
@@ -367,27 +349,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: responsiveHeight(2),
-  },
-  customHeader: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconButton: {
-    padding: 8,
-    marginLeft: 10,
   },
 });

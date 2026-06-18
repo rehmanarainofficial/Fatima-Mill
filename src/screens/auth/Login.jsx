@@ -18,13 +18,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CurrentLogin, setLoader } from '../../redux/AuthSlice';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../utils/Responsive';
 import AppText from '../../components/AppText';
-import BaseUrl from '../../utils/BaseUrl';
+import BaseUrl, { COMPANY_URLS } from '../../utils/BaseUrl';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = ({ navigation }) => {
   const dispatch = useDispatch();
   const { Loading: loading } = useSelector(state => state.Data);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('IBR-ENT');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -42,7 +44,21 @@ const Login = ({ navigation }) => {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Load persisted company
+    AsyncStorage.getItem('SELECTED_COMPANY').then(company => {
+      if (company === 'IBR-ENT' || company === 'FBPM') {
+        setSelectedCompany(company);
+        BaseUrl.set(COMPANY_URLS[company]);
+      }
+    });
   }, []);
+
+  const handleCompanySelect = company => {
+    setSelectedCompany(company);
+    BaseUrl.set(COMPANY_URLS[company]);
+    AsyncStorage.setItem('SELECTED_COMPANY', company);
+  };
 
   const loginUser = () => {
     if (!username.trim()) {
@@ -185,6 +201,69 @@ const Login = ({ navigation }) => {
               value={password}
               onChangeText={setPassword}
             />
+          </View>
+
+          {/* Company Selection */}
+          <Text
+            style={{
+              color: '#0784B5',
+              fontSize: responsiveFontSize(1.8),
+              fontWeight: '600',
+              marginTop: responsiveHeight(1.5),
+              marginBottom: 8,
+            }}>
+            Select Company
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              backgroundColor: '#F0F2F5',
+              borderRadius: 25,
+              padding: 4,
+              marginBottom: responsiveHeight(1.5),
+            }}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleCompanySelect('IBR-ENT')}
+              style={{
+                flex: 1,
+                backgroundColor: selectedCompany === 'IBR-ENT' ? '#0784B5' : 'transparent',
+                borderRadius: 20,
+                paddingVertical: responsiveHeight(1.2),
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Text
+                style={{
+                  color: selectedCompany === 'IBR-ENT' ? '#FFF' : '#666',
+                  fontSize: responsiveFontSize(1.6),
+                  fontWeight: 'bold',
+                }}>
+                IBR-ENT
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleCompanySelect('FBPM')}
+              style={{
+                flex: 1,
+                backgroundColor: selectedCompany === 'FBPM' ? '#0784B5' : 'transparent',
+                borderRadius: 20,
+                paddingVertical: responsiveHeight(1.2),
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Text
+                style={{
+                  color: selectedCompany === 'FBPM' ? '#FFF' : '#666',
+                  fontSize: responsiveFontSize(1.6),
+                  fontWeight: 'bold',
+                }}>
+                FBPM
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Forgot Password */}

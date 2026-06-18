@@ -1,15 +1,12 @@
-import { View, Text, TouchableOpacity, FlatList, TextInput, Platform, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, TextInput, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import NameBalanceContainer from '../../../../../components/NameBalanceContainer';
 import AppText from '../../../../../components/AppText';
-import { APPCOLORS } from '../../../../../utils/APPCOLORS';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../../utils/Responsive';
+import Header from '../../../../../components/Header';
 
 const ViewAllTopTen = ({ navigation, route }) => {
-  const insets = useSafeAreaInsets();
   const { name, data } = route.params;
 
   const [filteredData, setFilteredData] = useState(data);
@@ -45,31 +42,12 @@ const ViewAllTopTen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>{`All ${name}`}</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
-          <Ionicons
-            name="person"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-      </LinearGradient>
+      <Header
+        title={`All ${name}`}
+        onBack={() => navigation.goBack()}
+        rightIcon="person"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
 
       <View style={{ marginTop: 20, padding: 20 }}>
         <AppText title={`All ${name}`} titleSize={2} titleWeight />
@@ -147,26 +125,5 @@ const ViewAllTopTen = ({ navigation, route }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(5),
-    borderBottomRightRadius: 20,
-    borderBottomLeftRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  headerTitle: {
-    color: APPCOLORS.WHITE,
-    fontSize: responsiveFontSize(3),
-    fontWeight: 'bold',
-  },
-});
 
 export default ViewAllTopTen;

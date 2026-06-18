@@ -17,13 +17,11 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {generateAgingPDF} from '../../../../components/AgingPDFGenerator';
+import Header from '../../../../components/Header';
 
 const Aging = ({navigation, route}) => {
-  const insets = useSafeAreaInsets();
   const {name, item} = route.params;
   const [aging, setAgingData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -138,49 +136,26 @@ const Aging = ({navigation, route}) => {
 
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
-      {/* Custom Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            height:
-              responsiveHeight(Platform.OS === 'ios' ? 8 : 10) +
-              (Platform.OS === 'ios' ? insets.top : 0),
-            paddingTop:
-              Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-            width: '100%',
-          },
-        ]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{padding: 5}}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>
-          Aging -{' '}
-          {item?.name || item?.customer_name || item?.supplier_name || ''}
-        </Text>
-
-        <TouchableOpacity
-          onPress={generatePDF}
-          style={{padding: 5}}
-          disabled={loading || aging.length === 0}>
-          {loading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <MaterialIcons
-              name="file-download"
-              size={responsiveFontSize(3)}
-              color="white"
-            />
-          )}
-        </TouchableOpacity>
-      </View>
+      <Header
+        title={`Aging - ${item?.name || item?.customer_name || item?.supplier_name || ''}`}
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity
+            onPress={generatePDF}
+            style={{padding: 5}}
+            disabled={loading || aging.length === 0}>
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialIcons
+                name="file-download"
+                size={responsiveFontSize(3)}
+                color="white"
+              />
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={aging}
@@ -343,26 +318,6 @@ const Aging = ({navigation, route}) => {
       />
     </View>
   );
-};
-
-const styles = {
-  header: {
-    backgroundColor: '#0784B5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-    marginHorizontal: 10,
-  },
 };
 
 export default Aging;

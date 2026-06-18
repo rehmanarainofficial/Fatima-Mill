@@ -5,11 +5,10 @@ import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppButton from '../../../../components/AppButton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, TouchableOpacity } from 'react-native';
+import Header from '../../../../components/Header';
 
 const NormalViewAll = ({ navigation, route }) => {
-  const insets = useSafeAreaInsets();
   const { AllData, dataname } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,31 +66,12 @@ const NormalViewAll = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
-      {/* Custom Header */}
-      <View
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-          width: '100%',
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>View All</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
-          <Ionicons
-            name="person"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="View All"
+        onBack={() => navigation.goBack()}
+        rightIcon="person"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
 
       {/* Action Buttons */}
       {(dataname === 'Customer' || dataname === 'Supplier' || dataname === 'item') && (
@@ -202,23 +182,6 @@ const NormalViewAll = ({ navigation, route }) => {
       />
     </View>
   );
-};
-
-const styles = {
-  header: {
-    backgroundColor: '#0784B5',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-  },
 };
 
 export default NormalViewAll;

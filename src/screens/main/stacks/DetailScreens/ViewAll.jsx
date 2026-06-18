@@ -4,40 +4,19 @@ import LinearGradient from 'react-native-linear-gradient';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import AppText from '../../../../components/AppText';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Header from '../../../../components/Header';
 
 const ViewAll = ({ navigation, route }) => {
-  const insets = useSafeAreaInsets();
   const [openFrom, setOpenFrom] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* Custom Header */}
-      <View
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-          width: '100%',
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Detailed</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
-          <Ionicons
-            name="person"
-            size={responsiveFontSize(3)}
-            color="white"
-          />
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="Detailed"
+        onBack={() => navigation.goBack()}
+        rightIcon="person"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
 
       <View
         style={{
@@ -244,20 +223,6 @@ const ViewAll = ({ navigation, route }) => {
 export default ViewAll;
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: '#0784B5',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsiveWidth(4),
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: responsiveFontSize(2.2),
-    fontWeight: 'bold',
-  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',

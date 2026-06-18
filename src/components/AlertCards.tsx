@@ -1,17 +1,11 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { APPCOLORS } from '../utils/APPCOLORS';
 import AppText from './AppText';
 import { AppImages } from '../assets/images/AppImages';
 import { responsiveHeight } from '../utils/Responsive';
-import { useNavigation } from '@react-navigation/native';
-import BaseUrl from '../utils/BaseUrl';
-import moment from 'moment';
-import axios from 'axios';
 
 const AlertCards = ({ HeadingOne, HeadingThree, HeadingTwo, ValueOne, ValueThree, ValueTwo, AlertHeading, onValuePressOne,onValuePressTwo, onValuePressThree}: props) => {
-    const nav = useNavigation();
 
     return (
         <View style={{ backgroundColor: APPCOLORS.WHITE, borderBottomRightRadius: 20, borderBottomLeftRadius: 20, shadowRadius: 2, elevation: 2 }}>

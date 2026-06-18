@@ -16,7 +16,7 @@ import {
 } from '../utils/Responsive';
 import {APPCOLORS} from '../utils/APPCOLORS';
 
-const Header = ({title, onRightPress, rightIcon, onBack}) => {
+const Header = ({title, onRightPress, rightIcon, onBack, rightElement}) => {
   const insets = useSafeAreaInsets();
   const {width} = useWindowDimensions();
   return (
@@ -25,7 +25,9 @@ const Header = ({title, onRightPress, rightIcon, onBack}) => {
       start={{x: 0, y: 0}}
       end={{x: 1, y: 1}}
       style={{
-        height: responsiveHeight(8) + insets.top,
+        height:
+          responsiveHeight(Platform.OS === 'ios' ? 12 : 11) +
+          (Platform.OS === 'ios' ? insets.top : 0),
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
         paddingHorizontal: responsiveWidth(4),
@@ -37,7 +39,8 @@ const Header = ({title, onRightPress, rightIcon, onBack}) => {
         shadowOpacity: 0.2,
         shadowOffset: {width: 0, height: 4},
         shadowRadius: 6,
-        paddingTop: insets.top,
+        paddingTop:
+          Platform.OS === 'ios' ? insets.top + responsiveHeight(1) : 10,
         width: width,
       }}>
       {/* 🔙 Back Button */}
@@ -60,8 +63,10 @@ const Header = ({title, onRightPress, rightIcon, onBack}) => {
         {title}
       </Text>
 
-      {/* ⚙️ Right Icon */}
-      {rightIcon ? (
+      {/* ⚙️ Right Icon / Element */}
+      {rightElement ? (
+        rightElement
+      ) : rightIcon ? (
         <TouchableOpacity onPress={onRightPress} style={{padding: 4}}>
           <Icon
             name={rightIcon}

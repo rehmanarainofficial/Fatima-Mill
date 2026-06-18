@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
-  Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -23,10 +22,7 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from '../../../../../utils/Responsive';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { APPCOLORS } from '../../../../../utils/APPCOLORS';
+import Header from '../../../../../components/Header';
 
 const TopTenScreen = ({ route, navigation }) => {
   const { name } = route.params;
@@ -35,7 +31,6 @@ const TopTenScreen = ({ route, navigation }) => {
   const [top, setTop] = useState([]);
   const [allData, setAllData] = useState([]);
   const [loader, setLoader] = useState(false);
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
@@ -69,31 +64,12 @@ const TopTenScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* Custom Header */}
-      <LinearGradient
-        colors={[APPCOLORS.Primary, APPCOLORS.Secondary]}
-        style={[styles.header, {
-          height: responsiveHeight(Platform.OS === 'ios' ? 8 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-          paddingTop: Platform.OS === 'ios' ? insets.top + responsiveHeight(-2) : 0,
-        }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 5 }}>
-          <Ionicons
-            name="arrow-back"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>{`Top 10 ${name}`}</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')} style={{ padding: 5 }}>
-          <Ionicons
-            name="person"
-            size={responsiveFontSize(3)}
-            color={APPCOLORS.WHITE}
-          />
-        </TouchableOpacity>
-      </LinearGradient>
+      <Header
+        title={`Top 10 ${name}`}
+        onBack={() => navigation.goBack()}
+        rightIcon="person"
+        onRightPress={() => navigation.navigate('Dashboard')}
+      />
 
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
         {/* Header Row with View All */}
