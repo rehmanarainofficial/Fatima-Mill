@@ -228,15 +228,22 @@ const StockMovements = ({ navigation, route }) => {
     );
   };
 
+  const headerContentHeight = Math.min(
+    Math.max(responsiveHeight(7.5), Platform.OS === 'ios' ? 60 : 58),
+    76,
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
 
       {/* ---------------- HEADER ---------------- */}
       <View style={[styles.header, {
-        height: responsiveHeight(Platform.OS === 'ios' ? 12 : 10) + (Platform.OS === 'ios' ? insets.top : 0),
-        paddingTop: Platform.OS === 'ios' ? insets.top : 0,
+        height: headerContentHeight + insets.top,
+        paddingTop: insets.top,
       }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerSideButton}>
           <Ionicons
             name="arrow-back"
             size={responsiveFontSize(3)}
@@ -244,10 +251,16 @@ const StockMovements = ({ navigation, route }) => {
           />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Stock Movement</Text>
+        <Text
+          style={styles.headerTitle}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}>
+          Stock Movement
+        </Text>
 
         {/* Reset Button in Header Right */}
-        <TouchableOpacity onPress={handleReset}>
+        <TouchableOpacity onPress={handleReset} style={styles.headerSideButton}>
           <MaterialIcons
             name="refresh"
             size={responsiveFontSize(3)}
@@ -609,10 +622,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
+  headerSideButton: {
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: responsiveWidth(14),
+  },
   headerTitle: {
     color: 'white',
-    fontSize: responsiveFontSize(2),
+    flex: 1,
+    fontSize: responsiveFontSize(2.55),
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   filterBox: {

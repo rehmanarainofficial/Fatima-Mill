@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const COMPANY_URLS = {
   'IBR-ENT': 'https://e.de2solutions.com/mobile_dash/',
   FBPM: 'https://e.de2solutions.com/mobile_dash_fbpm/',
-};
+};    
 
 let currentUrl = COMPANY_URLS['IBR-ENT'];
 
