@@ -320,7 +320,13 @@ const MoreDetail = ({navigation, route}) => {
     <View style={{flex: 1}}>
       <Header
         title={selectedItem || 'Details'}
-        onBack={() => navigation.goBack()}
+        onBack={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate('Dashboard');
+          }
+        }}
         rightElement={renderRightElement()}
       />
 

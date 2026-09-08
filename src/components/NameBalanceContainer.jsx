@@ -21,7 +21,8 @@ const NameBalanceContainer = ({
 
   const showAgingAndLedger = type === 'Receivable' || type === 'Payable';
   const showInventoryLedger = type === 'Inventory Valuation';
-  const showBankLedger = type === 'Bank & Cash';
+  const showBankLedger =
+    type === 'Bank & Cash' || type === 'Bank' || type === 'Banks';
 
   const handlePress = () => {
     if (type === 'Inventory Valuation') {
@@ -30,7 +31,7 @@ const NameBalanceContainer = ({
         fromAllMovements: fromViewAll,
       });
     }
-    if (type === 'Bank & Cash') {
+    if (type === 'Bank & Cash' || type === 'Bank' || type === 'Banks') {
       navigation.navigate('Ledgers', {
         item: item,
         type: 'Bank & Cash',

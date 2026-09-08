@@ -167,7 +167,13 @@ const NormalViewAll = ({ navigation, route }) => {
                   ? item?.total
                   : item?.Balance
             }
-            type={dataname === 'item' ? 'Inventory Valuation' : dataname}
+            type={
+              dataname === 'item'
+                ? 'Inventory Valuation'
+                : dataname === 'Bank'
+                  ? 'Bank & Cash'
+                  : dataname
+            }
             item={item}
             fromViewAll={true} // This tells StockMovements to show stock dropdown
           />

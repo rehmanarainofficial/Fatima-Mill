@@ -2,6 +2,9 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import {Platform} from 'react-native';
+import moment from 'moment';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Toast from 'react-native-toast-message';
 
 export const shareVoidTransactionPDF = async (
   item,
@@ -9,6 +12,7 @@ export const shareVoidTransactionPDF = async (
   details,
   selectedVoucherTitle,
   voucherTypeId,
+  companyName,
 ) => {
   const decodeHtml = html => {
     if (!html) {
@@ -383,6 +387,54 @@ export const shareVoidTransactionPDF = async (
     </html>
   `;
 
+  const finalCompanyName =
+    companyName || 'Fatima board and paper mill pvt ltd';
+
+  const shareCustomerName =
+    customerName ||
+    header?.name ||
+    item?.name ||
+    item?.customer_name ||
+    item?.person_name ||
+    item?.supp_name ||
+    item?.debtor_name ||
+    'Customer';
+
+  const shareDocRef = docRef || header?.reference || item?.reference || item?.trans_no || '';
+  const rawDate =
+    header?.trans_date || item?.ord_date || item?.trans_date || '';
+  const formattedShareDate = rawDate
+    ? moment(rawDate, [
+        'YYYY-MM-DD',
+        'DD/MM/YYYY',
+        'YYYY/MM/DD',
+        'DD-MM-YYYY',
+        moment.ISO_8601,
+      ]).format('DD-MMM-YYYY')
+    : moment().format('DD-MMM-YYYY');
+
+  const totalRaw = header?.total || item?.total || 0;
+  const formattedShareTotal = Math.round(parseFloat(totalRaw) || 0).toLocaleString();
+
+  const shareMessage = `Dear ${shareCustomerName},
+
+Please find invoice ${shareDocRef} dated ${formattedShareDate} for PKR ${formattedShareTotal}.
+
+Regards 
+${finalCompanyName}`;
+
+  try {
+    Clipboard.setString(shareMessage);
+    Toast.show({
+      type: 'success',
+      text1: 'Message Copied to Clipboard!',
+      text2: 'PDF send karte waqt chat mein paste kar dein.',
+      visibilityTime: 4000,
+    });
+  } catch (clipErr) {
+    console.log('Clipboard copy error:', clipErr);
+  }
+
   const fileName = `${docTitle.replace(
     /[^a-zA-Z0-9_]/g,
     '_',
@@ -404,13 +456,17 @@ export const shareVoidTransactionPDF = async (
       type: 'application/pdf',
       filename: fileName,
       title: `Share ${selectedVoucherTitle || 'Voucher'}`,
+      subject: `Invoice ${shareDocRef}`,
+      message: shareMessage,
       useInternalStorage: true,
     });
   } else {
     await Share.open({
-      url: 'file://' + file.filePath,
+      url: file.filePath.startsWith('file://') ? file.filePath : `file://${file.filePath}`,
       type: 'application/pdf',
       title: `Share ${selectedVoucherTitle || 'Voucher'}`,
+      subject: `Invoice ${shareDocRef}`,
+      message: shareMessage,
     });
   }
 };
