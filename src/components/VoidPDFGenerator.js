@@ -387,8 +387,7 @@ export const shareVoidTransactionPDF = async (
     </html>
   `;
 
-  const finalCompanyName =
-    companyName || 'Fatima board and paper mill pvt ltd';
+  const finalCompanyName = companyName || 'Fatima board and paper mill pvt ltd';
 
   const shareCustomerName =
     customerName ||
@@ -400,7 +399,8 @@ export const shareVoidTransactionPDF = async (
     item?.debtor_name ||
     'Customer';
 
-  const shareDocRef = docRef || header?.reference || item?.reference || item?.trans_no || '';
+  const shareDocRef =
+    docRef || header?.reference || item?.reference || item?.trans_no || '';
   const rawDate =
     header?.trans_date || item?.ord_date || item?.trans_date || '';
   const formattedShareDate = rawDate
@@ -414,7 +414,9 @@ export const shareVoidTransactionPDF = async (
     : moment().format('DD-MMM-YYYY');
 
   const totalRaw = header?.total || item?.total || 0;
-  const formattedShareTotal = Math.round(parseFloat(totalRaw) || 0).toLocaleString();
+  const formattedShareTotal = Math.round(
+    parseFloat(totalRaw) || 0,
+  ).toLocaleString();
 
   const shareMessage = `Dear ${shareCustomerName},
 
@@ -462,7 +464,9 @@ ${finalCompanyName}`;
     });
   } else {
     await Share.open({
-      url: file.filePath.startsWith('file://') ? file.filePath : `file://${file.filePath}`,
+      url: file.filePath.startsWith('file://')
+        ? file.filePath
+        : `file://${file.filePath}`,
       type: 'application/pdf',
       title: `Share ${selectedVoucherTitle || 'Voucher'}`,
       subject: `Invoice ${shareDocRef}`,
