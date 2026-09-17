@@ -584,9 +584,7 @@ const VoidTransactions = ({navigation}) => {
   const renderTransactionListView = () => (
     <FlatList
       data={filteredRecords}
-      keyExtractor={(item, index) =>
-        `${item?.trans_no || 'item'}_${index}`
-      }
+      keyExtractor={(item, index) => `${item?.trans_no || 'item'}_${index}`}
       ListHeaderComponent={
         <>
           {renderFilterSection()}
@@ -652,9 +650,7 @@ const VoidTransactions = ({navigation}) => {
         <View style={StyleSheet.absoluteFillObject}>
           <View style={styles.sharingOverlay}>
             <ActivityIndicator size="large" color="#FFF" />
-            <Text style={styles.sharingText}>
-              Generating PDF & Sharing...
-            </Text>
+            <Text style={styles.sharingText}>Generating PDF & Sharing...</Text>
           </View>
         </View>
       )}

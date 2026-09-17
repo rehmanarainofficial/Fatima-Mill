@@ -258,13 +258,8 @@ export const shareVoidTransactionPDF = async (
     <body>
       <table class="header-container" style="width: 100%;">
         <tr>
-          <td style="width: 60%;">
+          <td style="width: 60%; vertical-align: top;">
             <div class="company-title">FATIMA BOARD AND PAPER MILL (PVT) LTD</div>
-            <div class="company-info">
-              LA 10/1- K Block-22 F.B industrial Area Karachi<br/>
-              Phone: 03452090354<br/>
-              Invoice Office Extension No. 229
-            </div>
           </td>
           <td class="doc-title-container" style="width: 40%;">
             <div class="doc-title">${docTitle}</div>
