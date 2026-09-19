@@ -382,7 +382,7 @@ export const shareVoidTransactionPDF = async (
     </html>
   `;
 
-  const finalCompanyName = companyName || 'Fatima board and paper mill pvt ltd';
+  const finalCompanyName = companyName || '';
 
   const shareCustomerName =
     customerName ||
@@ -443,7 +443,6 @@ ${finalCompanyName}`;
   };
 
   const file = await RNHTMLtoPDF.convert(options);
-  console.log('PDF path for sharing:', file.filePath);
 
   if (Platform.OS === 'android') {
     const base64Data = await RNFS.readFile(file.filePath, 'base64');

@@ -21,11 +21,6 @@ import {shareVoidTransactionPDF} from '../../../../components/VoidPDFGenerator';
 import {useSelector} from 'react-redux';
 import Header from '../../../../components/Header';
 import BASEURL from '../../../../utils/BaseUrl';
-import {
-  responsiveFontSize,
-  responsiveHeight,
-  responsiveWidth,
-} from '../../../../utils/Responsive';
 
 const VOUCHER_TYPES = [
   {id: 0, title: 'Journal Entry', icon: 'document-text-outline'},
@@ -138,7 +133,6 @@ const VoidTransactions = ({navigation}) => {
       const header = res.data.data_header[0];
       const details = res.data.data_detail || [];
 
-      // Call external PDF generator & sharing helper
       await shareVoidTransactionPDF(
         item,
         header,
