@@ -3,7 +3,6 @@ import React from 'react';
 import AppText from './AppText';
 import { APPCOLORS } from '../utils/APPCOLORS';
 import {
-  responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from '../utils/Responsive';
@@ -55,13 +54,16 @@ const NameBalanceContainer = ({
     });
   };
 
+  const hasAction = showAgingAndLedger || showInventoryLedger || showBankLedger;
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
+      disabled={!hasAction}
       style={styles.container}
       onPress={handlePress}>
       {/* Left: Name */}
-      <View style={styles.nameContainer}>
+      <View style={[styles.nameContainer, !hasAction && styles.nameContainerFull]}>
         <AppText
           title={Name}
           titleSize={1.6}
@@ -71,7 +73,7 @@ const NameBalanceContainer = ({
       </View>
 
       {/* Middle: Balance */}
-      <View style={styles.balanceContainer}>
+      <View style={[styles.balanceContainer, !hasAction && styles.balanceContainerFull]}>
         <AppText
           title={Math.round(balance).toLocaleString()}
           titleSize={1.5}
@@ -81,57 +83,54 @@ const NameBalanceContainer = ({
       </View>
 
       {/* Right: Icons */}
-      <View style={styles.iconContainer}>
-        {/* Receivable & Payable - Aging + Ledger */}
-        {showAgingAndLedger && (
-          <>
-            <TouchableOpacity
-              style={[styles.iconButton, { backgroundColor: '#E9F7EF' }]}
-              onPress={() =>
-                navigation.navigate('Aging', {
-                  name: type === 'Receivable' ? 'Customer' : 'Suppliers',
-                  item,
-                })
-              }>
-              <Icon name="clock-outline" size={20} color="#2E7D32" />
-            </TouchableOpacity>
+      {hasAction ? (
+        <View style={styles.iconContainer}>
+          {/* Receivable & Payable - Aging + Ledger */}
+          {showAgingAndLedger && (
+            <>
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: '#E9F7EF' }]}
+                onPress={() =>
+                  navigation.navigate('Aging', {
+                    name: type === 'Receivable' ? 'Customer' : 'Suppliers',
+                    item,
+                  })
+                }>
+                <Icon name="clock-outline" size={20} color="#2E7D32" />
+              </TouchableOpacity>
 
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
+                onPress={() =>
+                  navigation.navigate('Ledgers', {
+                    item: item,
+                    type: type,
+                  })
+                }>
+                <Icon name="book-open-outline" size={20} color="#1565C0" />
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* Inventory Valuation - Stock Movements Icon */}
+          {showInventoryLedger && (
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
-              onPress={() =>
-                navigation.navigate('Ledgers', {
-                  item: item,
-                  type: type,
-                })
-              }>
+              onPress={handleInventoryIconPress}>
+              <Icon name="swap-horizontal" size={20} color="#1565C0" />
+            </TouchableOpacity>
+          )}
+
+          {/* Bank & Cash - Ledger Icon */}
+          {showBankLedger && (
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
+              onPress={handleBankIconPress}>
               <Icon name="book-open-outline" size={20} color="#1565C0" />
             </TouchableOpacity>
-          </>
-        )}
-
-        {/* Inventory Valuation - Stock Movements Icon */}
-        {showInventoryLedger && (
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
-            onPress={handleInventoryIconPress}>
-            <Icon name="swap-horizontal" size={20} color="#1565C0" />
-          </TouchableOpacity>
-        )}
-
-        {/* Bank & Cash - Ledger Icon */}
-        {showBankLedger && (
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
-            onPress={handleBankIconPress}>
-            <Icon name="book-open-outline" size={20} color="#1565C0" />
-          </TouchableOpacity>
-        )}
-
-        {/* Salesman, etc. - No buttons */}
-        {!showAgingAndLedger && !showInventoryLedger && !showBankLedger && (
-          <View style={styles.placeholder} />
-        )}
-      </View>
+          )}
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 };
@@ -152,8 +151,15 @@ const styles = StyleSheet.create({
   nameContainer: {
     width: responsiveWidth(35),
   },
+  nameContainerFull: {
+    width: responsiveWidth(54),
+  },
   balanceContainer: {
     width: responsiveWidth(25),
+    alignItems: 'flex-end',
+  },
+  balanceContainerFull: {
+    width: responsiveWidth(35),
     alignItems: 'flex-end',
   },
   iconContainer: {

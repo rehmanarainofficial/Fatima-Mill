@@ -1,6 +1,5 @@
 import axios from 'axios';
 import BaseUrl from '../utils/BaseUrl';
-import {Alert} from 'react-native';
 
 export const GetBankBalance = async () => {
   let config = {
@@ -30,9 +29,7 @@ export const GetItemBalance = async () => {
   let config = {
     method: 'get',
     url: `${BaseUrl}dash_items.php`,
-    timeout: 5000, // ⏱️ prevent long wait
     headers: {
-      'Cache-Control': 'no-cache',
       Pragma: 'no-cache',
     },
   };
@@ -64,3 +61,19 @@ export const GetReceivable = async () => {
   const res = await axios.request(config);
   return res.data;
 };
+
+export const GetIncomeAndExpenseDetail = async (fromDate, toDate) => {
+  const formData = new FormData();
+  formData.append('from_date', fromDate);
+  formData.append('to_date', toDate);
+
+  const response = await fetch(`${BaseUrl}income_and_expense_detail.php`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    body: formData,
+  });
+  return await response.json();
+};
+
