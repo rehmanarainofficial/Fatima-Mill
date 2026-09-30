@@ -14,6 +14,11 @@ export const shareVoidTransactionPDF = async (
   voucherTypeId,
   companyName,
 ) => {
+  console.log('companyName', companyName);
+  console.log('item', item);
+  console.log('header', header);
+  console.log('details', details);
+
   const decodeHtml = html => {
     if (!html) {
       return '';
@@ -35,7 +40,7 @@ export const shareVoidTransactionPDF = async (
     if (parts.length !== 3) {
       return dateStr;
     }
-    return `${parts[2]}/${parts[1]}/${parts[0]}`; // dd/mm/yyyy
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   const voucherTypesMap = {
@@ -84,11 +89,10 @@ export const shareVoidTransactionPDF = async (
       ? 'Received From:'
       : 'Delivered To:';
 
-  const docDate = header.trans_date || formatDateDisplay(item.ord_date) || '';
+  const docDate = header.trans_date || '';
   const docNo = item.trans_no || '';
-  const docRef = header.reference || item.reference || '-';
+  const docRef = header.reference || '-';
   const customerName = header.name || '';
-  const driverName = header.driver_name || '';
   const vehicleNo = header.location_name || '';
   const salesPerson = header.salesman || '';
   const poNo = header.customer_ref || '';
@@ -159,9 +163,9 @@ export const shareVoidTransactionPDF = async (
     })
     .join('');
 
-  const totalAmount = parseFloat(
-    header.total || item.total || 0,
-  ).toLocaleString(undefined, {minimumFractionDigits: 2});
+  const totalAmount = parseFloat(header.total || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+  });
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -259,7 +263,7 @@ export const shareVoidTransactionPDF = async (
       <table class="header-container" style="width: 100%;">
         <tr>
           <td style="width: 60%; vertical-align: top;">
-            <div class="company-title">FATIMA BOARD AND PAPER MILL (PVT) LTD</div>
+            <div class="company-title">${decodeHtml(companyName)}</div>
           </td>
           <td class="doc-title-container" style="width: 40%;">
             <div class="doc-title">${docTitle}</div>
@@ -291,10 +295,6 @@ export const shareVoidTransactionPDF = async (
           </td>
           <td style="width: 50%; padding-left: 20px;">
             <table style="width: 100%;">
-              <tr>
-                <td class="info-label">Driver Name:</td>
-                <td>${driverName || '-'}</td>
-              </tr>
               <tr>
                 <td class="info-label">Vehicle No:</td>
                 <td>${vehicleNo || '-'}</td>
@@ -384,20 +384,10 @@ export const shareVoidTransactionPDF = async (
 
   const finalCompanyName = companyName || '';
 
-  const shareCustomerName =
-    customerName ||
-    header?.name ||
-    item?.name ||
-    item?.customer_name ||
-    item?.person_name ||
-    item?.supp_name ||
-    item?.debtor_name ||
-    'Customer';
+  const shareCustomerName = customerName || header?.name || '';
 
-  const shareDocRef =
-    docRef || header?.reference || item?.reference || item?.trans_no || '';
-  const rawDate =
-    header?.trans_date || item?.ord_date || item?.trans_date || '';
+  const shareDocRef = docRef || header?.reference || '';
+  const rawDate = header?.trans_date || '';
   const formattedShareDate = rawDate
     ? moment(rawDate, [
         'YYYY-MM-DD',
@@ -422,12 +412,6 @@ ${finalCompanyName}`;
 
   try {
     Clipboard.setString(shareMessage);
-    Toast.show({
-      type: 'success',
-      text1: 'Message Copied to Clipboard!',
-      text2: 'PDF send karte waqt chat mein paste kar dein.',
-      visibilityTime: 4000,
-    });
   } catch (clipErr) {
     console.log('Clipboard copy error:', clipErr);
   }
