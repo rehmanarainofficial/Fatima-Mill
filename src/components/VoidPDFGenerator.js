@@ -98,73 +98,197 @@ export const shareVoidTransactionPDF = async (
   const poNo = header.customer_ref || '';
 
   let totalQty = 0;
-  const itemRows = details
-    .map((row, index) => {
-      const qty = parseFloat(row.quantity) || 0;
-      const price = parseFloat(row.unit_price) || 0;
-      const rowTotal = qty * price;
-      totalQty += qty;
+  let calculatedGrandTotal = 0;
 
-      if (isDeliveryOrGRN) {
-        return `
-        <tr>
-          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 10%;">${
-            index + 1
-          }</td>
-          <td style="padding: 6px; border: 1px solid #000; width: 60%;">
-            ${decodeHtml(row.description)}
-            ${
-              row.long_description
-                ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
-                    row.long_description,
-                  )}</div>`
-                : ''
-            }
-          </td>
-          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
-          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 15%;">${qty.toLocaleString(
-            undefined,
-            {minimumFractionDigits: 2},
-          )}</td>
-        </tr>
-      `;
-      } else {
-        return `
-        <tr>
-          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 8%;">${
-            index + 1
-          }</td>
-          <td style="padding: 6px; border: 1px solid #000; width: 45%;">
-            ${decodeHtml(row.description)}
-            ${
-              row.long_description
-                ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
-                    row.long_description,
-                  )}</div>`
-                : ''
-            }
-          </td>
-          <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
-          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${qty.toLocaleString(
-            undefined,
-            {minimumFractionDigits: 2},
-          )}</td>
-          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${price.toLocaleString(
-            undefined,
-            {minimumFractionDigits: 2},
-          )}</td>
-          <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 12%; font-weight: bold;">${rowTotal.toLocaleString(
-            undefined,
-            {minimumFractionDigits: 2},
-          )}</td>
-        </tr>
-      `;
+  const hasCategories = details.some(
+    row => row.category_name && row.category_name.trim().length > 0,
+  );
+
+  let itemRows = '';
+  if (hasCategories) {
+    const categoriesMap = {};
+    details.forEach(row => {
+      const cat = (row.category_name && row.category_name.trim()) || 'Other';
+      if (!categoriesMap[cat]) {
+        categoriesMap[cat] = [];
       }
-    })
-    .join('');
+      categoriesMap[cat].push(row);
+    });
 
-  const totalAmount = parseFloat(header.total || 0).toLocaleString(undefined, {
+    let overallIndex = 1;
+    const catKeys = Object.keys(categoriesMap);
+    itemRows = catKeys
+      .map(catName => {
+        const catRows = categoriesMap[catName];
+        let catTotal = 0;
+        const rowsHtml = catRows
+          .map(row => {
+            const qty = parseFloat(row.quantity) || 0;
+            const price = parseFloat(row.unit_price) || 0;
+            const rowTotal = qty * price;
+            totalQty += qty;
+            catTotal += rowTotal;
+            calculatedGrandTotal += rowTotal;
+
+            const currentIndex = overallIndex++;
+            if (isDeliveryOrGRN) {
+              return `
+              <tr>
+                <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 10%;">${currentIndex}</td>
+                <td style="padding: 6px; border: 1px solid #000; width: 60%;">
+                  ${decodeHtml(row.description)}
+                  ${
+                    row.long_description
+                      ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                          row.long_description,
+                        )}</div>`
+                      : ''
+                  }
+                </td>
+                <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+                <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 15%;">${qty.toLocaleString(
+                  undefined,
+                  {minimumFractionDigits: 2, maximumFractionDigits: 2},
+                )}</td>
+              </tr>
+            `;
+            } else {
+              return `
+              <tr>
+                <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 8%;">${currentIndex}</td>
+                <td style="padding: 6px; border: 1px solid #000; width: 45%;">
+                  ${decodeHtml(row.description)}
+                  ${
+                    row.long_description
+                      ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                          row.long_description,
+                        )}</div>`
+                      : ''
+                  }
+                </td>
+                <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+                <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${qty.toLocaleString(
+                  undefined,
+                  {minimumFractionDigits: 2, maximumFractionDigits: 2},
+                )}</td>
+                <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${price.toLocaleString(
+                  undefined,
+                  {minimumFractionDigits: 2, maximumFractionDigits: 2},
+                )}</td>
+                <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 12%; font-weight: bold;">${rowTotal.toLocaleString(
+                  undefined,
+                  {minimumFractionDigits: 2, maximumFractionDigits: 2},
+                )}</td>
+              </tr>
+            `;
+            }
+          })
+          .join('');
+
+        const catHeaderHtml = `
+          <tr style="background-color: #F0F6FA;">
+            <td colspan="${isDeliveryOrGRN ? 4 : 6}" style="font-weight: bold; font-size: 12px; padding: 7px 10px; border: 1px solid #000; color: #0784B5;">
+              Category: ${decodeHtml(catName)} (${catRows.length} ${catRows.length === 1 ? 'item' : 'items'})
+            </td>
+          </tr>
+        `;
+
+        const catFooterHtml = isDeliveryOrGRN
+          ? ''
+          : `
+          <tr style="background-color: #FAFAFA;">
+            <td colspan="5" style="text-align: right; font-weight: bold; padding: 6px 10px; border: 1px solid #000; font-size: 11px;">
+              ${decodeHtml(catName)} Total:
+            </td>
+            <td style="text-align: right; font-weight: bold; padding: 6px 10px; border: 1px solid #000; font-size: 11px; color: #0784B5;">
+              ${catTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </td>
+          </tr>
+        `;
+
+        return catHeaderHtml + rowsHtml + catFooterHtml;
+      })
+      .join('');
+  } else {
+    itemRows = details
+      .map((row, index) => {
+        const qty = parseFloat(row.quantity) || 0;
+        const price = parseFloat(row.unit_price) || 0;
+        const rowTotal = qty * price;
+        totalQty += qty;
+        calculatedGrandTotal += rowTotal;
+
+        if (isDeliveryOrGRN) {
+          return `
+          <tr>
+            <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 10%;">${
+              index + 1
+            }</td>
+            <td style="padding: 6px; border: 1px solid #000; width: 60%;">
+              ${decodeHtml(row.description)}
+              ${
+                row.long_description
+                  ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                      row.long_description,
+                    )}</div>`
+                  : ''
+              }
+            </td>
+            <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+            <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 15%;">${qty.toLocaleString(
+              undefined,
+              {minimumFractionDigits: 2, maximumFractionDigits: 2},
+            )}</td>
+          </tr>
+        `;
+        } else {
+          return `
+          <tr>
+            <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 8%;">${
+              index + 1
+            }</td>
+            <td style="padding: 6px; border: 1px solid #000; width: 45%;">
+              ${decodeHtml(row.description)}
+              ${
+                row.long_description
+                  ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${decodeHtml(
+                      row.long_description,
+                    )}</div>`
+                  : ''
+              }
+            </td>
+            <td style="text-align: center; padding: 6px; border: 1px solid #000; width: 15%;">KG</td>
+            <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${qty.toLocaleString(
+              undefined,
+              {minimumFractionDigits: 2, maximumFractionDigits: 2},
+            )}</td>
+            <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 10%;">${price.toLocaleString(
+              undefined,
+              {minimumFractionDigits: 2, maximumFractionDigits: 2},
+            )}</td>
+            <td style="text-align: right; padding: 6px; border: 1px solid #000; width: 12%; font-weight: bold;">${rowTotal.toLocaleString(
+              undefined,
+              {minimumFractionDigits: 2, maximumFractionDigits: 2},
+            )}</td>
+          </tr>
+        `;
+        }
+      })
+      .join('');
+  }
+
+  const finalTotal =
+    header.total !== null && header.total !== undefined && header.total !== ''
+      ? parseFloat(header.total)
+      : calculatedGrandTotal;
+
+  const finishQtyNum = parseFloat(header.finish_qty || header.finsh_qty) || 0;
+  const perPieceRate =
+    finishQtyNum > 0 && finalTotal > 0 ? finalTotal / finishQtyNum : null;
+
+  const totalAmount = finalTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
   const htmlContent = `
@@ -307,6 +431,21 @@ export const shareVoidTransactionPDF = async (
                 <td class="info-label">PO No:</td>
                 <td>${poNo || '-'}</td>
               </tr>
+              ${header.Produce_item ? `
+              <tr>
+                <td class="info-label">Produce Item:</td>
+                <td>${decodeHtml(header.Produce_item)}</td>
+              </tr>` : ''}
+              ${header.finish_qty ? `
+              <tr>
+                <td class="info-label">Finish Qty:</td>
+                <td>${finishQtyNum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              </tr>` : ''}
+              ${perPieceRate !== null ? `
+              <tr>
+                <td class="info-label">Per Piece:</td>
+                <td>${perPieceRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              </tr>` : ''}
             </table>
           </td>
         </tr>
@@ -345,6 +484,7 @@ export const shareVoidTransactionPDF = async (
                 <td colspan="3" class="text-center">TOTAL</td>
                 <td class="text-right">${totalQty.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })}</td>
               </tr>
               `
@@ -353,6 +493,7 @@ export const shareVoidTransactionPDF = async (
                 <td colspan="3" class="text-center">TOTAL</td>
                 <td class="text-right">${totalQty.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })}</td>
                 <td></td>
                 <td class="text-right">${totalAmount}</td>

@@ -22,6 +22,17 @@ const formatDateDisplay = dateStr => {
   return dateStr;
 };
 
+const formatQuantity = val => {
+  if (val === null || val === undefined || val === '') {return null;}
+  const num = parseFloat(val);
+  return isNaN(num)
+    ? String(val).trim()
+    : num.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+};
+
 const VoidTransactionDetail = ({route, navigation}) => {
   const {trans_no, type} = route.params;
 
@@ -31,14 +42,10 @@ const VoidTransactionDetail = ({route, navigation}) => {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isGLLoading, setIsGLLoading] = useState(false);
 
-
-
   useEffect(() => {
     fetchDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trans_no, type]);
-
-
 
   const fetchDetails = async () => {
     const payload = new FormData();
@@ -153,6 +160,125 @@ const VoidTransactionDetail = ({route, navigation}) => {
         .replace(/&nbsp;/g, ' ');
     };
 
+    const hasCategories = details.some(
+      item => item.category_name && item.category_name.trim().length > 0,
+    );
+
+    const categoriesMap = {};
+    if (hasCategories) {
+      details.forEach(item => {
+        const cat = (item.category_name && item.category_name.trim()) || 'Other';
+        if (!categoriesMap[cat]) {
+          categoriesMap[cat] = [];
+        }
+        categoriesMap[cat].push(item);
+      });
+    }
+    const categoryNames = Object.keys(categoriesMap);
+
+    const grandTotal = details.reduce((sum, item) => {
+      const qty = parseFloat(item.quantity) || 0;
+      const price = parseFloat(item.unit_price) || 0;
+      return sum + qty * price;
+    }, 0);
+
+    const effectiveTotal =
+      header.total !== null && header.total !== undefined && header.total !== ''
+        ? parseFloat(header.total) || 0
+        : grandTotal;
+
+    const finishQtyNum = parseFloat(header.finish_qty || header.finsh_qty) || 0;
+    const perPieceRate =
+      finishQtyNum > 0 && effectiveTotal > 0
+        ? effectiveTotal / finishQtyNum
+        : null;
+
+    const renderTableHeader = () => (
+      <View style={[styles.tableRow, styles.tableHeader]}>
+        <Text style={[styles.tableHeaderCell, {flex: 2}]}>Description</Text>
+        <Text
+          style={[
+            styles.tableHeaderCell,
+            {flex: 0.8, textAlign: 'center'},
+          ]}>
+          Qty
+        </Text>
+        <Text
+          style={[
+            styles.tableHeaderCell,
+            {flex: 1.2, textAlign: 'right'},
+          ]}>
+          Price
+        </Text>
+        <Text
+          style={[
+            styles.tableHeaderCell,
+            {flex: 1.2, textAlign: 'right'},
+          ]}>
+          Total
+        </Text>
+      </View>
+    );
+
+    const renderItemRow = (item, index) => {
+      const qty = parseFloat(item.quantity) || 0;
+      const price = parseFloat(item.unit_price) || 0;
+      const total = qty * price;
+      return (
+        <View
+          key={item.id || index}
+          style={[
+            styles.tableRow,
+            {
+              borderBottomWidth: 1,
+              borderBottomColor: '#E6E8EB',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+            },
+          ]}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{flex: 2}}>
+              <Text style={styles.tableName}>
+                {decodeHtml(item.description)}
+              </Text>
+            </View>
+            <Text
+              style={[
+                styles.tableCell,
+                {flex: 0.8, textAlign: 'center'},
+              ]}>
+              {qty.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+            <Text
+              style={[
+                styles.tableCell,
+                {flex: 1.2, textAlign: 'right'},
+              ]}>
+              {price.toLocaleString()}
+            </Text>
+            <Text
+              style={[
+                styles.tableCell,
+                {flex: 1.2, textAlign: 'right', fontWeight: '700'},
+              ]}>
+              {total.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </View>
+          {item.long_description ? (
+            <Text style={[styles.tableSub, {marginTop: 4}]}>
+              {decodeHtml(item.long_description)}
+            </Text>
+          ) : null}
+        </View>
+      );
+    };
+
     return (
       <View style={styles.section}>
         <View style={styles.card}>
@@ -160,12 +286,38 @@ const VoidTransactionDetail = ({route, navigation}) => {
           {renderHeaderField('Date', formatDateDisplay(header.trans_date))}
           {renderHeaderField('Due Date', formatDateDisplay(header.due_date))}
           {renderHeaderField('Type', header.type)}
+          {renderHeaderField(
+            'Produce Item',
+            (header.Produce_item || header.produce_item)?.trim(),
+          )}
+          {renderHeaderField(
+            'Finish Qty',
+            formatQuantity(header.finish_qty || header.finsh_qty),
+          )}
+          {perPieceRate !== null &&
+            renderHeaderField(
+              'Per Piece',
+              perPieceRate.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }),
+            )}
           {renderHeaderField('Name', header.name)}
           {renderHeaderField('Location', header.location_name)}
           {renderHeaderField('Salesman', header.salesman)}
           {renderHeaderField('Customer Ref', header.customer_ref)}
           {renderHeaderField('Payment Terms', header.payment_terms)}
-          {renderHeaderField('Total', header.total)}
+          {renderHeaderField(
+            'Total',
+            header.total !== null && header.total !== undefined && header.total !== ''
+              ? header.total
+              : grandTotal > 0
+              ? grandTotal.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : null,
+          )}
           {renderHeaderField('Discount', header.discount)}
           {header.comments && (
             <View style={styles.commentBox}>
@@ -176,86 +328,75 @@ const VoidTransactionDetail = ({route, navigation}) => {
         </View>
 
         {details.length > 0 && (
-          <View style={styles.itemTable}>
+          <View style={{marginTop: 12}}>
             <Text style={styles.subHeading}>Item Details</Text>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableHeaderCell, {flex: 2}]}>
-                Description
-              </Text>
-              <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {flex: 0.8, textAlign: 'center'},
-                ]}>
-                Qty
-              </Text>
-              <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {flex: 1.2, textAlign: 'right'},
-                ]}>
-                Price
-              </Text>
-              <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {flex: 1.2, textAlign: 'right'},
-                ]}>
-                Total
-              </Text>
-            </View>
-            {details.map((item, index) => {
-              const qty = parseFloat(item.quantity) || 0;
-              const price = parseFloat(item.unit_price) || 0;
-              const total = qty * price;
-              return (
-                <View
-                  key={index}
-                  style={[
-                    styles.tableRow,
-                    {
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#E6E8EB',
-                      flexDirection: 'column',
-                      alignItems: 'stretch',
-                    },
-                  ]}>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <View style={{flex: 2}}>
-                      <Text style={styles.tableName}>
-                        {decodeHtml(item.description)}
-                      </Text>
+            {hasCategories ? (
+              <>
+                {categoryNames.map((catName, catIndex) => {
+                  const catItems = categoriesMap[catName];
+                  const catTotal = catItems.reduce((sum, it) => {
+                    const q = parseFloat(it.quantity) || 0;
+                    const p = parseFloat(it.unit_price) || 0;
+                    return sum + q * p;
+                  }, 0);
+
+                  return (
+                    <View key={catIndex} style={styles.categoryCard}>
+                      <View style={styles.categoryHeader}>
+                        <View style={styles.categoryTitleRow}>
+                          <Icon
+                            name="folder-open-outline"
+                            size={16}
+                            color={APPCOLORS.Primary}
+                            style={{marginRight: 6}}
+                          />
+                          <Text style={styles.categoryTitle}>{catName}</Text>
+                        </View>
+                        <View style={styles.categoryBadge}>
+                          <Text style={styles.categoryBadgeText}>
+                            {catItems.length}{' '}
+                            {catItems.length === 1 ? 'item' : 'items'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {renderTableHeader()}
+
+                      {catItems.map((item, index) =>
+                        renderItemRow(item, index),
+                      )}
+
+                      <View style={styles.categoryFooterRow}>
+                        <Text style={styles.categoryFooterLabel}>
+                          {catName} Total:
+                        </Text>
+                        <Text style={styles.categoryFooterValue}>
+                          {catTotal.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </Text>
+                      </View>
                     </View>
-                    <Text
-                      style={[
-                        styles.tableCell,
-                        {flex: 0.8, textAlign: 'center'},
-                      ]}>
-                      {qty}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.tableCell,
-                        {flex: 1.2, textAlign: 'right'},
-                      ]}>
-                      {price.toLocaleString()}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.tableCell,
-                        {flex: 1.2, textAlign: 'right', fontWeight: '700'},
-                      ]}>
-                      {total.toLocaleString()}
-                    </Text>
-                  </View>
-                  {item.long_description && (
-                    <Text style={[styles.tableSub, {marginTop: 4}]}>
-                      {decodeHtml(item.long_description)}
-                    </Text>
-                  )}
+                  );
+                })}
+
+                <View style={styles.grandTotalCard}>
+                  <Text style={styles.grandTotalLabel}>Grand Total</Text>
+                  <Text style={styles.grandTotalValue}>
+                    {grandTotal.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </Text>
                 </View>
-              );
-            })}
+              </>
+            ) : (
+              <View style={styles.itemTable}>
+                {renderTableHeader()}
+                {details.map((item, index) => renderItemRow(item, index))}
+              </View>
+            )}
           </View>
         )}
       </View>
@@ -519,7 +660,93 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-
+  categoryCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E6E8EB',
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F0F6FA',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    borderLeftWidth: 4,
+    borderLeftColor: APPCOLORS.Primary,
+  },
+  categoryTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  categoryBadge: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  categoryBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: APPCOLORS.Primary,
+  },
+  categoryFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#F8FAFC',
+    borderTopWidth: 1,
+    borderTopColor: '#E6E8EB',
+  },
+  categoryFooterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  categoryFooterValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: APPCOLORS.Primary,
+  },
+  grandTotalCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0784B5',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  grandTotalLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  grandTotalValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFF',
+  },
 });
 
 export default VoidTransactionDetail;
