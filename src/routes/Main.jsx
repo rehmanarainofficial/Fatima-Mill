@@ -19,6 +19,7 @@ import StockMovements from '../screens/main/stacks/AgingAndLedger/StockMovements
 import VoidTransactions from '../screens/main/stacks/VoidTransactions/VoidTransactions';
 import VoidTransactionDetail from '../screens/main/stacks/VoidTransactions/VoidTransactionDetail';
 import DeliveryScreen from '../screens/main/stacks/Delivery/DeliveryScreen';
+import AccountDetailScreen from '../screens/main/stacks/DetailScreens/AccountDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +50,7 @@ const Main = () => {
       <Stack.Screen name="VoidTransactions" component={VoidTransactions} />
       <Stack.Screen name="VoidTransactionDetail" component={VoidTransactionDetail} />
       <Stack.Screen name="DeliveryScreen" component={DeliveryScreen} />
+      <Stack.Screen name="AccountDetail" component={AccountDetailScreen} />
     </Stack.Navigator>
   );
 };

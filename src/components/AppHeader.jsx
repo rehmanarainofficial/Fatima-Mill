@@ -20,9 +20,26 @@ import {setLogout} from '../redux/AuthSlice';
 import {clearDashboardCache} from '../screens/main/Dashboard';
 import {clearDetailCache} from '../screens/main/stacks/DetailScreens/Detail';
 
+const getInitials = name => {
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+  return '';
+};
+
 const AppHeader = ({title, onPress}) => {
-  const {currentData} = useSelector(state => state.Data);
-  console.log('auth', currentData);
+  const {currentData} = useSelector(state => state.Data || {});
+  const userData = Array.isArray(currentData) ? currentData[0] : currentData;
+  const userName = userData?.real_name || '';
+  const companyName = userData?.company_name || 'DeSolutions';
+  const userInitials = getInitials(userName);
 
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
@@ -35,7 +52,7 @@ const AppHeader = ({title, onPress}) => {
       duration: 800,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fadeAnim]);
 
   return (
     <Animated.View style={{opacity: fadeAnim, width: '100%'}}>
@@ -58,14 +75,16 @@ const AppHeader = ({title, onPress}) => {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-          <AppText
-            title="DeSolutions"
-            titleColor={APPCOLORS.WHITE}
-            titleSize={3}
-            titleWeight
-          />
+          <View style={{flex: 1, marginRight: 10}}>
+            <AppText
+              title={companyName}
+              titleColor={APPCOLORS.WHITE}
+              titleSize={companyName.length > 25 ? 2.1 : 2.5}
+              titleWeight
+              numberOfLines={1}
+            />
+          </View>
 
-          {/* 🔹 Only Logout Icon Remaining - Other 4 icons removed */}
           <View style={{flexDirection: 'row'}}>
             <TouchableOpacity
               onPress={() => {
@@ -82,7 +101,6 @@ const AppHeader = ({title, onPress}) => {
           </View>
         </View>
 
-        {/* Profile Info */}
         <View
           style={{
             flexDirection: 'row',
@@ -103,11 +121,16 @@ const AppHeader = ({title, onPress}) => {
               borderRadius: 200,
               borderColor: APPCOLORS.WHITE,
             }}>
-            <AppText title="MA" titleColor={APPCOLORS.WHITE} titleSize={2} />
-          </View>
-          <View>
             <AppText
-              title={currentData?.real_name}
+              title={userInitials}
+              titleColor={APPCOLORS.WHITE}
+              titleSize={2}
+              titleWeight
+            />
+          </View>
+          <View style={{flex: 1}}>
+            <AppText
+              title={userName}
               titleColor={APPCOLORS.WHITE}
               titleSize={Platform.OS === 'ios' ? 2.2 : 2.0}
               titleWeight

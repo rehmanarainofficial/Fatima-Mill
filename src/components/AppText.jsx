@@ -1,4 +1,4 @@
-import {View, Text} from 'react-native';
+import {Text} from 'react-native';
 import React from 'react';
 import {responsiveFontSize, responsiveWidth} from '../utils/Responsive';
 
@@ -9,9 +9,13 @@ const AppText = ({
   titleSizeWeight,
   titleAlignment,
   titleColor,
+  numberOfLines,
+  ellipsizeMode,
 }) => {
   return (
     <Text
+      numberOfLines={numberOfLines}
+      ellipsizeMode={ellipsizeMode}
       style={{
         fontSize: responsiveFontSize(titleSize),
         color: titleColor,

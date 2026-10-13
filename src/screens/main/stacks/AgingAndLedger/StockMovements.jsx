@@ -55,9 +55,6 @@ const StockMovements = ({ navigation, route }) => {
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
 
-  // ------------------------------
-  // FETCH LOCATIONS (GET)
-  // ------------------------------
   const fetchLocations = async () => {
     try {
       const res = await fetch(`${BASEURL}locations.php`);
@@ -71,9 +68,6 @@ const StockMovements = ({ navigation, route }) => {
     }
   };
 
-  // ------------------------------
-  // FETCH STOCKS (GET)
-  // ------------------------------
   const fetchStocks = async () => {
     try {
       const res = await fetch(`${BASEURL}stock_master.php`);
@@ -81,16 +75,13 @@ const StockMovements = ({ navigation, route }) => {
 
       if (json.status === 'true') {
         setStocks(json.data);
-        setFilteredStocks(json.data); // Initialize filtered stocks
+        setFilteredStocks(json.data);
       }
     } catch (e) {
       console.log('Stock master error:', e);
     }
   };
 
-  // ------------------------------
-  // SEARCH STOCKS
-  // ------------------------------
   const searchStocks = query => {
     setSearchQuery(query);
     if (query.trim() === '') {
@@ -105,9 +96,6 @@ const StockMovements = ({ navigation, route }) => {
     }
   };
 
-  // ------------------------------
-  // FETCH STOCK MOVEMENT (POST)
-  // ------------------------------
   const fetchStockMovement = async () => {
     try {
       setLoading(true);
@@ -129,14 +117,11 @@ const StockMovements = ({ navigation, route }) => {
       if (json.status === 'true') {
         setMovementData(json.data || []);
 
-        // Set opening balance from API response
         const opening = json.opening !== null ? parseFloat(json.opening) : 0;
         setOpeningBalance(opening);
 
-        // Calculate closing balance using API's balance field from last transaction
         let closing = opening;
         if (json.data && json.data.length > 0) {
-          // Use the balance from the last transaction in API response
           const lastTransaction = json.data[json.data.length - 1];
           closing = parseFloat(lastTransaction.balance) || opening;
         }
@@ -159,11 +144,9 @@ const StockMovements = ({ navigation, route }) => {
     if (item?.stock_id) {
       fetchStockMovement();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------------------------------
-  // RESET FILTERS
-  // ------------------------------
   const handleReset = () => {
     setSelectedLocation('');
     if (!item?.stock_id) {
@@ -178,32 +161,24 @@ const StockMovements = ({ navigation, route }) => {
     setFilteredStocks(stocks);
   };
 
-  // ------------------------------
-  // FORMAT NUMBER WITH COMMAS
-  // ------------------------------
   const formatNumber = num => {
     if (num === null || num === undefined) {return '0';}
     const number = typeof num === 'string' ? parseFloat(num) : num;
     if (isNaN(number)) {return '0';}
 
-    // Round to 2 decimal places and format with commas
     return Math.round(number).toLocaleString('en-US');
   };
 
-  // ------------------------------
-  // RENDER EACH TRANSACTION CARD
-  // ------------------------------
   const renderCard = ({ item: transaction, index }) => {
     const qty = parseFloat(transaction.qty || 0);
     const isPositive = qty > 0;
 
-    // Use the balance directly from API response instead of calculating
     const balance = parseFloat(transaction.balance) || 0;
 
     return (
       <View style={styles.card}>
         <Text style={styles.dateText}>
-          {moment(transaction.tran_date).format('DD MMM YYYY')}
+          {transaction.tran_date ? moment(transaction.tran_date).format('DD/MM/YYYY') : 'N/A'}
         </Text>
 
         <View style={styles.row}>
@@ -236,7 +211,6 @@ const StockMovements = ({ navigation, route }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
 
-      {/* ---------------- HEADER ---------------- */}
       <View style={[styles.header, {
         height: headerContentHeight + insets.top,
         paddingTop: insets.top,
@@ -259,7 +233,6 @@ const StockMovements = ({ navigation, route }) => {
           Stock Movement
         </Text>
 
-        {/* Reset Button in Header Right */}
         <TouchableOpacity onPress={handleReset} style={styles.headerSideButton}>
           <MaterialIcons
             name="refresh"
@@ -269,9 +242,7 @@ const StockMovements = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {/* ---------------- FILTER SECTION ---------------- */}
       <View style={styles.filterBox}>
-        {/* ROW 1 - STOCK DROPDOWN (Only show when fromAllMovements) */}
         {shouldShowStockDropdown && (
           <View style={styles.filterRow}>
             <TouchableOpacity
@@ -291,7 +262,6 @@ const StockMovements = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* ROW 2 - LOCATION DROPDOWN */}
         <View style={styles.filterRow}>
           <TouchableOpacity
             style={styles.dropdown}
@@ -309,23 +279,23 @@ const StockMovements = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ROW 3 - DATE PICKERS & APPLY BUTTON */}
         <View style={styles.filterRow}>
-          {/* From Date */}
           <TouchableOpacity
             style={styles.dateBox}
             onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateTextFilter}>{fromDate}</Text>
+            <Text style={styles.dateTextFilter}>
+              {fromDate ? moment(fromDate).format('DD/MM/YYYY') : 'From Date'}
+            </Text>
           </TouchableOpacity>
 
-          {/* To Date */}
           <TouchableOpacity
             style={styles.dateBox}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateTextFilter}>{toDate}</Text>
+            <Text style={styles.dateTextFilter}>
+              {toDate ? moment(toDate).format('DD/MM/YYYY') : 'To Date'}
+            </Text>
           </TouchableOpacity>
 
-          {/* Apply Button */}
           <TouchableOpacity
             style={styles.applyBtn}
             onPress={fetchStockMovement}
@@ -338,7 +308,6 @@ const StockMovements = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        {/* BALANCE ROW - Always show when we have data */}
         {(movementData.length > 0 ||
           openingBalance !== 0 ||
           closingBalance !== 0) && (
@@ -358,7 +327,6 @@ const StockMovements = ({ navigation, route }) => {
             </View>
           )}
 
-        {/* STOCK MODAL WITH SEARCH */}
         <Modal
           visible={showStockModal}
           transparent={true}
@@ -382,7 +350,6 @@ const StockMovements = ({ navigation, route }) => {
                 </TouchableOpacity>
               </View>
 
-              {/* Search Bar */}
               <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" />
                 <TextInput
@@ -445,7 +412,6 @@ const StockMovements = ({ navigation, route }) => {
           </View>
         </Modal>
 
-        {/* LOCATION MODAL */}
         <Modal
           visible={showLocationModal}
           transparent={true}
@@ -489,7 +455,6 @@ const StockMovements = ({ navigation, route }) => {
           </View>
         </Modal>
 
-        {/* FROM DATE PICKER */}
         {Platform.OS === 'ios' ? (
           <Modal
             visible={showFromPicker}
@@ -533,7 +498,6 @@ const StockMovements = ({ navigation, route }) => {
           )
         )}
 
-        {/* TO DATE PICKER */}
         {Platform.OS === 'ios' ? (
           <Modal
             visible={showToPicker}
@@ -578,7 +542,6 @@ const StockMovements = ({ navigation, route }) => {
         )}
       </View>
 
-      {/* ---------------- TRANSACTIONS LIST ---------------- */}
       {loading ? (
         <ActivityIndicator
           size="large"
@@ -731,7 +694,6 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.8),
   },
 
-  // ---------- CARD ----------
   card: {
     backgroundColor: '#fff',
     padding: responsiveWidth(4),
@@ -778,7 +740,6 @@ const styles = StyleSheet.create({
     color: '#777',
   },
 
-  // ---------- MODAL STYLES ----------
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

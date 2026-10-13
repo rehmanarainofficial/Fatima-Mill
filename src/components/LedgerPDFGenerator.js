@@ -2,6 +2,7 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
 import {PermissionsAndroid, Platform, Share, Alert} from 'react-native';
 import Toast from 'react-native-toast-message';
+import moment from 'moment';
 
 export const generateLedgerPDF = async (
   ledgerData,
@@ -34,7 +35,12 @@ export const generateLedgerPDF = async (
       }
     }
 
-    const currentDate = new Date().toLocaleDateString();
+    const formatToDDMMYYYY = d => {
+      if (!d) {return '';}
+      return moment(d).format('DD/MM/YYYY');
+    };
+
+    const currentDate = moment().format('DD/MM/YYYY');
     const firstTx = ledgerData?.[0]?.transactions?.[0]?.person_name || 'N/A';
     const customerName = firstTx;
 
@@ -67,7 +73,7 @@ export const generateLedgerPDF = async (
     margin-bottom: 10px;
   "
 >
-  <p style="margin: 0;"><strong>From:</strong> ${fromDate} &nbsp;&nbsp; <strong>To:</strong> ${toDate}</p>
+  <p style="margin: 0;"><strong>From:</strong> ${formatToDDMMYYYY(fromDate)} &nbsp;&nbsp; <strong>To:</strong> ${formatToDDMMYYYY(toDate)}</p>
   <p style="margin: 0;"><strong>Generated on:</strong> ${currentDate}</p>
 </div>
 
@@ -88,7 +94,7 @@ export const generateLedgerPDF = async (
               .map(
                 tx => `
                 <tr>
-                  <td style="padding: 6px;">${section.date}</td>
+                  <td style="padding: 6px;">${formatToDDMMYYYY(section.date)}</td>
                   <td style="padding: 6px;">${tx.reference || '-'}</td>
                   <td style="padding: 6px;">${tx.person_name || '-'}</td>
                   <td style="padding: 6px; text-align: right;">${parseFloat(

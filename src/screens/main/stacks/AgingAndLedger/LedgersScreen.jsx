@@ -26,19 +26,21 @@ import Header from '../../../../components/Header';
 
 const LedgersScreen = ({ route, navigation }) => {
   const { item, type } = route.params || {};
+  const passedFromDate = route.params?.fromDate || item?.fromDate;
+  const passedToDate = route.params?.toDate || item?.toDate;
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState([]);
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
 
-  // Filter states - sirf dates ke liye
   const [fromDate, setFromDate] = useState(
-    moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    passedFromDate || moment().subtract(1, 'month').format('YYYY-MM-DD'),
   );
-  const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
+  const [toDate, setToDate] = useState(
+    passedToDate || moment().format('YYYY-MM-DD'),
+  );
 
-  // Date picker states
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
 
@@ -47,8 +49,12 @@ const LedgersScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     if (item) {
-      fetchData();
+      fetchData(
+        passedFromDate || fromDate,
+        passedToDate || toDate,
+      );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
 
   useEffect(() => {
@@ -59,30 +65,69 @@ const LedgersScreen = ({ route, navigation }) => {
     }).start();
   }, [fadeAnim]);
 
-  // Fetch ledger data with filters - FORM DATA with POST
-  const fetchData = async () => {
+  const fetchData = async (overrideFrom = fromDate, overrideTo = toDate) => {
     try {
       if (!item) {return;}
 
       setLoading(true);
 
+      const accountVal =
+        item.account ||
+        item.account_code ||
+        item.bank_act ||
+        item.code ||
+        '';
+
       const formData = new FormData();
-      formData.append('account', item.account);
-      formData.append('from_date', fromDate);
-      formData.append('to_date', toDate);
-      formData.append('person_id', type == 'Bank & Cash' ? '' : item.person_id);
+      formData.append('account', String(accountVal));
+      formData.append('from_date', overrideFrom);
+      formData.append('to_date', overrideTo);
 
-      const response = await fetch(`${BASEURL}gl_account_inquiry.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-      const json = await response.json();
+      if (
+        item.person_id &&
+        item.person_id !== 'undefined' &&
+        type !== 'Bank & Cash' &&
+        type !== 'Account'
+      ) {
+        formData.append('person_id', String(item.person_id));
+      } else {
+        formData.append('person_id', '');
+      }
 
-      if (json.status === 'true') {
-        const opening = json.opening !== null ? parseFloat(json.opening) : 0;
+      const urls = [
+        `${BASEURL}ledger/gl_account_inquiry.php`,
+        `${BASEURL}gl_account_inquiry.php`,
+      ];
+
+      let json = null;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            body: formData,
+          });
+          if (response.ok) {
+            const parsed = await response.json();
+            if (parsed) {
+              json = parsed;
+              if (parsed.status === 'true' || parsed.status === true) {
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      if (json && (json.status === 'true' || json.status === true)) {
+        const opening =
+          json.opening !== null && json.opening !== undefined
+            ? parseFloat(json.opening)
+            : 0;
         setOpeningBalance(opening);
 
         if (Array.isArray(json.data) && json.data.length > 0) {
@@ -92,18 +137,16 @@ const LedgersScreen = ({ route, navigation }) => {
           calculateRunningBalances(json.data, opening);
 
           let currentBalance = opening;
-          json.data.forEach(item => {
-            currentBalance += parseFloat(item.amount);
+          json.data.forEach(t => {
+            currentBalance += parseFloat(t.amount || 0);
           });
           setClosingBalance(currentBalance);
         } else {
-          console.log('No transactions array found');
           setLedgerData([]);
           setClosingBalance(opening);
           setTransactionBalances({});
         }
       } else {
-        console.log('API status false');
         setLedgerData([]);
         setOpeningBalance(0);
         setClosingBalance(0);
@@ -111,6 +154,7 @@ const LedgersScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error('Error fetching ledger data:', error);
+      setLedgerData([]);
     } finally {
       setLoading(false);
     }
@@ -131,7 +175,7 @@ const LedgersScreen = ({ route, navigation }) => {
   const groupByDate = data => {
     const groupedData = {};
     data.forEach(item => {
-      const date = item.doc_date;
+      const date = item.doc_date || item.trans_date || item.tran_date || 'No Date';
       if (!groupedData[date]) {groupedData[date] = [];}
       groupedData[date].push(item);
     });
@@ -144,7 +188,6 @@ const LedgersScreen = ({ route, navigation }) => {
     return result;
   };
 
-  // Global transaction index finder
   const findGlobalTransactionIndex = (sectionIndex, transactionIndex) => {
     let globalIndex = 0;
 
@@ -163,18 +206,17 @@ const LedgersScreen = ({ route, navigation }) => {
   };
 
   const handleApplyFilter = () => {
-    fetchData();
+    fetchData(fromDate, toDate);
   };
 
   const handleResetFilter = () => {
-    setFromDate(moment().subtract(1, 'month').format('YYYY-MM-DD'));
-    setToDate(moment().format('YYYY-MM-DD'));
-    setTimeout(() => {
-      fetchData();
-    }, 100);
+    const prev = moment().subtract(1, 'month').format('YYYY-MM-DD');
+    const today = moment().format('YYYY-MM-DD');
+    setFromDate(prev);
+    setToDate(today);
+    fetchData(prev, today);
   };
 
-  // Date picker handlers
   const onFromDateChange = (event, selectedDate) => {
     setShowFromDatePicker(false);
     if (selectedDate) {
@@ -249,7 +291,7 @@ const LedgersScreen = ({ route, navigation }) => {
     return (
       <View key={`section-${sectionIndex}`}>
         <Text style={styles.dateHeader}>
-          {moment(section.date).format('dddd, DD MMM YYYY')}
+          {section.date ? moment(section.date).format('DD/MM/YYYY') : 'N/A'}
         </Text>
         {section.transactions.map((transaction, transactionIndex) =>
           renderTransaction(transaction, sectionIndex, transactionIndex),
@@ -258,7 +300,6 @@ const LedgersScreen = ({ route, navigation }) => {
     );
   };
 
-  // Simple key extractor
   const keyExtractor = (item, index) => {
     return `section-${index}-${item.date}`;
   };
@@ -295,37 +336,31 @@ const LedgersScreen = ({ route, navigation }) => {
         }
       />
 
-      {/* Compact Filter Section - Sirf dates aur buttons */}
       <View style={styles.filterContainer}>
-        {/* Dates & Action Buttons Row */}
         <View style={styles.filterRow}>
-          {/* From Date */}
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
               onPress={showFromDatepicker}>
               <Text
                 style={[styles.dateText, !fromDate && styles.placeholderText]}>
-                {fromDate || 'From Date'}
+                {fromDate ? moment(fromDate).format('DD/MM/YYYY') : 'From Date'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* To Date */}
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
               onPress={showToDatepicker}>
               <Text
                 style={[styles.dateText, !toDate && styles.placeholderText]}>
-                {toDate || 'To Date'}
+                {toDate ? moment(toDate).format('DD/MM/YYYY') : 'To Date'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
-            {/* Reset Button */}
             <TouchableOpacity
               style={styles.resetButton}
               onPress={handleResetFilter}>
@@ -336,7 +371,6 @@ const LedgersScreen = ({ route, navigation }) => {
               />
             </TouchableOpacity>
 
-            {/* Apply Button */}
             <TouchableOpacity
               style={styles.applyButton}
               onPress={handleApplyFilter}
@@ -354,7 +388,6 @@ const LedgersScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Date Pickers */}
         {Platform.OS === 'ios' ? (
           <>
             <Modal
@@ -434,7 +467,6 @@ const LedgersScreen = ({ route, navigation }) => {
           </>
         )}
 
-        {/* Balance Information */}
         {item && (
           <View style={styles.balanceContainer}>
             <View style={styles.balanceInfo}>
@@ -455,7 +487,6 @@ const LedgersScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* Transactions List */}
       <View style={styles.container}>
         {ledgerData.length > 0 ? (
           <FlatList
@@ -695,7 +726,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#000000', // Black background for Dark Theme
+    backgroundColor: '#000000',
     borderRadius: 15,
     width: responsiveWidth(90),
     paddingBottom: 20,
@@ -712,7 +743,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
-    color: '#FFFFFF', // White text
+    color: '#FFFFFF',
   },
   closeModalButton: {
     backgroundColor: APPCOLORS.Primary,

@@ -21,7 +21,7 @@ import {
   GetItemBalance,
   GetPayable,
   GetReceivable,
-  GetIncomeAndExpenseDetail,
+  GetIncomeAndExpense,
 } from '../../../../global/ChartApisCall';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import {
@@ -53,7 +53,6 @@ const MoreDetail = ({navigation, route}) => {
   const [activeChartData, setActiveChartData] = useState(null);
   const [loader, setLoader] = useState(false);
 
-  // Date filters for Income and Expense (default 1 month range)
   const [fromDate, setFromDate] = useState(
     moment().subtract(1, 'month').format('YYYY-MM-DD'),
   );
@@ -133,7 +132,7 @@ const MoreDetail = ({navigation, route}) => {
           break;
 
         case 'Income': {
-          data = await GetIncomeAndExpenseDetail(fDate, tDate);
+          data = await GetIncomeAndExpense(fDate, tDate);
           const incomeList = data?.data_income_det || [];
           chart = incomeList.map((item, index) => ({
             value: Math.max(1, parseFloat(item.total) || 0),
@@ -143,7 +142,7 @@ const MoreDetail = ({navigation, route}) => {
         }
 
         case 'Expense': {
-          data = await GetIncomeAndExpenseDetail(fDate, tDate);
+          data = await GetIncomeAndExpense(fDate, tDate);
           const expList = data?.data_exp_det || [];
           chart = expList.map((item, index) => ({
             value: Math.max(1, parseFloat(item.total) || 0),
@@ -203,7 +202,6 @@ const MoreDetail = ({navigation, route}) => {
     <View style={{flexDirection: 'row', alignItems: 'center'}}>
       {selectedItem === 'Inventory Valuation' ? (
         <>
-          {/* All Movements Icon */}
           <TouchableOpacity
             style={{padding: 8, marginLeft: 10}}
             onPress={() =>
@@ -216,7 +214,6 @@ const MoreDetail = ({navigation, route}) => {
             />
           </TouchableOpacity>
 
-          {/* Stock Sheet Icon */}
           <TouchableOpacity
             style={{padding: 8, marginLeft: 10}}
             onPress={() => navigation.navigate('StockSheetScreen')}>
@@ -260,7 +257,6 @@ const MoreDetail = ({navigation, route}) => {
     return (
       <View style={styles.filterCard}>
         <View style={styles.dateRow}>
-          {/* From Date */}
           <View style={styles.dateColumn}>
             <Text style={styles.dateLabel}>From Date</Text>
             <TouchableOpacity
@@ -273,11 +269,12 @@ const MoreDetail = ({navigation, route}) => {
                 color={APPCOLORS.Primary || '#1565C0'}
                 style={{marginRight: 6}}
               />
-              <Text style={styles.dateText}>{fromDate}</Text>
+              <Text style={styles.dateText}>
+                {fromDate ? moment(fromDate).format('DD/MM/YYYY') : ''}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* To Date */}
           <View style={styles.dateColumn}>
             <Text style={styles.dateLabel}>To Date</Text>
             <TouchableOpacity
@@ -290,11 +287,12 @@ const MoreDetail = ({navigation, route}) => {
                 color={APPCOLORS.Primary || '#1565C0'}
                 style={{marginRight: 6}}
               />
-              <Text style={styles.dateText}>{toDate}</Text>
+              <Text style={styles.dateText}>
+                {toDate ? moment(toDate).format('DD/MM/YYYY') : ''}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Reset Button */}
           <TouchableOpacity
             style={styles.resetBtn}
             activeOpacity={0.8}
@@ -328,7 +326,6 @@ const MoreDetail = ({navigation, route}) => {
     );
   };
 
-  // Data ko render karne ke liye helper functions
   const renderChart = () => {
     const hasChartData =
       activeChartData &&

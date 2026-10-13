@@ -49,10 +49,8 @@ const VOUCHER_TYPES = [
 const VoidTransactions = ({navigation}) => {
   const {currentData} = useSelector(state => state.Data || {});
 
-  // Selected state
   const [selectedVoucher, setSelectedVoucher] = useState(null);
 
-  // Filters state
   const [fromDate, setFromDate] = useState(
     new Date(moment().subtract(1, 'month')),
   );
@@ -60,13 +58,11 @@ const VoidTransactions = ({navigation}) => {
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
-  // Search details
   const [searchName, setSearchName] = useState('');
   const [reference, setReference] = useState('');
   const [transNo, setTransNo] = useState('');
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
 
-  // Data & loaders
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -107,7 +103,6 @@ const VoidTransactions = ({navigation}) => {
         return;
       }
 
-      // Fetch detail data from API
       const payload = new FormData();
       payload.append('trans_no', item.trans_no.toString());
       payload.append('type', selectedVoucher?.id.toString());
@@ -236,7 +231,6 @@ const VoidTransactions = ({navigation}) => {
     setSearchName('');
     setReference('');
     setTransNo('');
-    // Trigger search with cleared filters
     setTimeout(() => {
       handleSearch();
     }, 100);
@@ -317,7 +311,6 @@ const VoidTransactions = ({navigation}) => {
             title: selectedVoucher?.title,
           })
         }>
-        {/* Top Header Row: Trans No Badge, Date, and Action Buttons */}
         <View style={styles.cardHeaderRow}>
           <View style={styles.transBadge}>
             <Text style={styles.transBadgeText}>#{item.trans_no}</Text>
@@ -335,7 +328,6 @@ const VoidTransactions = ({navigation}) => {
             </Text>
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.cardActionButtons}>
             <TouchableOpacity
               onPress={() =>
@@ -357,7 +349,6 @@ const VoidTransactions = ({navigation}) => {
           </View>
         </View>
 
-        {/* Party Name Row */}
         {partyName ? (
           <View style={styles.nameRow}>
             <Icon
@@ -372,10 +363,8 @@ const VoidTransactions = ({navigation}) => {
           </View>
         ) : null}
 
-        {/* Divider */}
         <View style={styles.cardDivider} />
 
-        {/* Bottom Row: Reference and Total */}
         <View style={styles.cardBottomRow}>
           <View style={styles.referenceContainer}>
             <Text style={styles.fieldLabel}>Reference</Text>
@@ -397,7 +386,6 @@ const VoidTransactions = ({navigation}) => {
 
   const renderFilterSection = () => (
     <View style={styles.filterSectionCard}>
-      {/* Expand / Collapse Header */}
       <TouchableOpacity
         style={styles.filterToggleHeader}
         activeOpacity={0.7}
@@ -423,10 +411,8 @@ const VoidTransactions = ({navigation}) => {
         </View>
       </TouchableOpacity>
 
-      {/* Collapsible Filter Body */}
       {isFilterExpanded && (
         <View style={styles.filterBody}>
-          {/* Date Range Row */}
           <View style={styles.dateFilterContainer}>
             <TouchableOpacity
               style={styles.dateBox}
@@ -438,7 +424,7 @@ const VoidTransactions = ({navigation}) => {
                 color={APPCOLORS.Primary}
               />
               <Text style={styles.dateText}>
-                {moment(fromDate).format('DD MMM YYYY')}
+                {moment(fromDate).format('DD/MM/YYYY')}
               </Text>
             </TouchableOpacity>
 
@@ -454,7 +440,7 @@ const VoidTransactions = ({navigation}) => {
                 color={APPCOLORS.Primary}
               />
               <Text style={styles.dateText}>
-                {moment(toDate).format('DD MMM YYYY')}
+                {moment(toDate).format('DD/MM/YYYY')}
               </Text>
             </TouchableOpacity>
 
@@ -473,7 +459,6 @@ const VoidTransactions = ({navigation}) => {
             </TouchableOpacity>
           </View>
 
-          {/* Search by Name Input */}
           <View style={styles.nameInputWrapper}>
             <Icon
               name="person-outline"
@@ -495,7 +480,6 @@ const VoidTransactions = ({navigation}) => {
             ) : null}
           </View>
 
-          {/* Reference & Trans No Row */}
           <View style={styles.inputRow}>
             <View style={styles.inputWrapper}>
               <Icon
@@ -543,7 +527,6 @@ const VoidTransactions = ({navigation}) => {
         </View>
       )}
 
-      {/* Date Pickers */}
       {showFromPicker && (
         <DateTimePicker
           value={fromDate}

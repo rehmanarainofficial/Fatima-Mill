@@ -89,7 +89,7 @@ export const shareVoidTransactionPDF = async (
       ? 'Received From:'
       : 'Delivered To:';
 
-  const docDate = header.trans_date || '';
+  const docDate = formatDateDisplay(header.trans_date || '');
   const docNo = item.trans_no || '';
   const docRef = header.reference || '-';
   const customerName = header.name || '';
@@ -395,8 +395,8 @@ export const shareVoidTransactionPDF = async (
         'YYYY/MM/DD',
         'DD-MM-YYYY',
         moment.ISO_8601,
-      ]).format('DD-MMM-YYYY')
-    : moment().format('DD-MMM-YYYY');
+      ]).format('DD/MM/YYYY')
+    : moment().format('DD/MM/YYYY');
 
   const totalRaw = header?.total || item?.total || 0;
   const formattedShareTotal = Math.round(

@@ -62,18 +62,47 @@ export const GetReceivable = async () => {
   return res.data;
 };
 
-export const GetIncomeAndExpenseDetail = async (fromDate, toDate) => {
+const callEndpoint = async (subPath, formData) => {
+  const urls = [
+    `${BaseUrl}pnl_module/${subPath}`,
+    `${BaseUrl}${subPath}`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          return data;
+        }
+      }
+    } catch (e) {}
+  }
+  return null;
+};
+
+export const GetIncomeAndExpense = async (fromDate, toDate) => {
   const formData = new FormData();
   formData.append('from_date', fromDate);
   formData.append('to_date', toDate);
 
-  const response = await fetch(`${BaseUrl}income_and_expense_detail.php`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    body: formData,
-  });
-  return await response.json();
+  return await callEndpoint('income_and_expense.php', formData);
 };
+
+export const GetParentAccountDetail = async (accountType, fromDate, toDate) => {
+  const formData = new FormData();
+  formData.append('from_date', fromDate);
+  formData.append('to_date', toDate);
+  formData.append('account_type', accountType ? accountType.toString() : '');
+
+  return await callEndpoint('parent_account_detail.php', formData);
+};
+
 

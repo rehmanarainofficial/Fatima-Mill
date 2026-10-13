@@ -13,7 +13,6 @@ import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
-import moment from 'moment';
 import AppText from '../../components/AppText';
 import AppHeader from '../../components/AppHeader';
 import {APPCOLORS} from '../../utils/APPCOLORS';
@@ -23,6 +22,22 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../utils/Responsive';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+import { GetIncomeAndExpense } from '../../global/ChartApisCall';
+
+const decodeHtml = str => {
+  if (!str) {
+    return '';
+  }
+  return String(str)
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'");
+};
 
 const dashboardCache = {
   data: null,
@@ -46,6 +61,16 @@ const Dashboard = ({navigation}) => {
   );
   const [AllData, setAllData] = useState(dashboardCache.data || null);
 
+  const [fromDate, setFromDate] = useState(
+    moment().subtract(30, 'days').format('YYYY-MM-DD'),
+  );
+  const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+  const [incomeList, setIncomeList] = useState([]);
+  const [expenseList, setExpenseList] = useState([]);
+  const [isIncomeLoading, setIsIncomeLoading] = useState(false);
+
   useEffect(() => {
     if (!dashboardCache.data) {
       getMoneyData();
@@ -56,7 +81,73 @@ const Dashboard = ({navigation}) => {
         setAllData(dashboardCache.data);
       }
     }
+    fetchIncomeExpense(fromDate, toDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchIncomeExpense = async (start = fromDate, end = toDate) => {
+    setIsIncomeLoading(true);
+    try {
+      const res = await GetIncomeAndExpense(start, end);
+      if (res) {
+        if (
+          res.status_income_det === 'true' ||
+          res.status_income_det === true
+        ) {
+          setIncomeList(res.data_income_det || []);
+        } else {
+          setIncomeList([]);
+        }
+        if (res.status_exp_det === 'true' || res.status_exp_det === true) {
+          setExpenseList(res.data_exp_det || []);
+        } else {
+          setExpenseList([]);
+        }
+      }
+    } catch (err) {
+      console.log('Dashboard fetchIncomeExpense error:', err);
+    } finally {
+      setIsIncomeLoading(false);
+    }
+  };
+
+  const handleApplyDateFilter = () => {
+    fetchIncomeExpense(fromDate, toDate);
+  };
+
+  const handleResetDateFilter = () => {
+    const today = moment().format('YYYY-MM-DD');
+    const prev = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    setFromDate(prev);
+    setToDate(today);
+    fetchIncomeExpense(prev, today);
+  };
+
+  const onFromDateChange = (event, selectedDate) => {
+    setShowFromPicker(false);
+    if (selectedDate) {
+      setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+    }
+  };
+
+  const onToDateChange = (event, selectedDate) => {
+    setShowToPicker(false);
+    if (selectedDate) {
+      setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+    }
+  };
+
+  const totalIncome = incomeList.reduce((acc, item) => {
+    const num = parseFloat(item.total || '0') || 0;
+    return acc + Math.abs(num);
+  }, 0);
+
+  const totalExpense = expenseList.reduce((acc, item) => {
+    const num = parseFloat(item.total || '0') || 0;
+    return acc + Math.abs(num);
+  }, 0);
+
+  const netDifference = totalIncome - totalExpense;
 
   const getMoneyData = async () => {
     setLoader(true);
@@ -301,7 +392,6 @@ const Dashboard = ({navigation}) => {
 
   return (
     <LinearGradient colors={['#e8f3f8', '#ffffff']} style={{flex: 1}}>
-      {/* 🔹 Header */}
       <Animated.View
         entering={FadeInDown.duration(600)}
         style={{width: '100%'}}>
@@ -314,7 +404,6 @@ const Dashboard = ({navigation}) => {
         />
       </Animated.View>
 
-      {/* 🔹 Modal */}
       <Modal
         isVisible={visible}
         animationIn="slideInUp"
@@ -349,7 +438,6 @@ const Dashboard = ({navigation}) => {
             <View />
           </LinearGradient>
 
-          {/* 🔹 Modal Body Content */}
           <ScrollView style={styles.modalBody}>
             <View style={styles.modalContentContainer}>
               <AppText
@@ -371,26 +459,239 @@ const Dashboard = ({navigation}) => {
         </View>
       </Modal>
 
-      {/* 🔹 Scroll Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollViewContent, {paddingTop: 20}]}>
+        contentContainerStyle={[styles.scrollViewContent, {paddingTop: 12}]}>
         {loader && (
           <ActivityIndicator
             size="large"
             color={APPCOLORS.Primary}
-            style={{marginBottom: 20}}
+            style={{marginBottom: 10}}
           />
         )}
 
+        <View style={styles.filterCard}>
+          <Text style={styles.filterCardTitle}>DATE FILTER</Text>
+          <View style={styles.filterInputsRow}>
+            <TouchableOpacity
+              style={styles.dateBox}
+              activeOpacity={0.75}
+              onPress={() => setShowFromPicker(true)}>
+              <Icon
+                name="calendar"
+                size={18}
+                color={APPCOLORS.Primary || '#0784B5'}
+              />
+              <View style={styles.dateTextWrapper}>
+                <Text style={styles.dateLabel}>FROM</Text>
+                <Text style={styles.dateValueText}>
+                  {fromDate ? moment(fromDate).format('DD/MM/YYYY') : ''}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.dateArrowBox}>
+              <Text style={styles.dateArrowText}>→</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.dateBox}
+              activeOpacity={0.75}
+              onPress={() => setShowToPicker(true)}>
+              <Icon
+                name="calendar"
+                size={18}
+                color={APPCOLORS.Primary || '#0784B5'}
+              />
+              <View style={styles.dateTextWrapper}>
+                <Text style={styles.dateLabel}>TO</Text>
+                <Text style={styles.dateValueText}>
+                  {toDate ? moment(toDate).format('DD/MM/YYYY') : ''}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.filterButtonsRow}>
+            <TouchableOpacity
+              style={styles.applyBtn}
+              onPress={handleApplyDateFilter}
+              activeOpacity={0.8}>
+              <Text style={styles.applyBtnText}>Apply Filter</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.resetBtn}
+              onPress={handleResetDateFilter}
+              activeOpacity={0.8}>
+              <Text style={styles.resetBtnText}>Last 30 Days</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.listSectionCard}>
+          <View style={[styles.listHeaderRow, { borderBottomColor: '#10B981' }]}>
+            <Text style={[styles.listSectionTitle, { color: '#059669' }]}>
+              INCOME BREAKDOWN
+            </Text>
+            <Text style={[styles.listTotalText, { color: '#059669' }]}>
+              Rs. {totalIncome.toLocaleString()}
+            </Text>
+          </View>
+
+          {isIncomeLoading && incomeList.length === 0 ? (
+            <View style={styles.listLoadingBox}>
+              <ActivityIndicator size="small" color="#059669" />
+            </View>
+          ) : incomeList.length === 0 ? (
+            <Text style={styles.noDataText}>No income records in this period.</Text>
+          ) : (
+            incomeList.map((item, idx) => {
+              const amountNum = parseFloat(item.total || '0') || 0;
+              const cleanName = decodeHtml(item.name || 'Income Account');
+
+              return (
+                <TouchableOpacity
+                  key={`inc_${idx}`}
+                  style={[
+                    styles.accountRow,
+                    idx < incomeList.length - 1 && styles.accountRowBorder,
+                  ]}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    navigation.navigate('AccountDetail', {
+                      title: cleanName,
+                      accountType:
+                        item.account_type || item.type || item.id || '',
+                      fromDate,
+                      toDate,
+                    })
+                  }>
+                  <View style={styles.accountRowLeft}>
+                    <Text style={styles.accountTitle} numberOfLines={1}>
+                      {cleanName}
+                    </Text>
+                    <Text style={styles.accountHint}>Tap for details ›</Text>
+                  </View>
+                  <Text style={[styles.accountAmount, { color: '#059669' }]}>
+                    Rs. {Math.abs(amountNum).toLocaleString()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+
+        <View style={styles.listSectionCard}>
+          <View style={[styles.listHeaderRow, { borderBottomColor: '#EF4444' }]}>
+            <Text style={[styles.listSectionTitle, { color: '#DC2626' }]}>
+              EXPENSE BREAKDOWN
+            </Text>
+            <Text style={[styles.listTotalText, { color: '#DC2626' }]}>
+              Rs. {totalExpense.toLocaleString()}
+            </Text>
+          </View>
+
+          {isIncomeLoading && expenseList.length === 0 ? (
+            <View style={styles.listLoadingBox}>
+              <ActivityIndicator size="small" color="#DC2626" />
+            </View>
+          ) : expenseList.length === 0 ? (
+            <Text style={styles.noDataText}>No expense records in this period.</Text>
+          ) : (
+            expenseList.map((item, idx) => {
+              const amountNum = parseFloat(item.total || '0') || 0;
+              const cleanName = decodeHtml(item.name || 'Expense Account');
+
+              return (
+                <TouchableOpacity
+                  key={`exp_${idx}`}
+                  style={[
+                    styles.accountRow,
+                    idx < expenseList.length - 1 && styles.accountRowBorder,
+                  ]}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    navigation.navigate('AccountDetail', {
+                      title: cleanName,
+                      accountType:
+                        item.account_type || item.type || item.id || '',
+                      fromDate,
+                      toDate,
+                    })
+                  }>
+                  <View style={styles.accountRowLeft}>
+                    <Text style={styles.accountTitle} numberOfLines={1}>
+                      {cleanName}
+                    </Text>
+                    <Text style={styles.accountHint}>Tap for details ›</Text>
+                  </View>
+                  <Text style={[styles.accountAmount, { color: '#DC2626' }]}>
+                    Rs. {Math.abs(amountNum).toLocaleString()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+
+        <View style={styles.netDiffCard}>
+          <View style={styles.netDiffLeft}>
+            <Text style={styles.netDiffLabel}>DIFFERENCE (INC - EXP)</Text>
+            <Text
+              style={[
+                styles.netDiffValue,
+                netDifference >= 0 ? styles.diffPositive : styles.diffNegative,
+              ]}>
+              Rs. {Math.abs(netDifference).toLocaleString()}
+              {netDifference < 0 ? ' (Loss)' : ' (Profit)'}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.netDiffBadge,
+              { backgroundColor: netDifference >= 0 ? '#ECFDF5' : '#FEF2F2' },
+            ]}>
+            <Text
+              style={[
+                styles.netDiffBadgeText,
+                { color: netDifference >= 0 ? '#059669' : '#DC2626' },
+              ]}>
+              {netDifference >= 0 ? 'Surplus' : 'Deficit'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionDividerRow}>
+          <Text style={styles.sectionDividerTitle}>FINANCIAL OVERVIEW</Text>
+        </View>
+
         {revData.map((item, index) => renderCard(item, index))}
+
+        {showFromPicker && (
+          <DateTimePicker
+            value={new Date(fromDate)}
+            mode="date"
+            display="default"
+            onChange={onFromDateChange}
+          />
+        )}
+
+        {showToPicker && (
+          <DateTimePicker
+            value={new Date(toDate)}
+            mode="date"
+            display="default"
+            onChange={onToDateChange}
+          />
+        )}
       </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollViewContent: {paddingBottom: responsiveHeight(3)},
+  scrollViewContent: {paddingBottom: responsiveHeight(5)},
   modalContent: {
     height: responsiveHeight(65),
     width: responsiveWidth(90),
@@ -427,6 +728,230 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  filterCard: {
+    backgroundColor: '#FFFFFF',
+    width: responsiveWidth(94),
+    alignSelf: 'center',
+    marginTop: 6,
+    padding: responsiveWidth(3.5),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#EFEBE6',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  filterCardTitle: {
+    fontSize: responsiveFontSize(1.4),
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  filterInputsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dateBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F6F2',
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E8E4DF',
+    paddingHorizontal: 8,
+    gap: 8,
+  },
+  dateTextWrapper: {
+    flex: 1,
+  },
+  dateLabel: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#888',
+    letterSpacing: 0.5,
+  },
+  dateValueText: {
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: '600',
+    color: APPCOLORS.BLACK,
+  },
+  dateArrowBox: {
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateArrowText: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: 'bold',
+  },
+  filterButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  applyBtn: {
+    flex: 1,
+    backgroundColor: APPCOLORS.Primary || '#0784B5',
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    color: '#FFFFFF',
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: 'bold',
+  },
+  resetBtn: {
+    flex: 1,
+    backgroundColor: '#EAE6E1',
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resetBtnText: {
+    color: '#333',
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: '600',
+  },
+  listSectionCard: {
+    backgroundColor: '#FFFFFF',
+    width: responsiveWidth(94),
+    alignSelf: 'center',
+    marginTop: responsiveHeight(1.5),
+    padding: responsiveWidth(3.5),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#EFEBE6',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  listHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 6,
+    borderBottomWidth: 1.5,
+    marginBottom: 4,
+  },
+  listSectionTitle: {
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  listTotalText: {
+    fontSize: responsiveFontSize(1.7),
+    fontWeight: 'bold',
+  },
+  accountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  accountRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F2ED',
+  },
+  accountRowLeft: {
+    flex: 1,
+    marginRight: 10,
+  },
+  accountTitle: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    color: APPCOLORS.BLACK,
+  },
+  accountHint: {
+    fontSize: 10,
+    color: '#888',
+    marginTop: 2,
+  },
+  accountAmount: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: 'bold',
+  },
+  listLoadingBox: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  noDataText: {
+    fontSize: responsiveFontSize(1.4),
+    color: '#888',
+    paddingVertical: 14,
+    textAlign: 'center',
+  },
+  netDiffCard: {
+    backgroundColor: '#FFFFFF',
+    width: responsiveWidth(94),
+    alignSelf: 'center',
+    marginTop: responsiveHeight(1.5),
+    padding: responsiveWidth(3.5),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#EFEBE6',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  netDiffLeft: {
+    flex: 1,
+  },
+  netDiffLabel: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#888',
+    letterSpacing: 0.5,
+  },
+  netDiffValue: {
+    fontSize: responsiveFontSize(1.9),
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  diffPositive: {
+    color: '#059669',
+  },
+  diffNegative: {
+    color: '#DC2626',
+  },
+  netDiffBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  netDiffBadgeText: {
+    fontSize: responsiveFontSize(1.3),
+    fontWeight: 'bold',
+  },
+  sectionDividerRow: {
+    width: responsiveWidth(94),
+    alignSelf: 'center',
+    marginTop: responsiveHeight(2.5),
+    marginBottom: responsiveHeight(1),
+  },
+  sectionDividerTitle: {
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: 'bold',
+    color: '#666',
+    letterSpacing: 0.5,
+  },
 });
 
 export default Dashboard;
+

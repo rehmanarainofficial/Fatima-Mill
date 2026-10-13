@@ -29,7 +29,6 @@ const ViewLedger = ({ navigation }) => {
   const [openingBalance, setOpeningBalance] = useState(0);
   const [closingBalance, setClosingBalance] = useState(0);
 
-  // Filter states
   const [accounts, setAccounts] = useState([]);
   const [counterParties, setCounterParties] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -39,11 +38,9 @@ const ViewLedger = ({ navigation }) => {
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
 
-  // Date picker states
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
 
-  // Loading states
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [counterPartiesLoading, setCounterPartiesLoading] = useState(false);
 
@@ -62,7 +59,6 @@ const ViewLedger = ({ navigation }) => {
     }).start();
   }, [fadeAnim]);
 
-  // Fetch accounts for 1st dropdown - GET request
   const fetchAccounts = async () => {
     try {
       setAccountsLoading(true);
@@ -121,12 +117,10 @@ const ViewLedger = ({ navigation }) => {
     }
   };
 
-  // Fetch ledger data with filters - FORM DATA with POST
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      // FormData use karenge
       const formData = new FormData();
       formData.append('account', selectedAccount.value);
       formData.append('from_date', fromDate);
@@ -218,7 +212,7 @@ const ViewLedger = ({ navigation }) => {
     setLedgerData([]);
     setOpeningBalance(0);
     setClosingBalance(0);
-    setCounterParties([]); // Reset counter parties
+    setCounterParties([]);
     if (account) {
       fetchCounterParties(account.value);
     }
@@ -232,10 +226,9 @@ const ViewLedger = ({ navigation }) => {
     setLedgerData([]);
     setOpeningBalance(0);
     setClosingBalance(0);
-    setCounterParties([]); // Reset counter parties
+    setCounterParties([]);
   };
 
-  // Date picker handlers
   const onFromDateChange = (event, selectedDate) => {
     setShowFromDatePicker(false);
     if (selectedDate) {
@@ -298,7 +291,7 @@ const ViewLedger = ({ navigation }) => {
     return (
       <View key={index}>
         <Text style={styles.dateHeader}>
-          {moment(item.date).format('dddd, DD MMM YYYY')}
+          {item.date ? moment(item.date).format('DD/MM/YYYY') : 'N/A'}
         </Text>
         {item.transactions.map((tx, txIndex) => (
           <View key={txIndex}>
@@ -341,9 +334,7 @@ const ViewLedger = ({ navigation }) => {
         }
       />
 
-      {/* Improved Filter Section - Compact Design */}
       <View style={styles.filterContainer}>
-        {/* First Row - Account Only */}
         <View style={styles.filterRow}>
           <View style={styles.fullWidthContainer}>
             <Dropdown
@@ -372,7 +363,6 @@ const ViewLedger = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Second Row - Counter Party (Only show when account is selected AND counter parties available) */}
         {selectedAccount && counterParties.length > 0 && (
           <View style={styles.filterRow}>
             <View style={styles.fullWidthContainer}>
@@ -405,35 +395,30 @@ const ViewLedger = ({ navigation }) => {
           </View>
         )}
 
-        {/* Third Row - Dates & Action Buttons */}
         <View style={styles.filterRow}>
-          {/* From Date */}
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
               onPress={showFromDatepicker}>
               <Text
                 style={[styles.dateText, !fromDate && styles.placeholderText]}>
-                {fromDate || 'From Date'}
+                {fromDate ? moment(fromDate).format('DD/MM/YYYY') : 'From Date'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* To Date */}
           <View style={styles.dateContainer}>
             <TouchableOpacity
               style={styles.dateInput}
               onPress={showToDatepicker}>
               <Text
                 style={[styles.dateText, !toDate && styles.placeholderText]}>
-                {toDate || 'To Date'}
+                {toDate ? moment(toDate).format('DD/MM/YYYY') : 'To Date'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
-            {/* Reset Button */}
             <TouchableOpacity
               style={styles.resetButton}
               onPress={handleResetFilter}>
@@ -444,7 +429,6 @@ const ViewLedger = ({ navigation }) => {
               />
             </TouchableOpacity>
 
-            {/* Apply Button */}
             <TouchableOpacity
               style={[
                 styles.applyButton,
@@ -465,7 +449,6 @@ const ViewLedger = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Date Pickers */}
         {showFromDatePicker && (
           <DateTimePicker
             value={new Date(fromDate)}
@@ -485,7 +468,6 @@ const ViewLedger = ({ navigation }) => {
           />
         )}
 
-        {/* Balance Information */}
         {selectedAccount && (
           <View style={styles.balanceContainer}>
             <View style={styles.balanceInfo}>
@@ -506,7 +488,6 @@ const ViewLedger = ({ navigation }) => {
         )}
       </View>
 
-      {/* Transactions List */}
       <Animated.ScrollView
         style={[styles.container, { opacity: fadeAnim }]}
         showsVerticalScrollIndicator={false}>

@@ -13,6 +13,15 @@ import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Header from '../../../../components/Header';
 
+const formatDateDisplay = dateStr => {
+  if (!dateStr) {return '';}
+  const parts = String(dateStr).split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+};
+
 const VoidTransactionDetail = ({route, navigation}) => {
   const {trans_no, type} = route.params;
 
@@ -36,7 +45,6 @@ const VoidTransactionDetail = ({route, navigation}) => {
     payload.append('trans_no', trans_no.toString());
     payload.append('type', type.toString());
 
-    // Fetch Transaction Data
     setIsDataLoading(true);
     try {
       const res = await axios.post(`${BASEURL}view_data.php`, payload, {
@@ -57,7 +65,6 @@ const VoidTransactionDetail = ({route, navigation}) => {
       setIsDataLoading(false);
     }
 
-    // Fetch GL Data
     setIsGLLoading(true);
     try {
       const res = await axios.post(`${BASEURL}view_gl.php`, payload, {
@@ -150,8 +157,8 @@ const VoidTransactionDetail = ({route, navigation}) => {
       <View style={styles.section}>
         <View style={styles.card}>
           {renderHeaderField('Reference', header.reference)}
-          {renderHeaderField('Date', header.trans_date)}
-          {renderHeaderField('Due Date', header.due_date)}
+          {renderHeaderField('Date', formatDateDisplay(header.trans_date))}
+          {renderHeaderField('Due Date', formatDateDisplay(header.due_date))}
           {renderHeaderField('Type', header.type)}
           {renderHeaderField('Name', header.name)}
           {renderHeaderField('Location', header.location_name)}
@@ -269,11 +276,11 @@ const VoidTransactionDetail = ({route, navigation}) => {
       <View style={styles.section}>
         <View style={styles.card}>
           {renderHeaderField('Reference', header.reference)}
-          {renderHeaderField('Date', header.trans_date)}
+          {renderHeaderField('Date', formatDateDisplay(header.trans_date))}
           {renderHeaderField('Name', header.name)}
           {renderHeaderField('User', header.real_name)}
           {renderHeaderField('Cheque No', header.cheque_no)}
-          {renderHeaderField('Cheque Date', header.cheque_date)}
+          {renderHeaderField('Cheque Date', formatDateDisplay(header.cheque_date))}
           {renderHeaderField('Supp Ref', header.supp_reference)}
         </View>
 
