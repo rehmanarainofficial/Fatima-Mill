@@ -266,6 +266,14 @@ const Dashboard = ({navigation}) => {
       description: 'Today Sales and Orders',
       onPress: () => navigation.navigate('VoidTransactions'),
     },
+    {
+      id: 104,
+      title: 'Delivery Note',
+      icon: 'barcode-scan',
+      color: APPCOLORS.Primary || '#0784B5',
+      description: 'Scan Barcodes & Manage Delivery Cart',
+      onPress: () => navigation.navigate('DeliveryScreen'),
+    },
   ];
 
   const renderCard = (item, index) => {

@@ -26,7 +26,7 @@ const Stack = createStackNavigator();
 const Main = () => {
   return (
     <Stack.Navigator
-      initialRouteName="StockSheetScreen"
+      initialRouteName="Dashboard"
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="Detail" component={Detail} />

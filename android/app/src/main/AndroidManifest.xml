@@ -4,6 +4,7 @@
 
     <!-- ✅ Internet permission (required for fetch, axios, etc) -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- ✅ Storage permissions for Android < 13 -->
     <uses-permission
