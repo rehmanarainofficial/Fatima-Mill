@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import moment from 'moment';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import PieChart from 'react-native-pie-chart';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AppText from '../../../../components/AppText';
@@ -305,23 +305,29 @@ const MoreDetail = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
 
-        {showFromDatePicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            display="default"
-            onChange={onFromDateChange}
-          />
-        )}
+        <AppDatePicker
+          visible={showFromDatePicker}
+          value={new Date(fromDate)}
+          title="Select From Date"
+          onClose={() => setShowFromDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
-        {showToDatePicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            display="default"
-            onChange={onToDateChange}
-          />
-        )}
+        <AppDatePicker
+          visible={showToDatePicker}
+          value={new Date(toDate)}
+          title="Select To Date"
+          onClose={() => setShowToDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
       </View>
     );
   };

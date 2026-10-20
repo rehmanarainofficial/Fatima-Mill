@@ -16,16 +16,13 @@ const formatDate = dateString => {
 
 // Format amount - remove .00 if whole number
 const formatAmount = amount => {
-  if (!amount) {return '0';}
+  if (!amount) {return '0.00';}
   const num = parseFloat(String(amount).replace(/,/g, ''));
-  if (num % 1 === 0) {
-    return num.toLocaleString();
-  } else {
-    return num.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }
+  if (isNaN(num)) {return '0.00';}
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 const requestStoragePermission = async () => {

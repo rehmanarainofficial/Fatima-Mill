@@ -22,7 +22,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../utils/Responsive';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../components/AppDatePicker';
 import moment from 'moment';
 import { GetIncomeAndExpense } from '../../global/ChartApisCall';
 
@@ -535,7 +535,11 @@ const Dashboard = ({navigation}) => {
               INCOME BREAKDOWN
             </Text>
             <Text style={[styles.listTotalText, { color: '#059669' }]}>
-              Rs. {totalIncome.toLocaleString()}
+              Rs.{' '}
+              {totalIncome.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
 
@@ -574,7 +578,11 @@ const Dashboard = ({navigation}) => {
                     <Text style={styles.accountHint}>Tap for details ›</Text>
                   </View>
                   <Text style={[styles.accountAmount, { color: '#059669' }]}>
-                    Rs. {Math.abs(amountNum).toLocaleString()}
+                    Rs.{' '}
+                    {Math.abs(amountNum).toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </Text>
                 </TouchableOpacity>
               );
@@ -588,7 +596,11 @@ const Dashboard = ({navigation}) => {
               EXPENSE BREAKDOWN
             </Text>
             <Text style={[styles.listTotalText, { color: '#DC2626' }]}>
-              Rs. {totalExpense.toLocaleString()}
+              Rs.{' '}
+              {totalExpense.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
 
@@ -627,7 +639,11 @@ const Dashboard = ({navigation}) => {
                     <Text style={styles.accountHint}>Tap for details ›</Text>
                   </View>
                   <Text style={[styles.accountAmount, { color: '#DC2626' }]}>
-                    Rs. {Math.abs(amountNum).toLocaleString()}
+                    Rs.{' '}
+                    {Math.abs(amountNum).toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </Text>
                 </TouchableOpacity>
               );
@@ -643,7 +659,11 @@ const Dashboard = ({navigation}) => {
                 styles.netDiffValue,
                 netDifference >= 0 ? styles.diffPositive : styles.diffNegative,
               ]}>
-              Rs. {Math.abs(netDifference).toLocaleString()}
+              Rs.{' '}
+              {Math.abs(netDifference).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
               {netDifference < 0 ? ' (Loss)' : ' (Profit)'}
             </Text>
           </View>
@@ -668,23 +688,29 @@ const Dashboard = ({navigation}) => {
 
         {revData.map((item, index) => renderCard(item, index))}
 
-        {showFromPicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            display="default"
-            onChange={onFromDateChange}
-          />
-        )}
+        <AppDatePicker
+          visible={showFromPicker}
+          value={new Date(fromDate)}
+          title="Select From Date"
+          onClose={() => setShowFromPicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
-        {showToPicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            display="default"
-            onChange={onToDateChange}
-          />
-        )}
+        <AppDatePicker
+          visible={showToPicker}
+          value={new Date(toDate)}
+          title="Select To Date"
+          onClose={() => setShowToPicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
       </ScrollView>
     </LinearGradient>
   );

@@ -24,10 +24,23 @@ const formatDateDisplay = dateStr => {
 
 const formatQuantity = val => {
   if (val === null || val === undefined || val === '') {return null;}
-  const num = parseFloat(val);
+  const clean = typeof val === 'string' ? val.replace(/,/g, '').trim() : val;
+  const num = parseFloat(clean);
   return isNaN(num)
     ? String(val).trim()
-    : num.toLocaleString(undefined, {
+    : num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+};
+
+const formatAmount = val => {
+  if (val === null || val === undefined || val === '') {return null;}
+  const clean = typeof val === 'string' ? val.replace(/,/g, '').trim() : val;
+  const num = parseFloat(clean);
+  return isNaN(num)
+    ? String(val).trim()
+    : num.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
@@ -257,7 +270,7 @@ const VoidTransactionDetail = ({route, navigation}) => {
                 styles.tableCell,
                 {flex: 1.2, textAlign: 'right'},
               ]}>
-              {price.toLocaleString()}
+              {formatAmount(price)}
             </Text>
             <Text
               style={[
@@ -310,12 +323,9 @@ const VoidTransactionDetail = ({route, navigation}) => {
           {renderHeaderField(
             'Total',
             header.total !== null && header.total !== undefined && header.total !== ''
-              ? header.total
+              ? formatAmount(header.total)
               : grandTotal > 0
-              ? grandTotal.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
+              ? formatAmount(grandTotal)
               : null,
           )}
           {renderHeaderField('Discount', header.discount)}

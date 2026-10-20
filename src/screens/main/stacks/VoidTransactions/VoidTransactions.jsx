@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import moment from 'moment';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {shareVoidTransactionPDF} from '../../../../components/VoidPDFGenerator';
 import {useSelector} from 'react-redux';
@@ -376,7 +376,10 @@ const VoidTransactions = ({navigation}) => {
           <View style={styles.totalContainer}>
             <Text style={styles.fieldLabel}>Total</Text>
             <Text style={styles.totalText}>
-              {parseFloat(item.total || 0).toLocaleString()}
+              {parseFloat(item.total || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
         </View>
@@ -527,32 +530,28 @@ const VoidTransactions = ({navigation}) => {
         </View>
       )}
 
-      {showFromPicker && (
-        <DateTimePicker
-          value={fromDate}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowFromPicker(false);
-            if (selectedDate) {
-              setFromDate(selectedDate);
-            }
-          }}
-        />
-      )}
-      {showToPicker && (
-        <DateTimePicker
-          value={toDate}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowToPicker(false);
-            if (selectedDate) {
-              setToDate(selectedDate);
-            }
-          }}
-        />
-      )}
+      <AppDatePicker
+        visible={showFromPicker}
+        value={fromDate instanceof Date ? fromDate : new Date(fromDate)}
+        title="Select From Date"
+        onClose={() => setShowFromPicker(false)}
+        onChange={selectedDate => {
+          if (selectedDate) {
+            setFromDate(selectedDate);
+          }
+        }}
+      />
+      <AppDatePicker
+        visible={showToPicker}
+        value={toDate instanceof Date ? toDate : new Date(toDate)}
+        title="Select To Date"
+        onClose={() => setShowToPicker(false)}
+        onChange={selectedDate => {
+          if (selectedDate) {
+            setToDate(selectedDate);
+          }
+        }}
+      />
     </View>
   );
 

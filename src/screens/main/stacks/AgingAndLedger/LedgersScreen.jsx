@@ -18,7 +18,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
@@ -272,10 +272,17 @@ const LedgersScreen = ({ route, navigation }) => {
                 { color: isCredit ? '#009900' : '#FF0000' },
               ]}>
               {isCredit ? '+' : '-'}
-              {Math.abs(amount).toFixed(2)}
+              {Math.abs(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
             <Text style={styles.balanceText}>
-              Balance: {currentBalance.toFixed(2)}
+              Balance:{' '}
+              {currentBalance.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
         </View>
@@ -388,98 +395,49 @@ const LedgersScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {Platform.OS === 'ios' ? (
-          <>
-            <Modal
-              visible={showFromDatePicker}
-              transparent={true}
-              animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Select From Date</Text>
-                    <TouchableOpacity onPress={() => setShowFromDatePicker(false)}>
-                      <Ionicons name="close" size={24} color="#FFF" />
-                    </TouchableOpacity>
-                  </View>
-                  <DateTimePicker
-                    value={new Date(fromDate)}
-                    mode="date"
-                    display="inline"
-                    onChange={onFromDateChange}
-                    themeVariant="dark"
-                  />
-                  <TouchableOpacity
-                    style={styles.closeModalButton}
-                    onPress={() => setShowFromDatePicker(false)}>
-                    <Text style={styles.closeModalButtonText}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+        <AppDatePicker
+          visible={showFromDatePicker}
+          value={new Date(fromDate)}
+          title="Select From Date"
+          onClose={() => setShowFromDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
-            <Modal
-              visible={showToDatePicker}
-              transparent={true}
-              animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Select To Date</Text>
-                    <TouchableOpacity onPress={() => setShowToDatePicker(false)}>
-                      <Ionicons name="close" size={24} color="#FFF" />
-                    </TouchableOpacity>
-                  </View>
-                  <DateTimePicker
-                    value={new Date(toDate)}
-                    mode="date"
-                    display="inline"
-                    onChange={onToDateChange}
-                    themeVariant="dark"
-                  />
-                  <TouchableOpacity
-                    style={styles.closeModalButton}
-                    onPress={() => setShowToDatePicker(false)}>
-                    <Text style={styles.closeModalButtonText}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-          </>
-        ) : (
-          <>
-            {showFromDatePicker && (
-              <DateTimePicker
-                value={new Date(fromDate)}
-                mode="date"
-                display="default"
-                onChange={onFromDateChange}
-              />
-            )}
-            {showToDatePicker && (
-              <DateTimePicker
-                value={new Date(toDate)}
-                mode="date"
-                display="default"
-                onChange={onToDateChange}
-              />
-            )}
-          </>
-        )}
+        <AppDatePicker
+          visible={showToDatePicker}
+          value={new Date(toDate)}
+          title="Select To Date"
+          onClose={() => setShowToDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
         {item && (
           <View style={styles.balanceContainer}>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
               <Text style={styles.balanceValue}>
-                {openingBalance.toFixed(2)}
+                {openingBalance.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Text>
             </View>
             {ledgerData.length > 0 && (
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Closing Balance</Text>
                 <Text style={styles.balanceValue}>
-                  {closingBalance.toFixed(2)}
+                  {closingBalance.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </Text>
               </View>
             )}

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  Platform,
 } from 'react-native';
 import {
   responsiveFontSize,
@@ -15,7 +14,8 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import { Dropdown } from 'react-native-element-dropdown';
-import LinearGradient from 'react-native-linear-gradient';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
@@ -30,7 +30,7 @@ export default function StockSheetScreen({ navigation, route }) {
   const [category, setCategory] = useState(category_id || null);
   const [categories, setCategories] = useState([]);
 
-  // 🔹 New states for combo1 and combo2
+  // New states for combo1 and combo2
   const [combo1, setCombo1] = useState(null);
   const [combo1Data, setCombo1Data] = useState([]);
   const [combo2, setCombo2] = useState(null);
@@ -39,7 +39,7 @@ export default function StockSheetScreen({ navigation, route }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Fetch all dropdowns
+  // Fetch all dropdowns
   useEffect(() => {
     fetchDropdownData(
       `${BASEURL}locations.php`,
@@ -70,12 +70,12 @@ export default function StockSheetScreen({ navigation, route }) {
     }
   }, [category_id]);
 
-  // 🔹 Fetch Combo1 Data
+  // Fetch Combo1 Data
   const fetchCombo1Data = async () => {
     try {
-      const { data } = await axios.get(`${BASEURL}combo1.php`);
-      if (data?.status === 'true') {
-        const mapped = data.data.map(i => ({
+      const { data: resData } = await axios.get(`${BASEURL}combo1.php`);
+      if (resData?.status === 'true') {
+        const mapped = resData.data.map(i => ({
           label: i.description,
           value: i.combo_code,
         }));
@@ -86,12 +86,12 @@ export default function StockSheetScreen({ navigation, route }) {
     }
   };
 
-  // 🔹 Fetch Combo2 Data
+  // Fetch Combo2 Data
   const fetchCombo2Data = async () => {
     try {
-      const { data } = await axios.get(`${BASEURL}combo2.php`);
-      if (data?.status === 'true') {
-        const mapped = data.data.map(i => ({
+      const { data: resData } = await axios.get(`${BASEURL}combo2.php`);
+      if (resData?.status === 'true') {
+        const mapped = resData.data.map(i => ({
           label: i.description,
           value: i.combo_code,
         }));
@@ -104,9 +104,9 @@ export default function StockSheetScreen({ navigation, route }) {
 
   const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
-      const { data } = await axios.get(url);
-      if (data?.status === 'true') {
-        const mapped = data.data.map(i => ({
+      const { data: resData } = await axios.get(url);
+      if (resData?.status === 'true') {
+        const mapped = resData.data.map(i => ({
           label: i[labelField],
           value: i[valueField],
         }));
@@ -124,7 +124,6 @@ export default function StockSheetScreen({ navigation, route }) {
       payload.append('description', filters.search || '');
       payload.append('loc_code', filters.location || '');
       payload.append('category_id', filters.category || '');
-      // 🔹 Add combo1 and combo2 to payload
       payload.append('sub_cat1', filters.combo1 || '');
       payload.append('sub_cat2', filters.combo2 || '');
 
@@ -137,7 +136,7 @@ export default function StockSheetScreen({ navigation, route }) {
         setData([]);
       }
     } catch (err) {
-      console.error('❌ Fetch Stock Error:', err);
+      console.error('Fetch Stock Error:', err);
       setData([]);
     } finally {
       setLoading(false);
@@ -149,8 +148,8 @@ export default function StockSheetScreen({ navigation, route }) {
       search,
       location,
       category,
-      combo1, // 🔹 Include combo1 in filters
-      combo2, // 🔹 Include combo2 in filters
+      combo1,
+      combo2,
     });
   };
 
@@ -158,227 +157,435 @@ export default function StockSheetScreen({ navigation, route }) {
     setSearch('');
     setLocation(null);
     setCategory(category_id || null);
-    setCombo1(null); // 🔹 Clear combo1
-    setCombo2(null); // 🔹 Clear combo2
+    setCombo1(null);
+    setCombo2(null);
     setData([]);
     fetchStockData({
       category: category_id || '',
-      combo1: '', // 🔹 Send empty for combo1
-      combo2: '', // 🔹 Send empty for combo2
+      combo1: '',
+      combo2: '',
     });
   };
 
-  const renderCard = ({ item }) => (
+  const formatQuantity = qty => {
+    if (qty === null || qty === undefined || qty === '') {return '0.00';}
+    const clean = typeof qty === 'string' ? qty.replace(/,/g, '').trim() : qty;
+    const num = parseFloat(clean);
+    if (isNaN(num)) {return '0.00';}
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const renderCard = ({ item: stockItem }) => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.description}</Text>
-      <View style={styles.cardRow}>
-        <Text style={styles.cardKey}>Stock ID:</Text>
-        <Text style={styles.cardValue}>{item.stock_id}</Text>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle} numberOfLines={2}>
+          {stockItem.description || 'Stock Item'}
+        </Text>
+        <View style={styles.qtyBadge}>
+          <Text style={styles.qtyLabel}>QTY</Text>
+          <Text style={styles.qtyValue}>
+            {formatQuantity(stockItem.qoh)}
+          </Text>
+        </View>
       </View>
-      <View style={styles.cardRow}>
-        <Text style={styles.cardKey}>Part Code:</Text>
-        <Text style={styles.cardValue}>{item.text1 || '-'}</Text>
-      </View>
-      <View style={styles.cardRow}>
-        <Text style={styles.cardKey}>Qty:</Text>
-        <Text style={styles.cardValue}>{item.qoh}</Text>
+
+      <View style={styles.divider} />
+
+      <View style={styles.cardDetailsRow}>
+        <View style={styles.metaBox}>
+          <Text style={styles.metaLabel}>STOCK ID</Text>
+          <Text style={styles.metaValue}>{stockItem.stock_id || '-'}</Text>
+        </View>
+
+        <View style={[styles.metaBox, { alignItems: 'flex-end' }]}>
+          <Text style={styles.metaLabel}>PART CODE</Text>
+          <Text style={styles.metaValue}>{stockItem.text1 || '-'}</Text>
+        </View>
       </View>
     </View>
   );
 
   return (
-    <LinearGradient
-      colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.DARKLIGHTBLUE]}
-      style={{ flex: 1 }}>
+    <View style={styles.container}>
       <Header
         title={`Stock Sheet ${category_id ? '(Filtered)' : ''}`}
         onBack={() => navigation.goBack()}
         rightElement={
-          <TouchableOpacity onPress={clearFilters}>
-            <Text
-              style={{
-                color: APPCOLORS.WHITE,
-                fontSize: responsiveFontSize(1.6),
-              }}>
-              Clear
+          <TouchableOpacity
+            onPress={clearFilters}
+            style={styles.headerResetBtn}
+            activeOpacity={0.7}>
+            <MaterialIcons name="refresh" size={18} color={APPCOLORS.WHITE} />
+            <Text style={styles.headerResetText} numberOfLines={1}>
+              Reset
             </Text>
           </TouchableOpacity>
         }
       />
 
-      {/* Filters */}
-      <View style={{ padding: responsiveWidth(2) }}>
-        {/* First Row: Search + Location */}
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={[styles.glassInput, { flex: 1 }]}>
+      {/* Filter Card */}
+      <View style={styles.filterCard}>
+        {/* Row 1: Search + Location */}
+        <View style={styles.filterRow}>
+          <View style={[styles.searchBox, { flex: 1.1 }]}>
+            <MaterialIcons
+              name="search"
+              size={18}
+              color="#64748B"
+              style={{ marginRight: 6 }}
+            />
             <TextInput
-              style={styles.textInput}
+              style={styles.searchInput}
               placeholder="Search by Name"
-              placeholderTextColor={'rgba(255,255,255,0.6)'}
+              placeholderTextColor="#94A3B8"
               value={search}
               onChangeText={setSearch}
             />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')}>
+                <Ionicons name="close-circle" size={16} color="#94A3B8" />
+              </TouchableOpacity>
+            )}
           </View>
+
           <Dropdown
-            style={[styles.dropdown, { flex: 1 }]}
+            style={[styles.dropdown, { flex: 0.9 }]}
             data={locations}
             search
+            searchPlaceholder="Search location..."
             labelField="label"
             valueField="value"
-            placeholder="Select Location"
-            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
-            selectedTextStyle={{ color: APPCOLORS.WHITE }}
-            itemTextStyle={{ color: APPCOLORS.BLACK }}
+            placeholder="Location"
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.dropdownSearchInput}
             value={location}
-            onChange={item => setLocation(item.value)}
+            onChange={i => setLocation(i.value)}
           />
         </View>
 
-        {/* Second Row: Category + Combo1 */}
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+        {/* Row 2: Category + Sub Category 1 */}
+        <View style={[styles.filterRow, { marginTop: 8 }]}>
           <Dropdown
             style={[styles.dropdown, { flex: 1 }]}
             data={categories}
             search
+            searchPlaceholder="Search category..."
             labelField="label"
             valueField="value"
-            placeholder="Select Category"
-            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
-            selectedTextStyle={{ color: APPCOLORS.WHITE }}
-            itemTextStyle={{ color: APPCOLORS.BLACK }}
+            placeholder="Category"
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.dropdownSearchInput}
             value={category}
-            onChange={item => setCategory(item.value)}
+            onChange={i => setCategory(i.value)}
           />
+
           <Dropdown
             style={[styles.dropdown, { flex: 1 }]}
             data={combo1Data}
             search
+            searchPlaceholder="Search sub category 1..."
             labelField="label"
             valueField="value"
-            placeholder="Sub Category1"
-            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
-            selectedTextStyle={{ color: APPCOLORS.WHITE }}
-            itemTextStyle={{ color: APPCOLORS.BLACK }}
+            placeholder="Sub Category 1"
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.dropdownSearchInput}
             value={combo1}
-            onChange={item => setCombo1(item.value)}
+            onChange={i => setCombo1(i.value)}
           />
         </View>
 
-        {/* Third Row: Combo2 + Apply Button */}
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+        {/* Row 3: Sub Category 2 + Apply / Clear */}
+        <View style={[styles.filterRow, { marginTop: 8 }]}>
           <Dropdown
-            style={[styles.dropdown, { flex: 1 }]}
+            style={[styles.dropdown, { flex: 1.2 }]}
             data={combo2Data}
             search
+            searchPlaceholder="Search sub category 2..."
             labelField="label"
             valueField="value"
-            placeholder="Sub Category2"
-            placeholderStyle={{ color: 'rgba(255,255,255,0.6)' }}
-            selectedTextStyle={{ color: APPCOLORS.WHITE }}
-            itemTextStyle={{ color: APPCOLORS.BLACK }}
+            placeholder="Sub Category 2"
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.dropdownSearchInput}
             value={combo2}
-            onChange={item => setCombo2(item.value)}
+            onChange={i => setCombo2(i.value)}
           />
-          <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
-            <Text style={{ color: APPCOLORS.WHITE, fontWeight: '700' }}>
-              Apply
-            </Text>
+
+          <TouchableOpacity
+            onPress={applyFilters}
+            style={styles.applyBtn}
+            activeOpacity={0.8}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
+            ) : (
+              <>
+                <MaterialIcons
+                  name="tune"
+                  size={16}
+                  color={APPCOLORS.WHITE}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.applyBtnText}>Apply</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* Results Header / Count */}
+      <View style={styles.resultHeaderRow}>
+        <Text style={styles.resultCountText}>
+          {loading ? 'Searching stocks...' : `Showing ${data.length} records`}
+        </Text>
+      </View>
+
       {/* Data List */}
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={APPCOLORS.WHITE}
-          style={{ marginTop: 30 }}
-        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={APPCOLORS.Primary} />
+          <Text style={styles.loadingText}>Loading stock items...</Text>
+        </View>
       ) : (
         <FlatList
           data={data}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => `${item.stock_id || index}-${index}`}
           renderItem={renderCard}
-          contentContainerStyle={{ paddingHorizontal: responsiveWidth(2), paddingBottom: 100 }}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
-            <Text
-              style={{
-                color: APPCOLORS.WHITE,
-                textAlign: 'center',
-                marginTop: 30,
-              }}>
-              No records found
-            </Text>
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="inventory-2" size={48} color="#CBD5E1" />
+              <Text style={styles.emptyTitle}>No Records Found</Text>
+              <Text style={styles.emptySubtitle}>
+                Try adjusting your search criteria or filters.
+              </Text>
+            </View>
           )}
         />
       )}
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  glassInput: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    paddingHorizontal: responsiveWidth(3),
-    height: responsiveHeight(6),
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
-  textInput: {
+  headerResetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    flexShrink: 0,
+  },
+  headerResetText: {
     color: APPCOLORS.WHITE,
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    marginLeft: 3,
+  },
+  filterCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: responsiveWidth(3),
+    marginTop: responsiveHeight(1.2),
+    padding: responsiveWidth(3.5),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    height: 42,
+    paddingHorizontal: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#1E293B',
+    fontSize: responsiveFontSize(1.6),
+    paddingVertical: 0,
   },
   dropdown: {
-    height: responsiveHeight(6),
-    borderRadius: 10,
-    paddingHorizontal: responsiveWidth(2),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 10,
   },
-  applyButton: {
-    backgroundColor: APPCOLORS.DARKLIGHTBLUE,
-    borderRadius: 10,
-    height: responsiveHeight(6),
+  placeholderStyle: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#94A3B8',
+  },
+  selectedTextStyle: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#1E293B',
+    fontWeight: '500',
+  },
+  dropdownSearchInput: {
+    height: 38,
+    fontSize: responsiveFontSize(1.5),
+    borderRadius: 6,
+  },
+  applyBtn: {
+    flex: 0.8,
+    backgroundColor: APPCOLORS.Primary,
+    height: 42,
+    borderRadius: 8,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: responsiveWidth(4),
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
+    paddingHorizontal: 12,
+    shadowColor: APPCOLORS.Primary,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 16,
-    padding: responsiveWidth(4),
-    marginTop: responsiveHeight(2),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  cardTitle: {
+  applyBtnText: {
     color: APPCOLORS.WHITE,
     fontWeight: '700',
-    fontSize: responsiveFontSize(1.8),
-    marginBottom: 8,
+    fontSize: responsiveFontSize(1.6),
   },
-  cardRow: {
+  resultHeaderRow: {
+    paddingHorizontal: responsiveWidth(4),
+    paddingTop: responsiveHeight(1),
+    paddingBottom: responsiveHeight(0.5),
+  },
+  resultCountText: {
+    fontSize: responsiveFontSize(1.4),
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  listContent: {
+    paddingHorizontal: responsiveWidth(3),
+    paddingBottom: responsiveHeight(6),
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: responsiveWidth(3.8),
+    marginTop: responsiveHeight(1),
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderLeftWidth: 4,
+    borderLeftColor: APPCOLORS.Primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+    gap: 8,
   },
-  cardKey: {
-    color: 'rgba(255,255,255,0.8)',
+  cardTitle: {
+    flex: 1,
+    color: '#1E293B',
+    fontWeight: '700',
+    fontSize: responsiveFontSize(1.7),
+    lineHeight: 22,
+  },
+  qtyBadge: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    minWidth: 70,
+  },
+  qtyLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#0369A1',
+    letterSpacing: 0.5,
+  },
+  qtyValue: {
+    color: APPCOLORS.Primary,
+    fontWeight: '400',
+    fontSize: responsiveFontSize(1.65),
+    marginTop: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 10,
+  },
+  cardDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metaBox: {
+    flex: 1,
+  },
+  metaLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  metaValue: {
+    fontSize: responsiveFontSize(1.5),
     fontWeight: '600',
+    color: '#334155',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: responsiveHeight(8),
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#64748B',
     fontSize: responsiveFontSize(1.6),
   },
-  cardValue: {
-    color: APPCOLORS.WHITE,
-    textAlign: 'right',
-    flexShrink: 1,
-    fontSize: responsiveFontSize(1.6),
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: responsiveHeight(8),
+  },
+  emptyTitle: {
+    fontSize: responsiveFontSize(1.8),
+    fontWeight: '700',
+    color: '#475569',
+    marginTop: 10,
+  },
+  emptySubtitle: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#94A3B8',
+    marginTop: 4,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
+

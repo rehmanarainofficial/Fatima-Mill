@@ -18,7 +18,7 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import moment from 'moment';
 
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
@@ -162,11 +162,15 @@ const StockMovements = ({ navigation, route }) => {
   };
 
   const formatNumber = num => {
-    if (num === null || num === undefined) {return '0';}
-    const number = typeof num === 'string' ? parseFloat(num) : num;
-    if (isNaN(number)) {return '0';}
+    if (num === null || num === undefined || num === '') {return '0.00';}
+    const clean = typeof num === 'string' ? num.replace(/,/g, '').trim() : num;
+    const number = parseFloat(clean);
+    if (isNaN(number)) {return '0.00';}
 
-    return Math.round(number).toLocaleString('en-US');
+    return number.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   const renderCard = ({ item: transaction, index }) => {
@@ -455,91 +459,29 @@ const StockMovements = ({ navigation, route }) => {
           </View>
         </Modal>
 
-        {Platform.OS === 'ios' ? (
-          <Modal
-            visible={showFromPicker}
-            transparent={true}
-            animationType="slide">
-            <View style={styles.datePickerModalOverlay}>
-              <View style={styles.datePickerModalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select From Date</Text>
-                  <TouchableOpacity onPress={() => setShowFromPicker(false)}>
-                    <Ionicons name="close" size={24} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={new Date(fromDate)}
-                  mode="date"
-                  display="inline"
-                  onChange={(e, d) => {
-                    if (d) {setFromDate(moment(d).format('YYYY-MM-DD'));}
-                  }}
-                  themeVariant="dark"
-                />
-                <TouchableOpacity
-                  style={styles.closeModalBtn}
-                  onPress={() => setShowFromPicker(false)}>
-                  <Text style={styles.closeModalBtnText}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        ) : (
-          showFromPicker && (
-            <DateTimePicker
-              value={new Date(fromDate)}
-              mode="date"
-              onChange={(e, d) => {
-                setShowFromPicker(false);
-                if (d) {setFromDate(moment(d).format('YYYY-MM-DD'));}
-              }}
-            />
-          )
-        )}
+        <AppDatePicker
+          visible={showFromPicker}
+          value={new Date(fromDate)}
+          title="Select From Date"
+          onClose={() => setShowFromPicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
-        {Platform.OS === 'ios' ? (
-          <Modal
-            visible={showToPicker}
-            transparent={true}
-            animationType="slide">
-            <View style={styles.datePickerModalOverlay}>
-              <View style={styles.datePickerModalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select To Date</Text>
-                  <TouchableOpacity onPress={() => setShowToPicker(false)}>
-                    <Ionicons name="close" size={24} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={new Date(toDate)}
-                  mode="date"
-                  display="inline"
-                  onChange={(e, d) => {
-                    if (d) {setToDate(moment(d).format('YYYY-MM-DD'));}
-                  }}
-                  themeVariant="dark"
-                />
-                <TouchableOpacity
-                  style={styles.closeModalBtn}
-                  onPress={() => setShowToPicker(false)}>
-                  <Text style={styles.closeModalBtnText}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        ) : (
-          showToPicker && (
-            <DateTimePicker
-              value={new Date(toDate)}
-              mode="date"
-              onChange={(e, d) => {
-                setShowToPicker(false);
-                if (d) {setToDate(moment(d).format('YYYY-MM-DD'));}
-              }}
-            />
-          )
-        )}
+        <AppDatePicker
+          visible={showToPicker}
+          value={new Date(toDate)}
+          title="Select To Date"
+          onClose={() => setShowToPicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
       </View>
 
       {loading ? (

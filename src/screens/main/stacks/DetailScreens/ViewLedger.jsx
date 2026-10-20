@@ -12,7 +12,7 @@ import moment from 'moment';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../../../components/Header';
 import { Dropdown } from 'react-native-element-dropdown';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import BASEURL from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
@@ -276,10 +276,17 @@ const ViewLedger = ({ navigation }) => {
                 { color: isCredit ? '#009900' : '#FF0000' },
               ]}>
               {isCredit ? '+' : '-'}
-              {Math.abs(amount).toFixed(2)}
+              {Math.abs(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
             <Text style={styles.balanceText}>
-              Balance: {currentBalance.toFixed(2)}
+              Balance:{' '}
+              {currentBalance.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
         </View>
@@ -449,38 +456,49 @@ const ViewLedger = ({ navigation }) => {
           </View>
         </View>
 
-        {showFromDatePicker && (
-          <DateTimePicker
-            value={new Date(fromDate)}
-            mode="date"
-            display="default"
-            onChange={onFromDateChange}
-            themeVariant="dark"
-          />
-        )}
-        {showToDatePicker && (
-          <DateTimePicker
-            value={new Date(toDate)}
-            mode="date"
-            display="default"
-            onChange={onToDateChange}
-            themeVariant="dark"
-          />
-        )}
+        <AppDatePicker
+          visible={showFromDatePicker}
+          value={new Date(fromDate)}
+          title="Select From Date"
+          onClose={() => setShowFromDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
+
+        <AppDatePicker
+          visible={showToDatePicker}
+          value={new Date(toDate)}
+          title="Select To Date"
+          onClose={() => setShowToDatePicker(false)}
+          onChange={selectedDate => {
+            if (selectedDate) {
+              setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+            }
+          }}
+        />
 
         {selectedAccount && (
           <View style={styles.balanceContainer}>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Opening Balance</Text>
               <Text style={styles.balanceValue}>
-                {openingBalance.toFixed(2)}
+                {openingBalance.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Text>
             </View>
             {ledgerData.length > 0 && (
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Closing Balance</Text>
                 <Text style={styles.balanceValue}>
-                  {closingBalance.toFixed(2)}
+                  {closingBalance.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </Text>
               </View>
             )}

@@ -86,22 +86,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveWidth(4),
   },
   sideButton: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     height: 44,
     justifyContent: 'center',
-    width: responsiveWidth(14),
+    minWidth: 44,
   },
   sideSlot: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
     minHeight: 44,
-    width: responsiveWidth(14),
+    minWidth: 44,
   },
   rightButton: {
     alignItems: 'center',
     height: 44,
     justifyContent: 'center',
-    width: '100%',
+    minWidth: 44,
   },
   title: {
     color: APPCOLORS.WHITE,
@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(2.55),
     fontWeight: 'bold',
     textAlign: 'center',
+    paddingHorizontal: 6,
   },
 });
 

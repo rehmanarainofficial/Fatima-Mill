@@ -56,6 +56,17 @@ const NameBalanceContainer = ({
 
   const hasAction = showAgingAndLedger || showInventoryLedger || showBankLedger;
 
+  const formattedBalance = (() => {
+    if (balance === null || balance === undefined || balance === '') {return '0.00';}
+    const clean = typeof balance === 'string' ? balance.replace(/,/g, '').trim() : balance;
+    const num = parseFloat(clean);
+    if (isNaN(num)) {return String(balance);}
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  })();
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
@@ -75,7 +86,7 @@ const NameBalanceContainer = ({
       {/* Middle: Balance */}
       <View style={[styles.balanceContainer, !hasAction && styles.balanceContainerFull]}>
         <AppText
-          title={Math.round(balance).toLocaleString()}
+          title={formattedBalance}
           titleSize={1.5}
           titleColor={APPCOLORS.BLACK}
           titleWeight

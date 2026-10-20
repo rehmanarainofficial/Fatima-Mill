@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import AppDatePicker from '../../../../components/AppDatePicker';
 import moment from 'moment';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../../../components/Header';
@@ -175,7 +175,11 @@ const AccountDetailScreen = ({ route, navigation }) => {
 
         <View style={styles.cardRight}>
           <Text style={styles.cardAmount}>
-            Rs. {Math.abs(amountVal).toLocaleString()}
+            Rs.{' '}
+            {Math.abs(amountVal).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </Text>
         </View>
       </TouchableOpacity>
@@ -251,7 +255,11 @@ const AccountDetailScreen = ({ route, navigation }) => {
       <View style={styles.summaryBanner}>
         <Text style={styles.summaryLabel}>TOTAL ACCUMULATED</Text>
         <Text style={styles.summaryTotalValue}>
-          Rs. {totalAmount.toLocaleString()}
+          Rs.{' '}
+          {totalAmount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </Text>
         <Text style={styles.summaryCount}>
           Showing {filteredTransactions.length} entries
@@ -308,23 +316,29 @@ const AccountDetailScreen = ({ route, navigation }) => {
         />
       )}
 
-      {showFromPicker && (
-        <DateTimePicker
-          value={new Date(fromDate)}
-          mode="date"
-          display="default"
-          onChange={onFromDateChange}
-        />
-      )}
+      <AppDatePicker
+        visible={showFromPicker}
+        value={new Date(fromDate)}
+        title="Select From Date"
+        onClose={() => setShowFromPicker(false)}
+        onChange={selectedDate => {
+          if (selectedDate) {
+            setFromDate(moment(selectedDate).format('YYYY-MM-DD'));
+          }
+        }}
+      />
 
-      {showToPicker && (
-        <DateTimePicker
-          value={new Date(toDate)}
-          mode="date"
-          display="default"
-          onChange={onToDateChange}
-        />
-      )}
+      <AppDatePicker
+        visible={showToPicker}
+        value={new Date(toDate)}
+        title="Select To Date"
+        onClose={() => setShowToPicker(false)}
+        onChange={selectedDate => {
+          if (selectedDate) {
+            setToDate(moment(selectedDate).format('YYYY-MM-DD'));
+          }
+        }}
+      />
     </View>
   );
 };
