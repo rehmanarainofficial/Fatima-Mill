@@ -1,13 +1,14 @@
 import React, {useState, useEffect, useRef} from 'react';
+import {useSelector} from 'react-redux';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   TextInput,
   ActivityIndicator,
   FlatList,
-  Alert,
   Platform,
   Animated,
   ScrollView,
@@ -22,6 +23,7 @@ import Toast from 'react-native-toast-message';
 import moment from 'moment';
 
 import Header from '../../../../components/Header';
+import BASEURL from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {
   responsiveFontSize,
@@ -35,7 +37,6 @@ import {
   clearDeliveryCart,
 } from '../../../../utils/DeliveryCartStorage';
 
-// Safely require react-native-camera-kit Camera
 let CameraComponent = null;
 try {
   const cameraKit = require('react-native-camera-kit');
@@ -44,15 +45,24 @@ try {
   CameraComponent = null;
 }
 
-const STOCK_API_URL =
-  'https://e.de2solutions.com/mobile_dash/stock_master_post_api.php';
-const POST_SERVICE_PURCH_SALE_URL =
-  'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php';
+const getStockApiUrl = () => {
+  const base = (
+    typeof BASEURL?.get === 'function' ? BASEURL.get() : String(BASEURL)
+  ).replace(/\/?$/, '/');
+  return `${base}stock_master_post_api.php`;
+};
+
+const getPostServiceUrl = () => {
+  const base = (
+    typeof BASEURL?.get === 'function' ? BASEURL.get() : String(BASEURL)
+  ).replace(/\/?$/, '/');
+  return `${base}post_auto_sale_delivery.php`;
+};
 
 const DeliveryScreen = ({navigation, route}) => {
   const [activeTab, setActiveTab] = useState(
     route?.params?.initialTab || 'scanner',
-  ); // 'scanner' | 'cart'
+  );
   const [barcodeInput, setBarcodeInput] = useState(
     route?.params?.initialStockId || '',
   );
@@ -69,7 +79,50 @@ const DeliveryScreen = ({navigation, route}) => {
   const [driverCnic, setDriverCnic] = useState('');
   const [personId, setPersonId] = useState('');
   const [poNo, setPoNo] = useState('');
+  const [comments, setComments] = useState('');
   const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [modalError, setModalError] = useState('');
+
+  // Custom Alert Modal State (Replaces all native Alert.alert)
+  const [customAlert, setCustomAlert] = useState({
+    visible: false,
+    type: 'info', // 'success' | 'danger' | 'warning' | 'info'
+    title: '',
+    message: '',
+    confirmText: 'OK',
+    cancelText: null,
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const showAlert = ({
+    type = 'info',
+    title = '',
+    message = '',
+    confirmText = 'OK',
+    cancelText = null,
+    onConfirm = null,
+    onCancel = null,
+  }) => {
+    setCustomAlert({
+      visible: true,
+      type,
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
+  };
+
+  const hideAlert = () => {
+    setCustomAlert(prev => ({...prev, visible: false}));
+  };
+
+  // Redux Logged-In User
+  const {currentData} = useSelector(state => state.Data || {});
+  const userData = Array.isArray(currentData) ? currentData[0] : currentData;
 
   // Scanning animation for viewfinder
   const laserAnim = useRef(new Animated.Value(0)).current;
@@ -128,7 +181,7 @@ const DeliveryScreen = ({navigation, route}) => {
       const formData = new FormData();
       formData.append('stock_id', cleanId);
 
-      const res = await axios.post(STOCK_API_URL, formData, {
+      const res = await axios.post(getStockApiUrl(), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -213,57 +266,39 @@ const DeliveryScreen = ({navigation, route}) => {
     }
   };
 
-  // Remove Item from Persistent Cart
+  // Remove Item from Persistent Cart (Using Custom Alert Modal)
   const handleRemoveFromCart = (stockId, description) => {
-    Alert.alert(
-      'Remove Item',
-      `Are you sure you want to remove "${description || stockId}" from cart?`,
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            const res = await removeItemFromDeliveryCart(stockId);
-            if (res.success) {
-              setCart(res.cart);
-              Toast.show({
-                type: 'info',
-                text1: 'Removed',
-                text2: `Item #${stockId} removed from cart`,
-              });
-            }
-          },
-        },
-      ],
-    );
+    showAlert({
+      type: 'danger',
+      title: 'Remove Item',
+      message: `Are you sure you want to remove "${description || stockId}" from cart?`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        const res = await removeItemFromDeliveryCart(stockId);
+        if (res.success) {
+          setCart(res.cart);
+        }
+      },
+    });
   };
 
-  // Clear Entire Cart
+  // Clear Entire Cart (Using Custom Alert Modal)
   const handleClearCart = () => {
     if (cart.length === 0) {
       return;
     }
-    Alert.alert(
-      'Clear Cart',
-      'Are you sure you want to clear all items from the delivery cart?',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            await clearDeliveryCart();
-            setCart([]);
-            Toast.show({
-              type: 'info',
-              text1: 'Cart Cleared',
-              text2: 'All delivery items have been removed.',
-            });
-          },
-        },
-      ],
-    );
+    showAlert({
+      type: 'danger',
+      title: 'Clear Cart',
+      message: 'Are you sure you want to clear all items from the delivery cart?',
+      confirmText: 'Clear All',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        await clearDeliveryCart();
+        setCart([]);
+      },
+    });
   };
 
   // Check if current scanned item is already in cart
@@ -277,13 +312,14 @@ const DeliveryScreen = ({navigation, route}) => {
     outputRange: [10, 170],
   });
 
-  // Submit Order to API: post_service_purch_sale.php
   const handleProceedSubmit = async () => {
+    setModalError('');
+
     if (cart.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Cart is Empty',
-        text2: 'Please add items before proceeding.',
+      showAlert({
+        type: 'warning',
+        title: 'Cart is Empty',
+        message: 'Please add items to cart before proceeding.',
       });
       return;
     }
@@ -293,130 +329,103 @@ const DeliveryScreen = ({navigation, route}) => {
     const cleanDriverCnic = driverCnic.trim();
     const cleanPersonId = personId.trim();
     const cleanPoNo = poNo.trim();
+    const cleanComments = comments.trim() || 'Special Note';
 
     if (!cleanDriverName) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Field',
-        text2: 'Please enter Driver Name.',
-      });
+      setModalError('Please enter Driver Name.');
       return;
     }
     if (!cleanVehicleNo) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Field',
-        text2: 'Please enter Vehicle Number.',
-      });
+      setModalError('Please enter Vehicle Number.');
       return;
     }
     if (!cleanDriverCnic) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Field',
-        text2: 'Please enter Driver CNIC.',
-      });
+      setModalError('Please enter Driver CNIC.');
       return;
     }
     if (!cleanPersonId) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Field',
-        text2: 'Please enter Person ID.',
-      });
+      setModalError('Please enter Person ID.');
       return;
     }
     if (!cleanPoNo) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Field',
-        text2: 'Please enter PO Number.',
-      });
+      setModalError('Please enter PO Number.');
       return;
     }
 
     try {
       setSubmittingOrder(true);
       const currentDate = moment().format('YYYY-MM-DD');
+      const loggedInUserId = userData?.id || userData?.user_id || 12;
+
       const orderDetails = cart.map(item => ({
         item_code: String(item.stock_id || '').trim(),
-        stock_id: String(item.stock_id || '').trim(),
         description: String(item.description || '').trim(),
-        item_description: String(item.description || '').trim(),
-        quantity: 1,
-        qty: 1,
-        unit_price: 0,
-        price: 0,
-        discount_percent: 0,
       }));
 
-      const payload = {
-        driver_name: cleanDriverName,
-        vehicle_no: cleanVehicleNo,
-        driver_cnic: cleanDriverCnic,
-        person_id: cleanPersonId,
-        po_no: cleanPoNo,
-        trans_type: 13,
-        ord_date: currentDate,
-        purch_order_details: orderDetails,
-      };
+      const formData = new FormData();
+      formData.append('trans_type', '13');
+      formData.append('person_id', String(cleanPersonId));
+      formData.append('ord_date', currentDate);
+      formData.append('po_no', String(cleanPoNo));
+      formData.append('driver_name', cleanDriverName);
+      formData.append('total', '1');
+      formData.append('vehicle_no', cleanVehicleNo);
+      formData.append('user_id', String(loggedInUserId));
+      formData.append('purch_order_details', JSON.stringify(orderDetails));
+      formData.append('driver_cnic', String(cleanDriverCnic));
+      formData.append('update_id', '0');
+      formData.append('comments', cleanComments);
 
-      console.log('Sending post_service_purch_sale payload:', payload);
+      const postUrl = getPostServiceUrl();
 
-      const res = await axios.post(POST_SERVICE_PURCH_SALE_URL, payload, {
+      const res = await axios.post(postUrl, formData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
 
-      console.log('post_service_purch_sale response:', res.data);
-
       if (res.data?.status === true || res.data?.status === 'true') {
-        // Clear cart in storage and state
         await clearDeliveryCart();
         setCart([]);
 
-        // Reset form inputs
         setDriverName('');
         setVehicleNo('');
         setDriverCnic('');
         setPersonId('');
         setPoNo('');
+        setComments('');
+        setModalError('');
         setShowCheckoutModal(false);
 
-        Toast.show({
+        showAlert({
           type: 'success',
-          text1: 'Order Posted Successfully!',
-          text2: `PO #${cleanPoNo} has been created.`,
+          title: 'Success!',
+          message: `Delivery Note with PO #${cleanPoNo} has been posted successfully to the database.`,
+          confirmText: 'Done',
+          onConfirm: () => {
+            setActiveTab('scanner');
+          },
         });
-
-        Alert.alert(
-          'Success',
-          `Delivery Note with PO #${cleanPoNo} has been posted successfully!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setActiveTab('scanner');
-              },
-            },
-          ],
-        );
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Submission Failed',
-          text2: res.data?.message || 'Server did not accept the request.',
+        const errorMsg =
+          res.data?.message || 'Server did not accept the request.';
+        setModalError(errorMsg);
+        showAlert({
+          type: 'danger',
+          title: 'Submission Failed',
+          message: errorMsg,
         });
       }
     } catch (error) {
-      console.error('Post Service Purch Sale Error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Submission Error',
-        text2:
-          error?.response?.data?.message ||
-          'Failed to submit delivery note. Please check connection.',
+      const errMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to submit delivery note. Please check your internet connection.';
+      setModalError(errMsg);
+      showAlert({
+        type: 'danger',
+        title: 'Submission Error',
+        message: errMsg,
       });
     } finally {
       setSubmittingOrder(false);
@@ -588,7 +597,7 @@ const DeliveryScreen = ({navigation, route}) => {
                 />
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Enter Stock ID (000001)"
+                  placeholder="Enter Stock ID"
                   placeholderTextColor="#94A3B8"
                   value={barcodeInput}
                   onChangeText={setBarcodeInput}
@@ -626,26 +635,6 @@ const DeliveryScreen = ({navigation, route}) => {
                     <Text style={styles.scanBtnText}>Scan</Text>
                   </>
                 )}
-              </TouchableOpacity>
-            </View>
-
-            {/* Quick Test Barcode Chip */}
-            <View style={styles.quickTestRow}>
-              <Text style={styles.quickTestLabel}>Quick Test:</Text>
-              <TouchableOpacity
-                style={styles.quickChip}
-                activeOpacity={0.7}
-                onPress={() => {
-                  setBarcodeInput('000001');
-                  fetchStockDetails('000001');
-                }}>
-                <MIcon
-                  name="flash"
-                  size={14}
-                  color="#0284C7"
-                  style={{marginRight: 3}}
-                />
-                <Text style={styles.quickChipText}>Stock ID: 000001</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -713,20 +702,6 @@ const DeliveryScreen = ({navigation, route}) => {
             </View>
           )}
 
-          {/* Quick Info Box */}
-          <View style={styles.infoBox}>
-            <MIcon
-              name="information-outline"
-              size={18}
-              color="#0784B5"
-              style={{marginRight: 8, marginTop: 2}}
-            />
-            <Text style={styles.infoText}>
-              Items added to cart are stored securely in local storage. They
-              will remain saved across page refreshes and app restarts until you
-              explicitly remove them.
-            </Text>
-          </View>
         </ScrollView>
       )}
 
@@ -740,7 +715,7 @@ const DeliveryScreen = ({navigation, route}) => {
                 {cart.length === 1 ? '1 Item' : `${cart.length} Items`} Saved
               </Text>
               <Text style={styles.cartStatsSubtitle}>
-                Persistent Storage • Delivery Note
+                Delivery Note
               </Text>
             </View>
 
@@ -772,9 +747,6 @@ const DeliveryScreen = ({navigation, route}) => {
             renderItem={({item, index}) => (
               <View style={styles.cartCard}>
                 <View style={styles.cartCardLeft}>
-                  <View style={styles.itemIndexBadge}>
-                    <Text style={styles.itemIndexText}>#{index + 1}</Text>
-                  </View>
                   <View style={styles.cartDetails}>
                     <View style={styles.cartStockRow}>
                       <MIcon
@@ -854,7 +826,10 @@ const DeliveryScreen = ({navigation, route}) => {
               <TouchableOpacity
                 style={styles.proceedBtn}
                 activeOpacity={0.85}
-                onPress={() => setShowCheckoutModal(true)}>
+                onPress={() => {
+                  setModalError('');
+                  setShowCheckoutModal(true);
+                }}>
                 <Text style={styles.proceedBtnText}>Proceed</Text>
                 <MIcon
                   name="arrow-right-circle"
@@ -881,241 +856,389 @@ const DeliveryScreen = ({navigation, route}) => {
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.modalBackdropTouchable}>
-            <TouchableOpacity
-              style={StyleSheet.absoluteFill}
-              activeOpacity={1}
-              onPress={() => {
-                if (!submittingOrder) {
-                  setShowCheckoutModal(false);
-                }
-              }}
-            />
-            <View style={styles.modalCard}>
-              {/* Modal Drag Handle */}
-              <View style={styles.modalHandle} />
+          <TouchableWithoutFeedback
+            onPress={() => {
+              if (!submittingOrder) {
+                setShowCheckoutModal(false);
+              }
+            }}>
+            <View style={styles.modalBackdropEmpty} />
+          </TouchableWithoutFeedback>
 
-              {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <View style={{flex: 1}}>
-                  <Text style={styles.modalTitle}>Delivery Details</Text>
-                  <Text style={styles.modalSubtitle}>
-                    Fill in driver and order info to proceed
-                  </Text>
+          <View style={styles.modalCard}>
+            {/* Modal Drag Handle */}
+            <View style={styles.modalHandle} />
+
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View style={{flex: 1}}>
+                <Text style={styles.modalTitle}>Delivery Details</Text>
+                <Text style={styles.modalSubtitle}>
+                  Fill in driver and order info to proceed
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.modalCloseBtn}
+                disabled={submittingOrder}
+                onPress={() => setShowCheckoutModal(false)}>
+                <Ionicons name="close" size={22} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+              contentContainerStyle={styles.modalScrollContent}>
+              {/* Form Error Banner at Top */}
+              {!!modalError && (
+                <View style={styles.modalErrorBanner}>
+                  <MIcon name="alert-circle" size={18} color="#DC2626" />
+                  <Text style={styles.modalErrorText}>{modalError}</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.modalCloseBtn}
-                  disabled={submittingOrder}
-                  onPress={() => setShowCheckoutModal(false)}>
-                  <Ionicons name="close" size={22} color="#64748B" />
-                </TouchableOpacity>
+              )}
+
+              {/* Form Field 1: Driver Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Driver Name <Text style={styles.requiredStar}>*</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="account-outline"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="Enter driver full name"
+                    placeholderTextColor="#94A3B8"
+                    value={driverName}
+                    onChangeText={val => {
+                      setDriverName(val);
+                      if (modalError) setModalError('');
+                    }}
+                    editable={!submittingOrder}
+                  />
+                </View>
               </View>
 
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.modalScrollContent}>
-                {/* Fixed Info Tags */}
-                <View style={styles.infoTagsRow}>
-                  <View style={styles.infoTag}>
-                    <MIcon name="calendar-today" size={12} color="#0369A1" />
-                    <Text style={styles.infoTagLabel}>Date:</Text>
-                    <Text style={styles.infoTagValue}>
-                      {moment().format('DD-MM-YYYY')}
+              {/* Form Field 2: Vehicle No */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Vehicle No <Text style={styles.requiredStar}>*</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="truck-outline"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="LES-4421"
+                    placeholderTextColor="#94A3B8"
+                    value={vehicleNo}
+                    onChangeText={val => {
+                      setVehicleNo(val);
+                      if (modalError) setModalError('');
+                    }}
+                    autoCapitalize="characters"
+                    editable={!submittingOrder}
+                  />
+                </View>
+              </View>
+
+              {/* Form Field 3: Driver CNIC */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Driver CNIC <Text style={styles.requiredStar}>*</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="card-account-details-outline"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="35201-1234567-1"
+                    placeholderTextColor="#94A3B8"
+                    value={driverCnic}
+                    onChangeText={val => {
+                      setDriverCnic(val);
+                      if (modalError) setModalError('');
+                    }}
+                    keyboardType="numbers-and-punctuation"
+                    editable={!submittingOrder}
+                  />
+                </View>
+              </View>
+
+              {/* Form Field 4: Person ID */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Person ID <Text style={styles.requiredStar}>*</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="identifier"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="Enter person ID"
+                    placeholderTextColor="#94A3B8"
+                    value={personId}
+                    onChangeText={val => {
+                      setPersonId(val);
+                      if (modalError) setModalError('');
+                    }}
+                    keyboardType="default"
+                    editable={!submittingOrder}
+                  />
+                </View>
+              </View>
+
+              {/* Form Field 5: PO No */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  PO No <Text style={styles.requiredStar}>*</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="file-document-outline"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="Enter Purchase Order No"
+                    placeholderTextColor="#94A3B8"
+                    value={poNo}
+                    onChangeText={val => {
+                      setPoNo(val);
+                      if (modalError) setModalError('');
+                    }}
+                    editable={!submittingOrder}
+                  />
+                </View>
+              </View>
+
+              {/* Form Field 6: Comments */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Comments <Text style={styles.optionalLabel}>(Optional)</Text>
+                </Text>
+                <View style={styles.modalInputWrapper}>
+                  <MIcon
+                    name="comment-text-outline"
+                    size={20}
+                    color="#64748B"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.modalTextInput}
+                    placeholder="Special Note"
+                    placeholderTextColor="#94A3B8"
+                    value={comments}
+                    onChangeText={val => {
+                      setComments(val);
+                      if (modalError) setModalError('');
+                    }}
+                    editable={!submittingOrder}
+                  />
+                </View>
+              </View>
+
+              {/* Cart Items Summary List */}
+              <View style={styles.modalCartSummaryBox}>
+                <View style={styles.modalCartSummaryHeader}>
+                  <MIcon name="cart-outline" size={16} color="#0784B5" />
+                  <Text style={styles.modalCartSummaryTitle}>
+                    Order Items ({cart.length})
+                  </Text>
+                </View>
+                {cart.map((cItem, cIdx) => (
+                  <View
+                    key={`modal-item-${cIdx}`}
+                    style={styles.modalCartItemRow}>
+                    <Text style={styles.modalItemCode}>
+                      #{cItem.stock_id}
+                    </Text>
+                    <Text style={styles.modalItemDesc} numberOfLines={1}>
+                      {cItem.description || 'Stock Item'}
                     </Text>
                   </View>
-                </View>
+                ))}
+              </View>
+            </ScrollView>
 
-                {/* Form Field 1: Driver Name */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    Driver Name <Text style={styles.requiredStar}>*</Text>
-                  </Text>
-                  <View style={styles.modalInputWrapper}>
-                    <MIcon
-                      name="account-outline"
-                      size={20}
-                      color="#64748B"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.modalTextInput}
-                      placeholder="Enter driver full name"
-                      placeholderTextColor="#94A3B8"
-                      value={driverName}
-                      onChangeText={setDriverName}
-                      editable={!submittingOrder}
-                    />
-                  </View>
+            {/* Pinned Action Buttons Footer at bottom of Modal Card */}
+            <View style={styles.modalFooterFixed}>
+              {/* Form Error Banner above Buttons if any */}
+              {!!modalError && (
+                <View
+                  style={[
+                    styles.modalErrorBanner,
+                    {marginTop: 0, marginBottom: 10},
+                  ]}>
+                  <MIcon name="alert-circle" size={18} color="#DC2626" />
+                  <Text style={styles.modalErrorText}>{modalError}</Text>
                 </View>
+              )}
 
-                {/* Form Field 2: Vehicle No */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    Vehicle No <Text style={styles.requiredStar}>*</Text>
-                  </Text>
-                  <View style={styles.modalInputWrapper}>
-                    <MIcon
-                      name="truck-outline"
-                      size={20}
-                      color="#64748B"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.modalTextInput}
-                      placeholder="LES-4421"
-                      placeholderTextColor="#94A3B8"
-                      value={vehicleNo}
-                      onChangeText={setVehicleNo}
-                      autoCapitalize="characters"
-                      editable={!submittingOrder}
-                    />
-                  </View>
-                </View>
+              <View style={styles.modalActionsRow}>
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  activeOpacity={0.7}
+                  disabled={submittingOrder}
+                  onPress={() => setShowCheckoutModal(false)}>
+                  <Text style={styles.modalCancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
 
-                {/* Form Field 3: Driver CNIC */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    Driver CNIC <Text style={styles.requiredStar}>*</Text>
-                  </Text>
-                  <View style={styles.modalInputWrapper}>
-                    <MIcon
-                      name="card-account-details-outline"
-                      size={20}
-                      color="#64748B"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.modalTextInput}
-                      placeholder="35201-1234567-1"
-                      placeholderTextColor="#94A3B8"
-                      value={driverCnic}
-                      onChangeText={setDriverCnic}
-                      keyboardType="numbers-and-punctuation"
-                      editable={!submittingOrder}
-                    />
-                  </View>
-                </View>
-
-                {/* Form Field 4: Person ID */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    Person ID <Text style={styles.requiredStar}>*</Text>
-                  </Text>
-                  <View style={styles.modalInputWrapper}>
-                    <MIcon
-                      name="identifier"
-                      size={20}
-                      color="#64748B"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.modalTextInput}
-                      placeholder="Enter person ID (1)"
-                      placeholderTextColor="#94A3B8"
-                      value={personId}
-                      onChangeText={setPersonId}
-                      keyboardType="default"
-                      editable={!submittingOrder}
-                    />
-                  </View>
-                </View>
-
-                {/* Form Field 5: PO No */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    PO No <Text style={styles.requiredStar}>*</Text>
-                  </Text>
-                  <View style={styles.modalInputWrapper}>
-                    <MIcon
-                      name="file-document-outline"
-                      size={20}
-                      color="#64748B"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.modalTextInput}
-                      placeholder="Enter Purchase Order No (PO-9921)"
-                      placeholderTextColor="#94A3B8"
-                      value={poNo}
-                      onChangeText={setPoNo}
-                      editable={!submittingOrder}
-                    />
-                  </View>
-                </View>
-
-                {/* Cart Items Summary List */}
-                <View style={styles.modalCartSummaryBox}>
-                  <View style={styles.modalCartSummaryHeader}>
-                    <MIcon name="cart-outline" size={16} color="#0784B5" />
-                    <Text style={styles.modalCartSummaryTitle}>
-                      Order Items ({cart.length})
-                    </Text>
-                  </View>
-                  {cart.map((cItem, cIdx) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalSubmitBtn,
+                    submittingOrder && {opacity: 0.8},
+                  ]}
+                  activeOpacity={0.8}
+                  disabled={submittingOrder}
+                  onPress={handleProceedSubmit}>
+                  {submittingOrder ? (
                     <View
-                      key={`modal-item-${cIdx}`}
-                      style={styles.modalCartItemRow}>
-                      <Text style={styles.modalItemCode}>
-                        #{cItem.stock_id}
-                      </Text>
-                      <Text style={styles.modalItemDesc} numberOfLines={1}>
-                        {cItem.description || 'Stock Item'}
+                      style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <ActivityIndicator
+                        size="small"
+                        color="#FFFFFF"
+                        style={{marginRight: 8}}
+                      />
+                      <Text style={styles.modalSubmitBtnText}>
+                        Submitting...
                       </Text>
                     </View>
-                  ))}
-                </View>
-
-                {/* Submit and Cancel Buttons */}
-                <View style={styles.modalActionsRow}>
-                  <TouchableOpacity
-                    style={styles.modalCancelBtn}
-                    activeOpacity={0.7}
-                    disabled={submittingOrder}
-                    onPress={() => setShowCheckoutModal(false)}>
-                    <Text style={styles.modalCancelBtnText}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.modalSubmitBtn,
-                      submittingOrder && {opacity: 0.8},
-                    ]}
-                    activeOpacity={0.8}
-                    disabled={submittingOrder}
-                    onPress={handleProceedSubmit}>
-                    {submittingOrder ? (
-                      <View
-                        style={{flexDirection: 'row', alignItems: 'center'}}>
-                        <ActivityIndicator
-                          size="small"
-                          color="#FFFFFF"
-                          style={{marginRight: 8}}
-                        />
-                        <Text style={styles.modalSubmitBtnText}>
-                          Submitting...
-                        </Text>
-                      </View>
-                    ) : (
-                      <View
-                        style={{flexDirection: 'row', alignItems: 'center'}}>
-                        <Text style={styles.modalSubmitBtnText}>
-                          Confirm & Post
-                        </Text>
-                        <MIcon
-                          name="check-circle-outline"
-                          size={18}
-                          color="#FFFFFF"
-                          style={{marginLeft: 6}}
-                        />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
+                  ) : (
+                    <View
+                      style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Text style={styles.modalSubmitBtnText}>
+                        Confirm & Post
+                      </Text>
+                      <MIcon
+                        name="check-circle-outline"
+                        size={18}
+                        color="#FFFFFF"
+                        style={{marginLeft: 6}}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* CUSTOM ALERT MODAL (Replaces all native Alert.alert) */}
+      <Modal
+        visible={customAlert.visible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={hideAlert}>
+        <View style={styles.alertOverlay}>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              if (!customAlert.cancelText) {
+                hideAlert();
+              }
+            }}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View style={styles.alertCard}>
+            {/* Top Icon Badge */}
+            <View
+              style={[
+                styles.alertIconBadge,
+                customAlert.type === 'success' && styles.alertBadgeSuccess,
+                customAlert.type === 'danger' && styles.alertBadgeDanger,
+                customAlert.type === 'warning' && styles.alertBadgeWarning,
+                customAlert.type === 'info' && styles.alertBadgeInfo,
+              ]}>
+              <MIcon
+                name={
+                  customAlert.type === 'success'
+                    ? 'check-circle'
+                    : customAlert.type === 'danger'
+                    ? 'alert-circle'
+                    : customAlert.type === 'warning'
+                    ? 'alert'
+                    : 'information'
+                }
+                size={36}
+                color={
+                  customAlert.type === 'success'
+                    ? '#16A34A'
+                    : customAlert.type === 'danger'
+                    ? '#DC2626'
+                    : customAlert.type === 'warning'
+                    ? '#D97706'
+                    : '#0784B5'
+                }
+              />
+            </View>
+
+            {/* Alert Title */}
+            <Text style={styles.alertTitle}>{customAlert.title}</Text>
+
+            {/* Alert Message */}
+            {!!customAlert.message && (
+              <Text style={styles.alertMessage}>{customAlert.message}</Text>
+            )}
+
+            {/* Alert Action Buttons */}
+            <View style={styles.alertActionsRow}>
+              {customAlert.cancelText ? (
+                <TouchableOpacity
+                  style={styles.alertCancelBtn}
+                  activeOpacity={0.75}
+                  onPress={() => {
+                    hideAlert();
+                    if (typeof customAlert.onCancel === 'function') {
+                      customAlert.onCancel();
+                    }
+                  }}>
+                  <Text style={styles.alertCancelBtnText}>
+                    {customAlert.cancelText}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              <TouchableOpacity
+                style={[
+                  styles.alertConfirmBtn,
+                  !customAlert.cancelText && {flex: 1},
+                  customAlert.type === 'danger' && styles.alertConfirmDangerBtn,
+                  customAlert.type === 'success' &&
+                    styles.alertConfirmSuccessBtn,
+                ]}
+                activeOpacity={0.85}
+                onPress={() => {
+                  hideAlert();
+                  if (typeof customAlert.onConfirm === 'function') {
+                    customAlert.onConfirm();
+                  }
+                }}>
+                <Text style={styles.alertConfirmBtnText}>
+                  {customAlert.confirmText || 'OK'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -1682,16 +1805,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'flex-end',
   },
-  modalBackdropTouchable: {
+  modalBackdropEmpty: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
   modalCard: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
-    paddingBottom: Platform.OS === 'ios' ? responsiveHeight(3) : 16,
+    maxHeight: '88%',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: -6},
     shadowOpacity: 0.15,
@@ -1837,9 +1958,16 @@ const styles = StyleSheet.create({
     color: '#64748B',
     flex: 1,
   },
+  modalFooterFixed: {
+    paddingHorizontal: responsiveWidth(5),
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 14,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+  },
   modalActionsRow: {
     flexDirection: 'row',
-    marginTop: 8,
   },
   modalCancelBtn: {
     flex: 1,
@@ -1871,6 +1999,127 @@ const styles = StyleSheet.create({
   },
   modalSubmitBtnText: {
     fontSize: responsiveFontSize(1.7),
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  optionalLabel: {
+    fontSize: responsiveFontSize(1.3),
+    fontWeight: '500',
+    color: '#94A3B8',
+  },
+  modalErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 14,
+  },
+  modalErrorText: {
+    flex: 1,
+    fontSize: responsiveFontSize(1.5),
+    color: '#DC2626',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  /* CUSTOM ALERT MODAL STYLES */
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  alertCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  alertIconBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  alertBadgeSuccess: {
+    backgroundColor: '#DCFCE7',
+  },
+  alertBadgeDanger: {
+    backgroundColor: '#FEE2E2',
+  },
+  alertBadgeWarning: {
+    backgroundColor: '#FEF3C7',
+  },
+  alertBadgeInfo: {
+    backgroundColor: '#E0F2FE',
+  },
+  alertTitle: {
+    fontSize: responsiveFontSize(2),
+    fontWeight: '700',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  alertMessage: {
+    fontSize: responsiveFontSize(1.6),
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  alertActionsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  alertCancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  alertCancelBtnText: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    color: '#475569',
+  },
+  alertConfirmBtn: {
+    flex: 1,
+    backgroundColor: APPCOLORS.Primary || '#0784B5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alertConfirmDangerBtn: {
+    backgroundColor: '#DC2626',
+  },
+  alertConfirmSuccessBtn: {
+    backgroundColor: '#16A34A',
+  },
+  alertConfirmBtnText: {
+    fontSize: responsiveFontSize(1.6),
     fontWeight: '700',
     color: '#FFFFFF',
   },
