@@ -43,7 +43,7 @@ const StockMovements = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [fromDate, setFromDate] = useState(
-    moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
 
@@ -152,7 +152,7 @@ const StockMovements = ({ navigation, route }) => {
     if (!item?.stock_id) {
       setSelectedStock('');
     }
-    setFromDate(moment().subtract(1, 'month').format('YYYY-MM-DD'));
+    setFromDate(moment().startOf('month').format('YYYY-MM-DD'));
     setToDate(moment().format('YYYY-MM-DD'));
     setMovementData([]);
     setOpeningBalance(0);

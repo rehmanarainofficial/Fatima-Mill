@@ -8,7 +8,6 @@ export const CurrentLogin = createAsyncThunk(
   async ({config, username, password}) => {
     return axios(config)
       .then(data => {
-        console.log('first.>>>>>>>>>>>>>', config, username, password);
         const user = data?.data?.data?.find(user => user.user_id === username);
         if (user) {
           const hashedPassword = CryptoJS.MD5(password).toString();

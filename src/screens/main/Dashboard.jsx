@@ -62,7 +62,7 @@ const Dashboard = ({navigation}) => {
   const [AllData, setAllData] = useState(dashboardCache.data || null);
 
   const [fromDate, setFromDate] = useState(
-    moment().subtract(30, 'days').format('YYYY-MM-DD'),
+    moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
   const [showFromPicker, setShowFromPicker] = useState(false);
@@ -117,7 +117,7 @@ const Dashboard = ({navigation}) => {
 
   const handleResetDateFilter = () => {
     const today = moment().format('YYYY-MM-DD');
-    const prev = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    const prev = moment().startOf('month').format('YYYY-MM-DD');
     setFromDate(prev);
     setToDate(today);
     fetchIncomeExpense(prev, today);

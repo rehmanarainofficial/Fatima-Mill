@@ -34,7 +34,7 @@ const ViewLedger = ({ navigation }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [selectedCounterParty, setSelectedCounterParty] = useState(null);
   const [fromDate, setFromDate] = useState(
-    moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
 
@@ -221,7 +221,7 @@ const ViewLedger = ({ navigation }) => {
   const handleResetFilter = () => {
     setSelectedAccount(null);
     setSelectedCounterParty(null);
-    setFromDate(moment().subtract(1, 'month').format('YYYY-MM-DD'));
+    setFromDate(moment().startOf('month').format('YYYY-MM-DD'));
     setToDate(moment().format('YYYY-MM-DD'));
     setLedgerData([]);
     setOpeningBalance(0);

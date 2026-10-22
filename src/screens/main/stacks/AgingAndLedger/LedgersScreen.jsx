@@ -35,7 +35,7 @@ const LedgersScreen = ({ route, navigation }) => {
   const [closingBalance, setClosingBalance] = useState(0);
 
   const [fromDate, setFromDate] = useState(
-    passedFromDate || moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    passedFromDate || moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(
     passedToDate || moment().format('YYYY-MM-DD'),
@@ -210,7 +210,7 @@ const LedgersScreen = ({ route, navigation }) => {
   };
 
   const handleResetFilter = () => {
-    const prev = moment().subtract(1, 'month').format('YYYY-MM-DD');
+    const prev = moment().startOf('month').format('YYYY-MM-DD');
     const today = moment().format('YYYY-MM-DD');
     setFromDate(prev);
     setToDate(today);

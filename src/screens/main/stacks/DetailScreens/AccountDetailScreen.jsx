@@ -39,7 +39,7 @@ const AccountDetailScreen = ({ route, navigation }) => {
     route.params || {};
 
   const [fromDate, setFromDate] = useState(
-    initialFrom || moment().subtract(30, 'days').format('YYYY-MM-DD'),
+    initialFrom || moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(
     initialTo || moment().format('YYYY-MM-DD'),
@@ -92,7 +92,7 @@ const AccountDetailScreen = ({ route, navigation }) => {
 
   const handleResetDateFilter = () => {
     const today = moment().format('YYYY-MM-DD');
-    const prev = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    const prev = moment().startOf('month').format('YYYY-MM-DD');
     setFromDate(prev);
     setToDate(today);
     fetchData(prev, today);

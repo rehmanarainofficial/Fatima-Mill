@@ -54,7 +54,7 @@ const MoreDetail = ({navigation, route}) => {
   const [loader, setLoader] = useState(false);
 
   const [fromDate, setFromDate] = useState(
-    moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    moment().startOf('month').format('YYYY-MM-DD'),
   );
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
@@ -191,7 +191,7 @@ const MoreDetail = ({navigation, route}) => {
   };
 
   const handleResetDates = () => {
-    const defaultFrom = moment().subtract(1, 'month').format('YYYY-MM-DD');
+    const defaultFrom = moment().startOf('month').format('YYYY-MM-DD');
     const defaultTo = moment().format('YYYY-MM-DD');
     setFromDate(defaultFrom);
     setToDate(defaultTo);

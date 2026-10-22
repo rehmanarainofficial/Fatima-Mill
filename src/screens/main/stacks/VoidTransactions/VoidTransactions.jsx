@@ -52,7 +52,7 @@ const VoidTransactions = ({navigation}) => {
   const [selectedVoucher, setSelectedVoucher] = useState(null);
 
   const [fromDate, setFromDate] = useState(
-    new Date(moment().subtract(1, 'month')),
+    new Date(moment().startOf('month')),
   );
   const [toDate, setToDate] = useState(new Date());
   const [showFromPicker, setShowFromPicker] = useState(false);
@@ -226,7 +226,7 @@ const VoidTransactions = ({navigation}) => {
   };
 
   const handleClearFilters = () => {
-    setFromDate(new Date(moment().subtract(1, 'month')));
+    setFromDate(new Date(moment().startOf('month')));
     setToDate(new Date());
     setSearchName('');
     setReference('');
