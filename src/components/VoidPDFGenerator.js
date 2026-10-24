@@ -92,8 +92,54 @@ export const shareVoidTransactionPDF = async (
   const docDate = formatDateDisplay(header.trans_date || '');
   const docNo = item.trans_no || '';
   const docRef = header.reference || '-';
-  const customerName = header.name || '';
-  const vehicleNo = header.location_name || '';
+  const customerName =
+    header.name ||
+    item?.name ||
+    item?.person_name ||
+    item?.customer_name ||
+    item?.debtor_name ||
+    item?.supp_name ||
+    '';
+  const cleanStr = val =>
+    typeof val === 'string'
+      ? val.trim()
+      : val !== null && val !== undefined
+      ? String(val).trim()
+      : '';
+
+  const vehicleNo =
+    cleanStr(
+      header.vehical_no ||
+        header.vehicle_no ||
+        header.Vehical_no ||
+        header.Vehicle_no ||
+        item?.vehical_no ||
+        item?.vehicle_no,
+    ) ||
+    header.location_name ||
+    '';
+
+  const driverName = cleanStr(
+    header.driver_name ||
+      header.Driver_name ||
+      header.driverName ||
+      header.driver ||
+      item?.driver_name ||
+      item?.Driver_name ||
+      item?.driver,
+  );
+
+  const driverCnic = cleanStr(
+    header.driver_cnic ||
+      header.Driver_cnic ||
+      header.driverCnic ||
+      header.driver_nic ||
+      header.cnic ||
+      item?.driver_cnic ||
+      item?.Driver_cnic ||
+      item?.cnic,
+  );
+
   const salesPerson = header.salesman || '';
   const poNo = header.customer_ref || '';
 
@@ -423,6 +469,16 @@ export const shareVoidTransactionPDF = async (
                 <td class="info-label">Vehicle No:</td>
                 <td>${vehicleNo || '-'}</td>
               </tr>
+              ${driverName ? `
+              <tr>
+                <td class="info-label">Driver Name:</td>
+                <td>${decodeHtml(driverName)}</td>
+              </tr>` : ''}
+              ${driverCnic ? `
+              <tr>
+                <td class="info-label">Driver CNIC:</td>
+                <td>${decodeHtml(driverCnic)}</td>
+              </tr>` : ''}
               <tr>
                 <td class="info-label">Sales Person:</td>
                 <td>${salesPerson || '-'}</td>

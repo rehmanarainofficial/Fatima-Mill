@@ -13,10 +13,11 @@ import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
+import {useSelector} from 'react-redux';
 import AppText from '../../components/AppText';
 import AppHeader from '../../components/AppHeader';
 import {APPCOLORS} from '../../utils/APPCOLORS';
-import BaseUrl from '../../utils/BaseUrl';
+import BaseUrl, {getActiveCompany} from '../../utils/BaseUrl';
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -39,7 +40,7 @@ const decodeHtml = str => {
     .replace(/&apos;/g, "'");
 };
 
-const dashboardCache = {
+export const dashboardCache = {
   data: null,
   lastFetched: null,
 };
@@ -50,6 +51,7 @@ export const clearDashboardCache = () => {
 };
 
 const Dashboard = ({navigation}) => {
+  const {activeCompany} = useSelector(state => state.Data || {});
   const [visible, setVisible] = useState(false);
   const [Type, setType] = useState();
   const [loader, setLoader] = useState(!dashboardCache.data);
@@ -84,6 +86,15 @@ const Dashboard = ({navigation}) => {
     fetchIncomeExpense(fromDate, toDate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeCompany) {
+      clearDashboardCache();
+      getMoneyData();
+      fetchIncomeExpense(fromDate, toDate);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompany]);
 
   const fetchIncomeExpense = async (start = fromDate, end = toDate) => {
     setIsIncomeLoading(true);
@@ -152,7 +163,11 @@ const Dashboard = ({navigation}) => {
   const getMoneyData = async () => {
     setLoader(true);
     try {
-      const {data} = await axios.get(`${BaseUrl}dashboard_view.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const {data} = await axios.post(`${BaseUrl}dashboard_view.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
       dashboardCache.data = data;
       dashboardCache.lastFetched = Date.now();
       setslider_data(data?.slider_data);

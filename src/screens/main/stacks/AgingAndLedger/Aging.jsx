@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
@@ -40,6 +40,7 @@ const Aging = ({navigation, route}) => {
     setDataLoading(true);
     let data = new FormData();
     data.append('customer_id', item?.customer_id);
+    data.append('company', getActiveCompany());
     axios
       .post(`${BASEURL}dash_cust_aging.php`, data, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -56,6 +57,7 @@ const Aging = ({navigation, route}) => {
     setDataLoading(true);
     let data = new FormData();
     data.append('supplier_id', item?.supplier_id);
+    data.append('company', getActiveCompany());
 
     axios
       .post(`${BASEURL}dash_supp_aging.php`, data, {

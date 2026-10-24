@@ -13,7 +13,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../../../components/Header';
 import { Dropdown } from 'react-native-element-dropdown';
 import AppDatePicker from '../../../../components/AppDatePicker';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
 import {
@@ -62,7 +62,13 @@ const ViewLedger = ({ navigation }) => {
   const fetchAccounts = async () => {
     try {
       setAccountsLoading(true);
-      const response = await fetch(`${BASEURL}get_gl_account.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const response = await fetch(`${BASEURL}get_gl_account.php`, {
+        method: 'POST',
+        headers: {'Content-Type': 'multipart/form-data'},
+        body: formData,
+      });
       const json = await response.json();
 
       if (json.status === 'true' && Array.isArray(json.data)) {
@@ -87,6 +93,7 @@ const ViewLedger = ({ navigation }) => {
 
       const formData = new FormData();
       formData.append('account', accountValue);
+      formData.append('company', getActiveCompany());
 
       const response = await fetch(`${BASEURL}get_counter_party.php`, {
         method: 'POST',
@@ -125,6 +132,7 @@ const ViewLedger = ({ navigation }) => {
       formData.append('account', selectedAccount.value);
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
+      formData.append('company', getActiveCompany());
       if (selectedCounterParty) {
         formData.append('person_id', selectedCounterParty.value);
       }

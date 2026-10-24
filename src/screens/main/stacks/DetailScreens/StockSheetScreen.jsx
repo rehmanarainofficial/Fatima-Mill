@@ -17,7 +17,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import Header from '../../../../components/Header';
 
@@ -73,7 +73,11 @@ export default function StockSheetScreen({ navigation, route }) {
   // Fetch Combo1 Data
   const fetchCombo1Data = async () => {
     try {
-      const { data: resData } = await axios.get(`${BASEURL}combo1.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const { data: resData } = await axios.post(`${BASEURL}combo1.php`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       if (resData?.status === 'true') {
         const mapped = resData.data.map(i => ({
           label: i.description,
@@ -89,7 +93,11 @@ export default function StockSheetScreen({ navigation, route }) {
   // Fetch Combo2 Data
   const fetchCombo2Data = async () => {
     try {
-      const { data: resData } = await axios.get(`${BASEURL}combo2.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const { data: resData } = await axios.post(`${BASEURL}combo2.php`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       if (resData?.status === 'true') {
         const mapped = resData.data.map(i => ({
           label: i.description,
@@ -104,7 +112,11 @@ export default function StockSheetScreen({ navigation, route }) {
 
   const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
-      const { data: resData } = await axios.get(url);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const { data: resData } = await axios.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       if (resData?.status === 'true') {
         const mapped = resData.data.map(i => ({
           label: i[labelField],
@@ -126,6 +138,7 @@ export default function StockSheetScreen({ navigation, route }) {
       payload.append('category_id', filters.category || '');
       payload.append('sub_cat1', filters.combo1 || '');
       payload.append('sub_cat2', filters.combo2 || '');
+      payload.append('company', getActiveCompany());
 
       const res = await axios.post(`${BASEURL}stock_check_sheet.php`, payload, {
         headers: { 'Content-Type': 'multipart/form-data' },

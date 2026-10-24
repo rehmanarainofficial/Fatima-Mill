@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CurrentLogin, setLoader } from '../../redux/AuthSlice';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../utils/Responsive';
 import AppText from '../../components/AppText';
-import BaseUrl, { COMPANY_URLS } from '../../utils/BaseUrl';
+import BaseUrl, { BASE_URL, COMPANY_CODES, setActiveCompany } from '../../utils/BaseUrl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = ({ navigation }) => {
@@ -49,15 +49,18 @@ const Login = ({ navigation }) => {
     AsyncStorage.getItem('SELECTED_COMPANY').then(company => {
       if (company === 'IBR-ENT' || company === 'FBPM') {
         setSelectedCompany(company);
-        BaseUrl.set(COMPANY_URLS[company]);
+        const code = COMPANY_CODES[company] || 'company1';
+        setActiveCompany(code);
       }
     });
   }, []);
 
   const handleCompanySelect = company => {
     setSelectedCompany(company);
-    BaseUrl.set(COMPANY_URLS[company]);
+    const code = COMPANY_CODES[company] || 'company1';
+    setActiveCompany(code);
     AsyncStorage.setItem('SELECTED_COMPANY', company);
+    AsyncStorage.setItem('SELECTED_COMPANY_CODE', code);
   };
 
   const loginUser = () => {
@@ -70,14 +73,35 @@ const Login = ({ navigation }) => {
       return;
     }
 
+    const companyCode =
+      COMPANY_CODES[selectedCompany] ||
+      (selectedCompany === 'FBPM' ? 'company2' : 'company1');
+    setActiveCompany(companyCode);
+
+    const formData = new FormData();
+    formData.append('user_id', username.trim());
+    formData.append('password', password.trim());
+    formData.append('company', companyCode);
+
     dispatch(setLoader(true));
     const config = {
-      method: 'get',
+      method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}users.php`,
-      headers: {},
+      url: `${BASE_URL}users.php`,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     };
-    dispatch(CurrentLogin({ config, username, password }));
+    dispatch(
+      CurrentLogin({
+        config,
+        username: username.trim(),
+        password: password.trim(),
+        company: companyCode,
+        companyLabel: selectedCompany,
+      }),
+    );
   };
 
   return (

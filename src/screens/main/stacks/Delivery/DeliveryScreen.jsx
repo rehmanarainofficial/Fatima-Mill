@@ -21,9 +21,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
+import {Dropdown} from 'react-native-element-dropdown';
 
 import Header from '../../../../components/Header';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {
   responsiveFontSize,
@@ -78,6 +79,9 @@ const DeliveryScreen = ({navigation, route}) => {
   const [vehicleNo, setVehicleNo] = useState('');
   const [driverCnic, setDriverCnic] = useState('');
   const [personId, setPersonId] = useState('');
+  const [selectedDebtor, setSelectedDebtor] = useState(null);
+  const [debtorsList, setDebtorsList] = useState([]);
+  const [debtorsLoading, setDebtorsLoading] = useState(false);
   const [poNo, setPoNo] = useState('');
   const [comments, setComments] = useState('');
   const [submittingOrder, setSubmittingOrder] = useState(false);
@@ -121,8 +125,43 @@ const DeliveryScreen = ({navigation, route}) => {
   };
 
   // Redux Logged-In User
-  const {currentData} = useSelector(state => state.Data || {});
+  const {currentData, activeCompany} = useSelector(state => state.Data || {});
   const userData = Array.isArray(currentData) ? currentData[0] : currentData;
+
+  const fetchDebtors = async () => {
+    try {
+      setDebtorsLoading(true);
+      const fd = new FormData();
+      fd.append('company', getActiveCompany());
+
+      const res = await axios.post(`${BASEURL}debtors_master.php`, fd, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
+
+      if (
+        (res.data?.status === 'true' || res.data?.status === true) &&
+        Array.isArray(res.data.data)
+      ) {
+        const mapped = res.data.data.map(item => ({
+          label: String(item.name || item.debtor_ref || '').trim(),
+          value: String(item.debtor_no ?? '').trim(),
+          raw: item,
+        }));
+        setDebtorsList(mapped);
+      } else {
+        setDebtorsList([]);
+      }
+    } catch (e) {
+      console.log('Error fetching debtors_master:', e);
+      setDebtorsList([]);
+    } finally {
+      setDebtorsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDebtors();
+  }, [activeCompany]);
 
   // Scanning animation for viewfinder
   const laserAnim = useRef(new Animated.Value(0)).current;
@@ -180,6 +219,7 @@ const DeliveryScreen = ({navigation, route}) => {
       setLoading(true);
       const formData = new FormData();
       formData.append('stock_id', cleanId);
+      formData.append('company', getActiveCompany());
 
       const res = await axios.post(getStockApiUrl(), formData, {
         headers: {
@@ -344,7 +384,7 @@ const DeliveryScreen = ({navigation, route}) => {
       return;
     }
     if (!cleanPersonId) {
-      setModalError('Please enter Person ID.');
+      setModalError('Please select Person / Debtor.');
       return;
     }
     if (!cleanPoNo) {
@@ -375,6 +415,7 @@ const DeliveryScreen = ({navigation, route}) => {
       formData.append('driver_cnic', String(cleanDriverCnic));
       formData.append('update_id', '0');
       formData.append('comments', cleanComments);
+      formData.append('company', getActiveCompany());
 
       const postUrl = getPostServiceUrl();
 
@@ -392,6 +433,7 @@ const DeliveryScreen = ({navigation, route}) => {
         setVehicleNo('');
         setDriverCnic('');
         setPersonId('');
+        setSelectedDebtor(null);
         setPoNo('');
         setComments('');
         setModalError('');
@@ -828,6 +870,9 @@ const DeliveryScreen = ({navigation, route}) => {
                 activeOpacity={0.85}
                 onPress={() => {
                   setModalError('');
+                  if (debtorsList.length === 0) {
+                    fetchDebtors();
+                  }
                   setShowCheckoutModal(true);
                 }}>
                 <Text style={styles.proceedBtnText}>Proceed</Text>
@@ -977,29 +1022,53 @@ const DeliveryScreen = ({navigation, route}) => {
                 </View>
               </View>
 
-              {/* Form Field 4: Person ID */}
+              {/* Form Field 4: Person ID (Debtor Dropdown) */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>
-                  Person ID <Text style={styles.requiredStar}>*</Text>
+                  Person / Debtor <Text style={styles.requiredStar}>*</Text>
                 </Text>
                 <View style={styles.modalInputWrapper}>
                   <MIcon
-                    name="identifier"
+                    name="account-search-outline"
                     size={20}
                     color="#64748B"
                     style={styles.inputIcon}
                   />
-                  <TextInput
-                    style={styles.modalTextInput}
-                    placeholder="Enter person ID"
-                    placeholderTextColor="#94A3B8"
+                  <Dropdown
+                    style={styles.modalDropdown}
+                    placeholderStyle={styles.dropdownPlaceholder}
+                    selectedTextStyle={styles.dropdownSelectedText}
+                    inputSearchStyle={styles.dropdownInputSearch}
+                    iconStyle={styles.dropdownIcon}
+                    data={debtorsList}
+                    search
+                    maxHeight={260}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={
+                      debtorsLoading
+                        ? 'Loading debtors...'
+                        : 'Select Person / Debtor'
+                    }
+                    searchPlaceholder="Search by debtor name..."
                     value={personId}
-                    onChangeText={val => {
-                      setPersonId(val);
+                    onChange={item => {
+                      setPersonId(item.value);
+                      setSelectedDebtor(item);
                       if (modalError) setModalError('');
                     }}
-                    keyboardType="default"
-                    editable={!submittingOrder}
+                    disable={submittingOrder || debtorsLoading}
+                    renderRightIcon={() =>
+                      debtorsLoading ? (
+                        <ActivityIndicator size="small" color="#0784B5" />
+                      ) : (
+                        <Ionicons
+                          name="chevron-down"
+                          size={18}
+                          color="#64748B"
+                        />
+                      )
+                    }
                   />
                 </View>
               </View>
@@ -1921,6 +1990,31 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: '#0F172A',
     height: '100%',
+  },
+  modalDropdown: {
+    flex: 1,
+    height: '100%',
+    paddingHorizontal: 4,
+  },
+  dropdownPlaceholder: {
+    fontSize: responsiveFontSize(1.6),
+    color: '#94A3B8',
+  },
+  dropdownSelectedText: {
+    fontSize: responsiveFontSize(1.6),
+    color: '#0F172A',
+    fontWeight: '500',
+  },
+  dropdownInputSearch: {
+    height: 40,
+    fontSize: responsiveFontSize(1.5),
+    borderRadius: 8,
+    borderColor: '#CBD5E1',
+    color: '#0F172A',
+  },
+  dropdownIcon: {
+    width: 20,
+    height: 20,
   },
   modalCartSummaryBox: {
     backgroundColor: '#F8FAFC',

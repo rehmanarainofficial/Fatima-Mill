@@ -19,7 +19,7 @@ import {
   responsiveWidth,
 } from '../../../../utils/Responsive';
 import AppDatePicker from '../../../../components/AppDatePicker';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { generateLedgerPDF } from '.././../../../components/LedgerPDFGenerator';
 import Header from '../../../../components/Header';
@@ -82,6 +82,7 @@ const LedgersScreen = ({ route, navigation }) => {
       formData.append('account', String(accountVal));
       formData.append('from_date', overrideFrom);
       formData.append('to_date', overrideTo);
+      formData.append('company', getActiveCompany());
 
       if (
         item.person_id &&

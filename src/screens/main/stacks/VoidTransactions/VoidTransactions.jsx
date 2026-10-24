@@ -20,7 +20,7 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {shareVoidTransactionPDF} from '../../../../components/VoidPDFGenerator';
 import {useSelector} from 'react-redux';
 import Header from '../../../../components/Header';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 
 const VOUCHER_TYPES = [
   {id: 0, title: 'Journal Entry', icon: 'document-text-outline'},
@@ -106,6 +106,7 @@ const VoidTransactions = ({navigation}) => {
       const payload = new FormData();
       payload.append('trans_no', item.trans_no.toString());
       payload.append('type', selectedVoucher?.id.toString());
+      payload.append('company', getActiveCompany());
 
       const res = await axios.post(`${BASEURL}view_data.php`, payload, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -197,6 +198,7 @@ const VoidTransactions = ({navigation}) => {
       if (searchName.trim()) {
         fd.append('name', searchName.trim());
       }
+      fd.append('company', getActiveCompany());
 
       const res = await axios.post(`${BASEURL}void_transaction_data.php`, fd, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -309,6 +311,7 @@ const VoidTransactions = ({navigation}) => {
             trans_no: item.trans_no,
             type: selectedVoucher?.id,
             title: selectedVoucher?.title,
+            item: item,
           })
         }>
         <View style={styles.cardHeaderRow}>
@@ -335,6 +338,7 @@ const VoidTransactions = ({navigation}) => {
                   trans_no: item.trans_no,
                   type: selectedVoucher?.id,
                   title: selectedVoucher?.title,
+                  item: item,
                 })
               }
               style={[styles.actionBtn, {backgroundColor: '#E3F2FD'}]}>

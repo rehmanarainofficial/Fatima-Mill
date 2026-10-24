@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react
 import React, { useEffect, useState } from 'react';
 import AlertCards from '../../../../components/AlertCards';
 import axios from 'axios';
-import BaseUrl from '../../../../utils/BaseUrl';
+import BaseUrl, {getActiveCompany} from '../../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
 import Header from '../../../../components/Header';
@@ -26,10 +26,14 @@ const AlertScreen = ({ navigation }) => {
     setLoader(true);
 
 
+    const formData = new FormData();
+    formData.append('company', getActiveCompany());
     const options = {
-      method: 'GET',
+      method: 'POST',
       url: `${BaseUrl}dash_approval.php`,
+      data: formData,
       headers: {
+        'Content-Type': 'multipart/form-data',
       },
     };
 

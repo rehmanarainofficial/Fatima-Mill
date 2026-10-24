@@ -12,7 +12,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from '../../../../utils/Responsive';
-import BaseUrl from '../../../../utils/BaseUrl';
+import BaseUrl, {getActiveCompany} from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -58,7 +58,11 @@ const Detail = ({ navigation }) => {
   const getMoneyData = async () => {
     setLoader(true);
     try {
-      const { data } = await axios.get(`${BaseUrl}dashboard_view.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const { data } = await axios.post(`${BaseUrl}dashboard_view.php`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setslider_data(data?.slider_data);
       setAllData(data);
       // 🔹 Save to cache

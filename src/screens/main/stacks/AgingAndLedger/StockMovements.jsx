@@ -22,7 +22,7 @@ import AppDatePicker from '../../../../components/AppDatePicker';
 import moment from 'moment';
 
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 
 const StockMovements = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -57,7 +57,13 @@ const StockMovements = ({ navigation, route }) => {
 
   const fetchLocations = async () => {
     try {
-      const res = await fetch(`${BASEURL}locations.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const res = await fetch(`${BASEURL}locations.php`, {
+        method: 'POST',
+        headers: {'Content-Type': 'multipart/form-data'},
+        body: formData,
+      });
       const json = await res.json();
 
       if (json.status === 'true') {
@@ -70,7 +76,13 @@ const StockMovements = ({ navigation, route }) => {
 
   const fetchStocks = async () => {
     try {
-      const res = await fetch(`${BASEURL}stock_master.php`);
+      const formData = new FormData();
+      formData.append('company', getActiveCompany());
+      const res = await fetch(`${BASEURL}stock_master.php`, {
+        method: 'POST',
+        headers: {'Content-Type': 'multipart/form-data'},
+        body: formData,
+      });
       const json = await res.json();
 
       if (json.status === 'true') {
@@ -105,6 +117,7 @@ const StockMovements = ({ navigation, route }) => {
       formData.append('from_date', fromDate);
       formData.append('to_date', toDate);
       formData.append('StockLocation', selectedLocation);
+      formData.append('company', getActiveCompany());
 
       const res = await fetch(`${BASEURL}stock_movements.php`, {
         method: 'POST',

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
-import BASEURL from '../../../../utils/BaseUrl';
+import BASEURL, {getActiveCompany} from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import Header from '../../../../components/Header';
 
@@ -47,7 +47,7 @@ const formatAmount = val => {
 };
 
 const VoidTransactionDetail = ({route, navigation}) => {
-  const {trans_no, type} = route.params;
+  const {trans_no, type, title, item: routeItem} = route.params || {};
 
   const [showGL, setShowGL] = useState(false);
   const [transactionData, setTransactionData] = useState(null);
@@ -64,6 +64,7 @@ const VoidTransactionDetail = ({route, navigation}) => {
     const payload = new FormData();
     payload.append('trans_no', trans_no.toString());
     payload.append('type', type.toString());
+    payload.append('company', getActiveCompany());
 
     setIsDataLoading(true);
     try {
@@ -161,6 +162,49 @@ const VoidTransactionDetail = ({route, navigation}) => {
 
     const header = transactionData.data_header[0];
     const details = transactionData.data_detail || [];
+
+    const isDeliveryNote =
+      Number(type) === 13 ||
+      String(title || header.type || '').toLowerCase().includes('delivery');
+
+    const cleanStr = val =>
+      typeof val === 'string'
+        ? val.trim()
+        : val !== null && val !== undefined
+        ? String(val).trim()
+        : '';
+
+    const driverName = cleanStr(
+      header.driver_name ||
+        header.Driver_name ||
+        header.driverName ||
+        header.driver ||
+        routeItem?.driver_name ||
+        routeItem?.Driver_name ||
+        routeItem?.driver,
+    );
+
+    const driverCnic = cleanStr(
+      header.driver_cnic ||
+        header.Driver_cnic ||
+        header.driverCnic ||
+        header.driver_nic ||
+        header.cnic ||
+        routeItem?.driver_cnic ||
+        routeItem?.Driver_cnic ||
+        routeItem?.cnic,
+    );
+
+    const vehicleNo = cleanStr(
+      header.vehical_no ||
+        header.vehicle_no ||
+        header.Vehical_no ||
+        header.Vehicle_no ||
+        header.vehicalNo ||
+        header.vehicleNo ||
+        routeItem?.vehical_no ||
+        routeItem?.vehicle_no,
+    );
 
     const decodeHtml = html => {
       if (!html) {return '';}
@@ -318,6 +362,18 @@ const VoidTransactionDetail = ({route, navigation}) => {
           {renderHeaderField('Name', header.name)}
           {renderHeaderField('Location', header.location_name)}
           {renderHeaderField('Salesman', header.salesman)}
+          {renderHeaderField(
+            'Driver Name',
+            driverName || (isDeliveryNote ? '-' : null),
+          )}
+          {renderHeaderField(
+            'Driver CNIC',
+            driverCnic || (isDeliveryNote ? '-' : null),
+          )}
+          {renderHeaderField(
+            'Vehicle No',
+            vehicleNo || (isDeliveryNote ? '-' : null),
+          )}
           {renderHeaderField('Customer Ref', header.customer_ref)}
           {renderHeaderField('Payment Terms', header.payment_terms)}
           {renderHeaderField(
